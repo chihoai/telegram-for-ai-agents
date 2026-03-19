@@ -1,0 +1,40 @@
+{
+  "name": "telegram-for-agents",
+  "version": "1.0.0",
+  "description": "CLI for Telegram auth and recent chats via mtcute",
+  "type": "module",
+  "main": "dist/cli.js",
+  "bin": {
+    "tgchats": "dist/cli.js",
+    "tgchats-mcp": "dist/mcp/stdio.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check:local-install": "npm run build && npm run export:contracts && node scripts/check-local-install.mjs",
+    "dev": "tsx src/cli.ts",
+    "export:contracts": "tsx src/contracts/export-tool-contracts.ts",
+    "mcp": "tsx src/mcp/stdio.ts",
+    "start": "tsx src/cli.ts",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@mtcute/node": "^0.28.1",
+    "dotenv": "^17.3.1",
+    "pg": "^8.16.3",
+    "qrcode-terminal": "^0.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.0",
+    "@types/pg": "^8.15.5",
+    "@types/qrcode-terminal": "^0.12.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
