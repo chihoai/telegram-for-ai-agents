@@ -1,4 +1,4 @@
-export const APP_SCHEMA_VERSION = 1;
+export const APP_SCHEMA_VERSION = 3;
 
 export const MIGRATIONS: Array<{ id: string; sql: string }> = [
   {
@@ -157,6 +157,83 @@ CREATE TABLE IF NOT EXISTS rule_events (
 
 CREATE INDEX IF NOT EXISTS rule_events_created_idx
   ON rule_events(account_id, created_at DESC);
+`,
+  },
+  {
+    id: '003_flows',
+    sql: `
+CREATE TABLE IF NOT EXISTS flow_runs (
+  run_id bigserial PRIMARY KEY,
+  account_id bigint NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  flow_id text NOT NULL,
+  status text NOT NULL DEFAULT 'planned',
+  started_at timestamptz NOT NULL DEFAULT now(),
+  finished_at timestamptz NULL,
+  summary text NULL,
+  definition_snapshot jsonb NOT NULL,
+  discover_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+  planner_snapshot jsonb NULL,
+  budget_snapshot jsonb NOT NULL DEFAULT '{}'::jsonb,
+  final_outputs jsonb NOT NULL DEFAULT '{}'::jsonb,
+  error text NULL
+);
+
+CREATE INDEX IF NOT EXISTS flow_runs_account_started_idx
+  ON flow_runs(account_id, started_at DESC);
+
+CREATE TABLE IF NOT EXISTS flow_run_steps (
+  step_id bigserial PRIMARY KEY,
+  run_id bigint NOT NULL REFERENCES flow_runs(run_id) ON DELETE CASCADE,
+  step_index integer NOT NULL,
+  step_type text NOT NULL,
+  tool_name text NULL,
+  status text NOT NULL,
+  attempt integer NOT NULL DEFAULT 1,
+  decision jsonb NULL,
+  tool_args jsonb NULL,
+  tool_result jsonb NULL,
+  verification jsonb NULL,
+  error text NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS flow_run_steps_run_step_idx
+  ON flow_run_steps(run_id, step_index, created_at);
+
+CREATE TABLE IF NOT EXISTS outbound_messages (
+  outbound_id bigserial PRIMARY KEY,
+  account_id bigint NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  run_id bigint NULL REFERENCES flow_runs(run_id) ON DELETE SET NULL,
+  peer_id bigint NOT NULL,
+  telegram_message_id integer NULL,
+  text text NOT NULL,
+  status text NOT NULL,
+  reason text NOT NULL,
+  expected_last_message_id integer NULL,
+  observed_last_message_id integer NULL,
+  verification jsonb NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS outbound_messages_peer_created_idx
+  ON outbound_messages(account_id, peer_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS agent_identity (
+  identity_id bigserial PRIMARY KEY,
+  account_id bigint NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  agent_registry text NOT NULL,
+  agent_id text NOT NULL,
+  tx_hash text NOT NULL,
+  operator_wallet text NOT NULL,
+  registry_address text NOT NULL,
+  chain_id text NOT NULL,
+  agent_uri text NOT NULL,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS agent_identity_account_created_idx
+  ON agent_identity(account_id, created_at DESC);
 `,
   },
 ];

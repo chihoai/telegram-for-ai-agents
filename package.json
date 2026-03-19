@@ -13,6 +13,7 @@
     "check:local-install": "npm run build && npm run export:contracts && node scripts/check-local-install.mjs",
     "dev": "tsx src/cli.ts",
     "export:contracts": "tsx src/contracts/export-tool-contracts.ts",
+    "hackathon:artifacts": "npm run export:contracts && npm run dev -- flows export-agent --out ./artifacts/agent.json && node scripts/hackathon-artifacts.mjs",
     "mcp": "tsx src/mcp/stdio.ts",
     "start": "tsx src/cli.ts",
     "test": "vitest run"
@@ -25,7 +26,10 @@
   },
   "dependencies": {
     "@mtcute/node": "^0.28.1",
+    "@types/blessed": "^0.1.27",
+    "blessed": "^0.1.81",
     "dotenv": "^17.3.1",
+    "ethers": "^6.16.0",
     "pg": "^8.16.3",
     "qrcode-terminal": "^0.12.0"
   },

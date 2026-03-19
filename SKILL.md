@@ -67,7 +67,8 @@ Rules:
 
 - Chiho Cloud is the hosted MCP product.
 - `tgchats` is the self-hosted runtime.
-- Telegram message sending is intentionally out of scope here.
+- Local `tgchats` now supports guarded outbound Telegram sends for existing active threads, plus autonomous flow execution and artifact export.
+- Team execution, shared workspace auth, and hosted teammate coordination remain in Chiho Cloud.
 
 ## Next Reads
 

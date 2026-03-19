@@ -1,0 +1,56 @@
+{
+  "id": "marketing.event_followup",
+  "name": "Marketing Event Follow-Up",
+  "description": "Handle post-event and community follow-up after conferences, launches, and inbound marketing moments.",
+  "personas": ["marketing", "community", "events"],
+  "taskCategories": ["marketing", "events", "community", "follow_up"],
+  "discover": {
+    "mode": "tagged_dialogs",
+    "limit": 10,
+    "requiredAnyTags": ["Marketing", "Event", "Community", "Press"],
+    "staleDays": 1,
+    "maxHistoryMessages": 12
+  },
+  "allowedTools": [
+    "dialogs.list",
+    "chat.read",
+    "summary.refresh",
+    "tags.set",
+    "company.link",
+    "tasks.add",
+    "nudge.generate",
+    "messages.send"
+  ],
+  "allowedActions": [
+    "refresh_summary",
+    "set_tags",
+    "link_company",
+    "create_task",
+    "send_message",
+    "team_handoff"
+  ],
+  "budget": {
+    "maxCandidates": 10,
+    "maxToolCalls": 40,
+    "maxAiCalls": 12,
+    "maxRetriesPerStep": 2,
+    "maxOutboundMessages": 5,
+    "maxWallTimeSeconds": 300
+  },
+  "guardrails": {
+    "requireExistingThread": true,
+    "maxInactiveDays": 21,
+    "dedupeWindowDays": 10,
+    "blockIfLatestMessageChanged": true,
+    "abortOnGuardrailFailure": true,
+    "allowSend": true
+  },
+  "verification": {
+    "verifyCrmMutations": true,
+    "verifyMessageSend": true,
+    "requireHistoryEcho": true
+  },
+  "outputs": ["summary", "task", "message", "handoff_note", "agent_log.json"],
+  "defaultMessageStyle": "friendly",
+  "plannerPrompt": "Look for event, community, and marketing threads that need a fast human-sounding follow-up. Favor helpful next steps and low-friction asks."
+}

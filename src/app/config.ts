@@ -32,6 +32,9 @@ export interface AppConfig {
   openclawApiKey?: string;
   openclawModel: string;
   aiTimeoutMs: number;
+  evmRpcUrl?: string;
+  agentOperatorPrivateKey?: string;
+  erc8004IdentityRegistryAddress?: string;
   jsonOutput: boolean;
 }
 
@@ -120,6 +123,9 @@ export function loadConfig(args: string[]): AppConfig {
   const openclawApiKey = optionalEnv('OPENCLAW_API_KEY');
   const openclawModel = optionalEnv('OPENCLAW_MODEL') ?? DEFAULT_OPENCLAW_MODEL;
   const aiTimeoutMs = parseAiTimeoutMs(optionalEnv('AI_TIMEOUT_MS'));
+  const evmRpcUrl = optionalEnv('EVM_RPC_URL');
+  const agentOperatorPrivateKey = optionalEnv('AGENT_OPERATOR_PRIVATE_KEY');
+  const erc8004IdentityRegistryAddress = optionalEnv('ERC8004_IDENTITY_REGISTRY_ADDRESS');
   const aiMode = parseAiMode(optionalEnv('AI_MODE'), geminiApiKey, openclawBaseUrl);
 
   if (aiMode === 'gemini' && !geminiApiKey) {
@@ -143,6 +149,9 @@ export function loadConfig(args: string[]): AppConfig {
     openclawApiKey,
     openclawModel,
     aiTimeoutMs,
+    evmRpcUrl,
+    agentOperatorPrivateKey,
+    erc8004IdentityRegistryAddress,
     jsonOutput: parseJsonOutputFromArgs(args),
     all: parseAllFromArgs(args),
     limit: parseLimitFromArgs(args),

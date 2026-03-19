@@ -273,6 +273,45 @@ export function buildToolCommandArgs(
     return ["rules", "log", ...integerFlag(input.limit, "--limit")];
   }
 
+  if (toolName === "messages.send") {
+    return [
+      "send",
+      requireString(input.peer, "peer"),
+      "--text",
+      requireString(input.text, "text"),
+      ...integerFlag(input.flowRun, "--flow-run"),
+      ...integerFlag(input.expectedLastMessageId, "--expected-last-message-id"),
+      ...stringFlag(input.reason, "--reason"),
+      ...(input.dryRun ? ["--dry-run"] : []),
+    ];
+  }
+
+  if (toolName === "flows.list") {
+    return ["flows", "list"];
+  }
+
+  if (toolName === "flows.run") {
+    return [
+      "flows",
+      "run",
+      requireString(input.flowId, "flowId"),
+      ...(input.dryRun ? ["--dry-run"] : []),
+    ];
+  }
+
+  if (toolName === "flows.status") {
+    return [
+      "flows",
+      "status",
+      ...integerFlag(input.runId, "--run-id"),
+      ...(input.latestSuccessful ? ["--latest-success"] : []),
+    ];
+  }
+
+  if (toolName === "identity.status") {
+    return ["identity", "show"];
+  }
+
   if (toolName === "sync.backfill") {
     return [
       "sync",

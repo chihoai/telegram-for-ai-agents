@@ -1,4 +1,9 @@
 import type { AppConfig, AiMode } from '../app/config.js';
+import type {
+  FlowCandidateSnapshot,
+  FlowDefinition,
+  FlowPlannerResponse,
+} from '../flows/types.js';
 
 export interface ConversationMessage {
   sender: string;
@@ -62,6 +67,10 @@ export interface AiService {
     ruleName: string;
     instruction: string;
   }): Promise<RuleMatchResponse>;
+  planFlow(params: {
+    flow: FlowDefinition;
+    candidates: FlowCandidateSnapshot[];
+  }): Promise<FlowPlannerResponse>;
 }
 
 interface OpenClawChatCompletionResponse {
@@ -255,6 +264,71 @@ function normalizeRuleResponse(value: unknown): RuleMatchResponse {
   };
 }
 
+function normalizeFlowPlan(
+  value: unknown,
+  candidates: FlowCandidateSnapshot[],
+): FlowPlannerResponse {
+  const row = (typeof value === 'object' && value ? (value as JsonLike) : {}) as JsonLike;
+  const globalSummaryRaw = row.globalSummary;
+  const globalSummary =
+    typeof globalSummaryRaw === 'string' && globalSummaryRaw.trim()
+      ? globalSummaryRaw.trim()
+      : 'Flow plan generated.';
+  const candidateIds = new Set(candidates.map((candidate) => candidate.peerId));
+  const rawPlans = Array.isArray(row.plans) ? row.plans : [];
+
+  const plans = rawPlans
+    .map((item) => {
+      const plan = (typeof item === 'object' && item ? (item as JsonLike) : {}) as JsonLike;
+      const peerId = Number(plan.peerId);
+      if (!Number.isInteger(peerId) || !candidateIds.has(peerId)) {
+        return null;
+      }
+
+      const setTags = normalizeTags(plan.setTags);
+      const shouldAct = Boolean(plan.shouldAct);
+      const createTask = Boolean(plan.createTask);
+      const dueInDaysRaw =
+        typeof plan.dueInDays === 'number' ? Math.round(plan.dueInDays) : null;
+      const dueInDays =
+        createTask && dueInDaysRaw && dueInDaysRaw > 0 ? Math.min(30, dueInDaysRaw) : null;
+      const sendStyleRaw = typeof plan.sendStyle === 'string' ? plan.sendStyle.trim() : '';
+      const sendStyle = sendStyleRaw === 'friendly' ? 'friendly' : 'concise';
+      const reasonRaw = typeof plan.reason === 'string' ? plan.reason.trim() : '';
+      const companyNameRaw =
+        typeof plan.companyName === 'string' ? plan.companyName.trim() : '';
+      const roleRaw = typeof plan.role === 'string' ? plan.role.trim() : '';
+      const taskWhyRaw = typeof plan.taskWhy === 'string' ? plan.taskWhy.trim() : '';
+      const handoffNoteRaw =
+        typeof plan.handoffNote === 'string' ? plan.handoffNote.trim() : '';
+
+      return {
+        peerId,
+        shouldAct,
+        reason: reasonRaw || 'Planner recommendation.',
+        refreshSummary: Boolean(plan.refreshSummary),
+        setTags,
+        companyName: companyNameRaw || null,
+        role: roleRaw || null,
+        createTask,
+        dueInDays,
+        taskWhy: taskWhyRaw || null,
+        taskPriority: priorityValue(plan.taskPriority),
+        sendSuggested: Boolean(plan.sendSuggested),
+        sendStyle,
+        avoidQuestion: Boolean(plan.avoidQuestion),
+        handoffNote: handoffNoteRaw || null,
+      };
+    })
+    .filter((item): item is FlowPlannerResponse['plans'][number] => item !== null)
+    .slice(0, candidates.length);
+
+  return {
+    globalSummary,
+    plans,
+  };
+}
+
 function renderConversation(context: ConversationContext): string {
   const messages = context.messages
     .slice(-80)
@@ -399,6 +473,25 @@ abstract class BaseAiService implements AiService {
       ].join('\n\n'),
     );
     return normalizeRuleResponse(output);
+  }
+
+  async planFlow(params: {
+    flow: FlowDefinition;
+    candidates: FlowCandidateSnapshot[];
+  }): Promise<FlowPlannerResponse> {
+    const output = await this.completeJson<unknown>(
+      [
+        'You are an autonomous Telegram operations planner for CRM workflows.',
+        'Choose which peers deserve action for this flow and which actions are safe.',
+        'Prefer no action over risky action. Never invent a new peer id.',
+        'Do not exceed the flow budget. Keep sendSuggested=false when context is weak or a human handoff is safer.',
+        'Return strict JSON:',
+        '{"globalSummary":"string","plans":[{"peerId":number,"shouldAct":boolean,"reason":"string","refreshSummary":boolean,"setTags":["string"],"companyName":"string|null","role":"string|null","createTask":boolean,"dueInDays":number|null,"taskWhy":"string|null","taskPriority":"low|med|high","sendSuggested":boolean,"sendStyle":"concise|friendly","avoidQuestion":boolean,"handoffNote":"string|null"}]}',
+        `Flow definition:\n${JSON.stringify(params.flow, null, 2)}`,
+        `Candidate snapshots:\n${JSON.stringify(params.candidates, null, 2)}`,
+      ].join('\n\n'),
+    );
+    return normalizeFlowPlan(output, params.candidates);
   }
 }
 

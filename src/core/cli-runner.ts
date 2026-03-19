@@ -5,7 +5,9 @@ import { runChat } from "../commands/chat.js";
 import { runCompany } from "../commands/company.js";
 import { runDb } from "../commands/db.js";
 import { runExport } from "../commands/export.js";
+import { runFlows } from "../commands/flows.js";
 import { runFolders } from "../commands/folders.js";
+import { runIdentity } from "../commands/identity.js";
 import { runImport } from "../commands/import.js";
 import { runInbox } from "../commands/inbox.js";
 import { runLogout } from "../commands/logout.js";
@@ -13,6 +15,7 @@ import { runNudge } from "../commands/nudge.js";
 import { runOpen } from "../commands/open.js";
 import { runRules } from "../commands/rules.js";
 import { runSearch } from "../commands/search.js";
+import { runSend } from "../commands/send.js";
 import { runSummary } from "../commands/summary.js";
 import { runSync } from "../commands/sync.js";
 import { runTags } from "../commands/tags.js";
@@ -37,6 +40,9 @@ export const HELP = `Usage:
   tgchats summary <show|refresh> ...
   tgchats nudge <peer> [--style concise|friendly]
   tgchats rules <list|add|run|log> ...
+  tgchats send <peer> --text "message"
+  tgchats flows <list|show|run|status|dashboard|export-agent|export-log> ...
+  tgchats identity <show|register>
   tgchats sync <backfill|once|tail> ...
   tgchats export --format <json|jsonl|csv|md> --out <path>
   tgchats import --from <path>
@@ -60,6 +66,9 @@ Environment:
   OPENCLAW_API_KEY          Optional bearer token for OpenClaw
   OPENCLAW_MODEL            Optional OpenClaw model (default: openclaw)
   AI_TIMEOUT_MS             Optional AI request timeout in milliseconds (default: 30000)
+  EVM_RPC_URL               Required for ERC-8004 registration
+  AGENT_OPERATOR_PRIVATE_KEY Required for ERC-8004 registration
+  ERC8004_IDENTITY_REGISTRY_ADDRESS Required for ERC-8004 registration
 
 Flags:
   -n, --limit <number>      Number of chats to list (default: 5)
@@ -96,6 +105,9 @@ export async function executeCli(argv: string[]): Promise<void> {
     if (command === "summary") return await runSummary(ctx, rest);
     if (command === "nudge") return await runNudge(ctx, rest);
     if (command === "rules") return await runRules(ctx, rest);
+    if (command === "send") return await runSend(ctx, rest);
+    if (command === "flows") return await runFlows(ctx, rest);
+    if (command === "identity") return await runIdentity(ctx, rest);
     if (command === "sync") return await runSync(ctx, rest);
     if (command === "export") return await runExport(ctx, rest);
     if (command === "import") return await runImport(ctx, rest);

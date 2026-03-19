@@ -536,6 +536,99 @@
     }
   },
   {
+    "name": "messages.send",
+    "description": "Send a guarded outbound Telegram message within an existing thread.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer",
+        "text"
+      ],
+      "properties": {
+        "peer": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "flowRun": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "type": "string"
+        },
+        "expectedLastMessageId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "dryRun": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "flows.list",
+    "description": "List the built-in autonomous Telegram flows.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    }
+  },
+  {
+    "name": "flows.run",
+    "description": "Run one autonomous Telegram flow.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "flowId"
+      ],
+      "properties": {
+        "flowId": {
+          "type": "string"
+        },
+        "dryRun": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "flows.status",
+    "description": "Inspect recent flow runs or a specific flow run.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "runId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "latestSuccessful": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  {
+    "name": "identity.status",
+    "description": "Show the latest locally stored ERC-8004 identity registration.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    }
+  },
+  {
     "name": "sync.backfill",
     "description": "Backfill Telegram dialogs and history into the local CRM database.",
     "transport": "local",

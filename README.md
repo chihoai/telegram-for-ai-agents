@@ -22,12 +22,17 @@ Use [AGENTS.md](./AGENTS.md) only for coding and contributing inside this repo.
 - Telegram auth with QR-first + phone fallback
 - Inbox and per-chat history browsing
 - Local MCP server for agent integrations (`tgchats-mcp`)
+- Checked-in flow catalog for BD, marketing, investor, support, and network follow-up work
+- Deterministic flow runtime with discover -> plan -> execute -> verify loops
+- Guarded outbound Telegram sending for existing active threads
+- Terminal dashboard for flow runs, budgets, decisions, and artifact export paths
 - Telegram folders management
 - CRM metadata: tags, company links, tasks, summaries
 - AI-powered suggestions for tags/company/tasks/summaries/follow-ups/rules
 - Dual AI execution modes: `gemini` or `openclaw`
 - Sync modes: backfill, once, tail
 - Export/import for backups
+- Hackathon artifacts: generated `agent.json` and per-run `agent_log.json`
 
 ## Self-Hosted Setup
 
@@ -59,6 +64,9 @@ Optional env:
 ```bash
 TELEGRAM_SESSION_PATH=/Users/you/.config/telegram-for-agents/telegram.session
 TELEGRAM_PROXY_URL=socks5://203.0.113.10:1080
+EVM_RPC_URL=https://your-evm-rpc.example
+AGENT_OPERATOR_PRIVATE_KEY=0xyour_operator_private_key
+ERC8004_IDENTITY_REGISTRY_ADDRESS=0xyour_registry_address
 ```
 
 AI env (choose one mode):
@@ -104,9 +112,15 @@ npm run dev -- tags suggest <peer> --apply
 npm run dev -- company suggest <peer> --apply
 npm run dev -- tasks suggest <peer> --apply
 npm run dev -- nudge <peer> --style concise
+npm run dev -- send <peer> --text "Quick follow-up on this thread" --dry-run
+npm run dev -- flows list
+npm run dev -- flows run bd.followup --dry-run
+npm run dev -- flows dashboard
+npm run dev -- identity show
 npm run dev -- rules run
 npm run dev -- sync backfill --per-chat-limit 100 --dialogs 200
 npm run dev -- export --format json --out ./exports/backup.json
+npm run hackathon:artifacts
 ```
 
 Local MCP server:
@@ -171,6 +185,19 @@ AI helpers:
 - `tgchats rules <list|add|run|log> ...`: AI evaluates matches and can dynamically return actions (tag/follow-up timing/priority/why), then actions are persisted with audit logs.
 - `tgchats rules add --name ... --instruction ... [--tag ...] [--followup-days ...]`
 
+Flow execution and guarded sending:
+
+- `tgchats send <peer> --text "..." [--flow-run N] [--reason "..."] [--expected-last-message-id N] [--dry-run]`: guarded outbound send for existing threads only.
+- `tgchats flows list`: lists checked-in flow definitions.
+- `tgchats flows show <flowId>`: prints a flow definition and policy envelope.
+- `tgchats flows run <flowId> [--dry-run]`: runs the autonomous flow loop with guardrails and verification.
+- `tgchats flows status [--run-id N] [--latest-success]`: inspects recent or specific flow runs.
+- `tgchats flows dashboard`: opens the terminal dashboard for flow runs.
+- `tgchats flows export-agent [--out path]`: generates hackathon `agent.json`.
+- `tgchats flows export-log <runId> [--out path]`: exports run-scoped `agent_log.json`.
+- `tgchats identity show`: shows the latest stored ERC-8004 agent identity.
+- `tgchats identity register`: registers the current `agent.json` against the configured ERC-8004 registry.
+
 Sync, backup, and DB:
 
 - `tgchats sync <backfill|once|tail> ...`: persists dialogs/messages into Postgres.
@@ -182,7 +209,17 @@ Notes:
 
 - AI features require either `AI_MODE=gemini` + `GEMINI_API_KEY` or `AI_MODE=openclaw` + `OPENCLAW_BASE_URL`.
 - `DATABASE_URL` is required for CRM metadata, sync persistence, rules, export/import, and local filtered search.
+- `EVM_RPC_URL`, `AGENT_OPERATOR_PRIVATE_KEY`, and `ERC8004_IDENTITY_REGISTRY_ADDRESS` are required only for ERC-8004 registration.
 - For agent integrations, prefer `--json` responses and follow [`docs/COMMAND_CONTRACTS.md`](./docs/COMMAND_CONTRACTS.md).
+
+## Hackathon Flow Mode
+
+For the "Let the Agent Cook" track, use the built-in flow catalog plus guarded send/runtime artifacts:
+
+- Demo/runbook: [`docs/HACKATHON_LET_AGENT_COOK.md`](./docs/HACKATHON_LET_AGENT_COOK.md)
+- Generated agent manifest: `tgchats flows export-agent`
+- Generated execution log: `tgchats flows export-log <runId>`
+- ERC-8004 registration: `tgchats identity register`
 
 ## Telegram Flows
 

@@ -31,6 +31,8 @@ If preconditions are missing, stop and request only the missing env/step.
 - Fall back to `tgchats --json` when MCP is unavailable.
 - Prefer read-first flow: `whoami` -> `inbox` -> `open/chat` before writes.
 - Use `--apply` only when the user explicitly asks to persist AI suggestions.
+- Use `flows run` when the user wants an end-to-end autonomous workflow with explicit budgets, logs, and verification.
+- Use `send` only for existing active threads and expect guardrails to block cold outreach or stale-plan sends.
 - Never print secrets/session paths unless explicitly requested.
 - Assume one Telegram writer process (`sync tail`) per account/session.
 
@@ -51,6 +53,11 @@ If preconditions are missing, stop and request only the missing env/step.
   - `npm run dev -- tasks suggest <peer> --json`
   - `npm run dev -- summary refresh <peer> --json`
   - `npm run dev -- nudge <peer> --style concise --json`
+- Flows + guarded send:
+  - `npm run dev -- flows list --json`
+  - `npm run dev -- flows run <flow-id> --json`
+  - `npm run dev -- flows status --latest-success --json`
+  - `npm run dev -- send <peer> --text "..." --dry-run --json`
 - Persist:
   - `npm run dev -- tags suggest <peer> --apply --json`
   - `npm run dev -- company suggest <peer> --apply --json`

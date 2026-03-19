@@ -1,0 +1,56 @@
+{
+  "id": "investor.pipeline_followup",
+  "name": "Investor Pipeline Follow-Up",
+  "description": "Maintain investor, VC, and diligence conversations with measured follow-up and clear next actions.",
+  "personas": ["founder", "vc", "investor-relations"],
+  "taskCategories": ["investor", "fundraising", "diligence", "follow_up"],
+  "discover": {
+    "mode": "tagged_dialogs",
+    "limit": 10,
+    "requiredAnyTags": ["Investor", "VC", "Angel", "Fundraising"],
+    "staleDays": 3,
+    "maxHistoryMessages": 12
+  },
+  "allowedTools": [
+    "dialogs.list",
+    "chat.read",
+    "summary.refresh",
+    "tags.set",
+    "company.link",
+    "tasks.add",
+    "nudge.generate",
+    "messages.send"
+  ],
+  "allowedActions": [
+    "refresh_summary",
+    "set_tags",
+    "link_company",
+    "create_task",
+    "send_message",
+    "team_handoff"
+  ],
+  "budget": {
+    "maxCandidates": 10,
+    "maxToolCalls": 40,
+    "maxAiCalls": 12,
+    "maxRetriesPerStep": 2,
+    "maxOutboundMessages": 5,
+    "maxWallTimeSeconds": 300
+  },
+  "guardrails": {
+    "requireExistingThread": true,
+    "maxInactiveDays": 45,
+    "dedupeWindowDays": 14,
+    "blockIfLatestMessageChanged": true,
+    "abortOnGuardrailFailure": true,
+    "allowSend": true
+  },
+  "verification": {
+    "verifyCrmMutations": true,
+    "verifyMessageSend": true,
+    "requireHistoryEcho": true
+  },
+  "outputs": ["summary", "task", "message", "handoff_note", "agent_log.json"],
+  "defaultMessageStyle": "concise",
+  "plannerPrompt": "Prioritize investors and fund contacts that already have active context. Keep follow-ups short, concrete, and appropriately high-signal."
+}

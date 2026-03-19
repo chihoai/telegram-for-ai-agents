@@ -19,4 +19,33 @@ describe("buildToolCommandArgs", () => {
       })
     ).toEqual(["folders", "order", "1", "2", "3"]);
   });
+
+  it("maps messages.send to send args", () => {
+    expect(
+      buildToolCommandArgs("messages.send", {
+        peer: "alice",
+        text: "hello",
+        flowRun: 9,
+        expectedLastMessageId: 33,
+      })
+    ).toEqual([
+      "send",
+      "alice",
+      "--text",
+      "hello",
+      "--flow-run",
+      "9",
+      "--expected-last-message-id",
+      "33",
+    ]);
+  });
+
+  it("maps flows.run to flow runner args", () => {
+    expect(buildToolCommandArgs("flows.run", { flowId: "bd.followup", dryRun: true })).toEqual([
+      "flows",
+      "run",
+      "bd.followup",
+      "--dry-run",
+    ]);
+  });
 });
