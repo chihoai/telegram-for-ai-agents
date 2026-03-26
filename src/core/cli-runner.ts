@@ -1,4 +1,5 @@
 import { createContext, destroyContext } from "../app/context.js";
+import { normalizeCliError } from "../app/errors.js";
 import { runArchive, runUnarchive } from "../commands/archive.js";
 import { runAuth } from "../commands/auth.js";
 import { runChat } from "../commands/chat.js";
@@ -127,8 +128,8 @@ export async function executeCliJson(argv: string[]): Promise<unknown> {
   try {
     await executeCli(jsonArgv);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    return errorPayload(message);
+    const normalized = normalizeCliError(error);
+    return errorPayload(normalized.message, normalized.code);
   } finally {
     console.log = originalLog;
     console.error = originalError;
@@ -152,11 +153,11 @@ export async function runCliMain(argv: string[]): Promise<void> {
   try {
     await executeCli(argv);
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const normalized = normalizeCliError(error);
     if (isJsonModeArgv(argv)) {
-      printJson(errorPayload(message));
+      printJson(errorPayload(normalized.message, normalized.code));
     } else {
-      console.error(`Error: ${message}`);
+      console.error(`Error: ${normalized.message}`);
     }
     process.exitCode = 1;
   }

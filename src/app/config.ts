@@ -2,6 +2,7 @@ import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { optionalEnv, requiredEnv } from './env.js';
+import { CliError } from './errors.js';
 
 const DEFAULT_LIMIT = 5;
 const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash';
@@ -107,7 +108,20 @@ export function ensureSessionDir(sessionPath: string): void {
   mkdirSync(dirname(sessionPath), { recursive: true });
 }
 
+function assertSupportedNodeVersion() {
+  const major = Number.parseInt(process.versions.node.split('.')[0] || '', 10);
+  if (major === 22 || major === 23) {
+    return;
+  }
+
+  throw new CliError(
+    `Unsupported Node.js runtime ${process.versions.node}. Use Node 22 or 23.`,
+    'UNSUPPORTED_NODE_VERSION',
+  );
+}
+
 export function loadConfig(args: string[]): AppConfig {
+  assertSupportedNodeVersion();
   const apiId = parseApiId(requiredEnv('TELEGRAM_API_ID'));
   const apiHash = requiredEnv('TELEGRAM_API_HASH');
   const sessionPath = optionalEnv('TELEGRAM_SESSION_PATH') ?? DEFAULT_SESSION_PATH;

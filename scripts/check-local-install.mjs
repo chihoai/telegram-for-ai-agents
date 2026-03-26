@@ -135,6 +135,28 @@ assert(
   "auth status JSON did not include sessionPresent"
 );
 
+if (authStatus.sessionPresent) {
+  const whoamiOutput = runNode([cliPath, "whoami", "--json"]).trim();
+  const whoami = JSON.parse(whoamiOutput);
+  assert(whoami.ok === true, "whoami JSON did not report ok: true");
+  assert(typeof whoami.account?.id === "number", "whoami JSON did not include account id");
+
+  const smokePeer = process.env.TGCHATS_SMOKE_PEER?.trim();
+  if (smokePeer) {
+    const openOutput = runNode([cliPath, "open", smokePeer, "--json"]).trim();
+    const openPayload = JSON.parse(openOutput);
+    assert(openPayload.ok === true, "open JSON did not report ok: true");
+    assert(String(openPayload.peer?.id) === smokePeer, "open JSON did not target the requested peer");
+  }
+
+  if (process.env.DATABASE_URL) {
+    const tasksOutput = runNode([cliPath, "tasks", "today", "--json"]).trim();
+    const tasksPayload = JSON.parse(tasksOutput);
+    assert(tasksPayload.ok === true, "tasks today JSON did not report ok: true");
+    assert(Array.isArray(tasksPayload.tasks), "tasks today JSON did not include tasks array");
+  }
+}
+
 const contracts = JSON.parse(await fs.readFile(contractsPath, "utf8"));
 const mcpClient = createMcpClient(process.execPath, [mcpPath]);
 

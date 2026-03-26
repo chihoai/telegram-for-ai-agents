@@ -21,7 +21,7 @@
   "author": "",
   "license": "MIT",
   "engines": {
-    "node": ">=18"
+    "node": ">=22 <24"
   },
   "dependencies": {
     "@mtcute/node": "^0.28.1",

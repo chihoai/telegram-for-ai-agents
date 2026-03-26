@@ -6,6 +6,9 @@ export function printJson(payload: unknown): void {
   console.log(JSON.stringify(payload, null, 2));
 }
 
-export function errorPayload(message: string): { ok: false; error: string } {
-  return { ok: false, error: message };
+export function errorPayload(
+  message: string,
+  code?: string
+): { ok: false; error: string; code?: string } {
+  return code ? { ok: false, error: message, code } : { ok: false, error: message };
 }

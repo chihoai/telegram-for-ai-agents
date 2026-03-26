@@ -31,7 +31,7 @@ Use [AGENTS.md](./AGENTS.md) only for coding and contributing inside this repo.
 
 ## Self-Hosted Setup
 
-- Node.js 18+
+- Node.js 22 or 23
 - Telegram API credentials from https://my.telegram.org/apps
 - Postgres for app DB (local Docker for dev, managed DB/service on VPS)
 
@@ -87,6 +87,11 @@ docker compose up -d
 npm run dev -- db migrate
 ```
 
+Supported runtimes:
+
+- Node 22 and Node 23 are the supported local runtimes.
+- If session storage/bootstrap fails, the CLI now returns an explicit JSON error code instead of an empty wrapper.
+
 ## Commands
 
 Quick start:
@@ -109,6 +114,12 @@ npm run dev -- sync backfill --per-chat-limit 100 --dialogs 200
 npm run dev -- export --format json --out ./exports/backup.json
 ```
 
+Equivalent entrypoints:
+
+- Dev: `npm run dev -- <command ...>`
+- Built CLI: `node dist/cli.js <command ...>`
+- Installed binary: `tgchats <command ...>`
+
 Local MCP server:
 
 ```bash
@@ -127,6 +138,7 @@ Machine-readable surfaces:
 - Contracts: [`docs/COMMAND_CONTRACTS.md`](./docs/COMMAND_CONTRACTS.md)
 - MCP tool schemas: [`docs/tool-contracts.json`](./docs/tool-contracts.json)
 - Self-hosted install check: `npm run check:local-install`
+  - optionally set `TGCHATS_SMOKE_PEER=<peerId>` to include one peer-scoped read when a session already exists
 
 Full help:
 
@@ -183,6 +195,9 @@ Notes:
 - AI features require either `AI_MODE=gemini` + `GEMINI_API_KEY` or `AI_MODE=openclaw` + `OPENCLAW_BASE_URL`.
 - `DATABASE_URL` is required for CRM metadata, sync persistence, rules, export/import, and local filtered search.
 - For agent integrations, prefer `--json` responses and follow [`docs/COMMAND_CONTRACTS.md`](./docs/COMMAND_CONTRACTS.md).
+- If JSON mode returns `code: "DATABASE_MIGRATIONS_MISSING"`, run `tgchats db migrate`.
+- If JSON mode returns `code: "TELEGRAM_SESSION_STORAGE_OPEN_FAILED"`, check `TELEGRAM_SESSION_PATH` and local filesystem permissions.
+- If JSON mode returns `code: "TELEGRAM_SESSION_STORAGE_NATIVE_LOAD_FAILED"`, reinstall dependencies or rebuild `better-sqlite3` for the current machine.
 
 ## Telegram Flows
 
