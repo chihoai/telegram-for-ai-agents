@@ -491,3 +491,19 @@ DO UPDATE SET
     ],
   );
 }
+
+export async function getSyncCursor(
+  pool: DbPool,
+  params: { accountId: bigint; peerId: number },
+): Promise<{ lastSyncedMessageId: number | null } | null> {
+  const result = await pool.query<{ lastSyncedMessageId: number | null }>(
+    `
+SELECT last_synced_message_id as "lastSyncedMessageId"
+FROM sync_cursors
+WHERE account_id = $1 AND peer_id = $2
+LIMIT 1
+`,
+    [params.accountId.toString(), params.peerId],
+  );
+  return result.rows[0] ?? null;
+}

@@ -3,7 +3,7 @@ import { parseCommandArgs, optionValue, parsePositiveInt } from '../app/cli-args
 import { requireDb } from '../app/db.js';
 import { requireAccountId } from '../app/account.js';
 import { ensureAuthorized, fetchChatHistory, listDialogs } from '../services/telegram.js';
-import { updateSyncCursor } from '../db/crm.js';
+import { getSyncCursor, updateSyncCursor } from '../db/crm.js';
 import { insertMessage, upsertDialog, upsertPeer } from '../db/writes.js';
 import { printJson } from '../output.js';
 
@@ -16,22 +16,48 @@ async function syncOnce(ctx: AppContext, dialogLimit: number): Promise<number> {
   const accountId = await requireAccountId(ctx);
   const dialogs = await listDialogs(ctx.telegram, { all: false, limit: dialogLimit });
 
-  let writes = 0;
+  let messagesProcessed = 0;
   for (const dialog of dialogs) {
     await upsertPeer(db, { accountId, peer: dialog.peer });
     await upsertDialog(db, { accountId, dialog });
-    const message = dialog.lastMessage;
-    if (message) {
-      await insertMessage(db, { accountId, peer: dialog.peer, message });
+
+    const cursor = await getSyncCursor(db, { accountId, peerId: dialog.peer.id });
+    const lastSyncedMessageId = cursor?.lastSyncedMessageId ?? null;
+
+    if (lastSyncedMessageId) {
+      const messages = await fetchChatHistory(ctx.telegram, {
+        chatId: String(dialog.peer.id),
+        limit: Number.POSITIVE_INFINITY,
+        sinceMessageId: lastSyncedMessageId,
+      });
+
+      for (const message of messages) {
+        await insertMessage(db, { accountId, peer: dialog.peer, message });
+        messagesProcessed += 1;
+      }
+
+      if (messages.length > 0) {
+        await updateSyncCursor(db, {
+          accountId,
+          peerId: dialog.peer.id,
+          lastSyncedMessageId: Math.max(...messages.map((message) => message.id)),
+        });
+      }
+      continue;
+    }
+
+    const lastMessage = dialog.lastMessage;
+    if (lastMessage) {
+      await insertMessage(db, { accountId, peer: dialog.peer, message: lastMessage });
       await updateSyncCursor(db, {
         accountId,
         peerId: dialog.peer.id,
-        lastSyncedMessageId: message.id,
+        lastSyncedMessageId: lastMessage.id,
       });
-      writes += 1;
+      messagesProcessed += 1;
     }
   }
-  return writes;
+  return messagesProcessed;
 }
 
 export async function runSync(ctx: AppContext, args: string[]): Promise<void> {
@@ -54,8 +80,11 @@ export async function runSync(ctx: AppContext, args: string[]): Promise<void> {
 
     const db = requireDb(ctx);
     const accountId = await requireAccountId(ctx);
-    const dialogs = await listDialogs(ctx.telegram, { all: true, limit: dialogsLimit });
-    const selected = dialogsLimit > 0 ? dialogs.slice(0, dialogsLimit) : dialogs;
+    const selected = await listDialogs(ctx.telegram, {
+      all: false,
+      includeArchived: true,
+      limit: dialogsLimit,
+    });
 
     let insertedMessages = 0;
     for (const dialog of selected) {

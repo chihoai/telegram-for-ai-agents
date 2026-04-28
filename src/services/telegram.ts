@@ -96,6 +96,7 @@ export async function ensureAuthorized(client: TelegramClient): Promise<void> {
 export interface ListDialogsOptions {
   limit: number;
   all: boolean;
+  includeArchived?: boolean;
 }
 
 export function normalizePeerRef(value: string | number): string | number {
@@ -115,9 +116,9 @@ export async function listDialogs(
   options: ListDialogsOptions,
 ): Promise<Dialog[]> {
   const dialogIterator = client.iterDialogs({
-    ...(options.all ? {} : { limit: options.limit }),
+    ...(!options.all && options.limit > 0 ? { limit: options.limit } : {}),
     pinned: 'include',
-    archived: options.all ? 'keep' : 'exclude',
+    archived: options.all || options.includeArchived ? 'keep' : 'exclude',
   });
 
   const dialogs: Dialog[] = [];

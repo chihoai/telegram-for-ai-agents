@@ -24,6 +24,16 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
+function numericPeerIdFromRef(value: string): number | undefined {
+  const trimmed = value.trim();
+  if (!/^-?\d+$/.test(trimmed)) {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
 export async function runSearch(ctx: AppContext, args: string[]): Promise<void> {
   const parsed = parseCommandArgs(args, ['--chat', '--limit', '-n', '--tag', '--company']);
   if (parsed.positionals.length === 0) {
@@ -47,7 +57,14 @@ export async function runSearch(ctx: AppContext, args: string[]): Promise<void> 
       throw new Error('Local DB search requires DATABASE_URL.');
     }
     const accountId = await requireAccountId(ctx);
-    const peerId = chatId ? (await ctx.telegram.getPeer(normalizePeerRef(chatId))).id : undefined;
+    let peerId: number | undefined;
+    if (chatId) {
+      peerId = numericPeerIdFromRef(chatId);
+      if (peerId === undefined) {
+        await ensureAuthorized(ctx.telegram);
+        peerId = (await ctx.telegram.getPeer(normalizePeerRef(chatId))).id;
+      }
+    }
     const rows = await searchLocalMessages(ctx.db, {
       accountId,
       query,
