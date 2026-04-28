@@ -12,6 +12,10 @@ function csvEscape(value: string): string {
   return value;
 }
 
+function peerKey(value: unknown): string {
+  return String(value);
+}
+
 export async function runExport(ctx: AppContext, args: string[]): Promise<void> {
   const db = requireDb(ctx);
   const accountId = await requireAccountId(ctx);
@@ -65,7 +69,18 @@ export async function runExport(ctx: AppContext, args: string[]): Promise<void> 
   }
 
   if (format === 'jsonl') {
-    const lines = messages.rows.map((row) => JSON.stringify(row)).join('\n');
+    const peersById = new Map(peers.rows.map((peer) => [peerKey(peer.peer_id), peer]));
+    const lines = messages.rows
+      .map((row) => {
+        const peer = peersById.get(peerKey(row.peer_id));
+        return JSON.stringify({
+          ...row,
+          peer_kind: peer?.peer_kind ?? null,
+          username: peer?.username ?? null,
+          display_name: peer?.display_name ?? null,
+        });
+      })
+      .join('\n');
     await writeFile(outPath, lines, 'utf8');
     console.log(`Exported JSONL (messages) to ${outPath}`);
     return;
@@ -123,4 +138,3 @@ export async function runExport(ctx: AppContext, args: string[]): Promise<void> 
 
   throw new Error('Unsupported format. Use json|jsonl|csv|md.');
 }
-

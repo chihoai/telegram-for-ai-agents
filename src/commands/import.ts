@@ -14,6 +14,49 @@ interface JsonExportPayload {
   rules?: Array<Record<string, unknown>>;
 }
 
+async function ensureImportedPeer(
+  db: ReturnType<typeof requireDb>,
+  params: {
+    accountId: bigint;
+    row: Record<string, unknown>;
+  },
+): Promise<void> {
+  const peerId = params.row.peer_id;
+  if (peerId === undefined || peerId === null) {
+    throw new Error('Import row is missing peer_id.');
+  }
+
+  await db.query(
+    `
+INSERT INTO peers (account_id, peer_id, peer_kind, username, display_name, updated_at)
+VALUES ($1, $2, $3, $4, $5, now())
+ON CONFLICT (account_id, peer_id)
+DO UPDATE SET
+  peer_kind = CASE
+    WHEN excluded.display_name LIKE 'Imported peer %' THEN peers.peer_kind
+    ELSE excluded.peer_kind
+  END,
+  username = COALESCE(excluded.username, peers.username),
+  display_name = CASE
+    WHEN peers.display_name LIKE 'Imported peer %' THEN excluded.display_name
+    ELSE peers.display_name
+  END,
+  updated_at = now()
+`,
+    [
+      params.accountId.toString(),
+      peerId,
+      typeof params.row.peer_kind === 'string' && params.row.peer_kind.trim()
+        ? params.row.peer_kind
+        : 'chat',
+      params.row.username ?? null,
+      typeof params.row.display_name === 'string' && params.row.display_name.trim()
+        ? params.row.display_name
+        : `Imported peer ${String(peerId)}`,
+    ],
+  );
+}
+
 export async function runImport(ctx: AppContext, args: string[]): Promise<void> {
   const db = requireDb(ctx);
   const accountId = await requireAccountId(ctx);
@@ -83,6 +126,7 @@ DO UPDATE SET
     }
 
     for (const row of payload.messages ?? []) {
+      await ensureImportedPeer(db, { accountId, row });
       await db.query(
         `
 INSERT INTO messages (
@@ -105,6 +149,7 @@ ON CONFLICT (account_id, peer_id, message_id) DO NOTHING
     }
 
     for (const row of payload.tags ?? []) {
+      await ensureImportedPeer(db, { accountId, row });
       await db.query(
         `
 INSERT INTO tags (account_id, tag)
@@ -131,6 +176,7 @@ DO UPDATE SET source = excluded.source, confidence = excluded.confidence
     }
 
     for (const row of payload.tasks ?? []) {
+      await ensureImportedPeer(db, { accountId, row });
       await db.query(
         `
 INSERT INTO tasks (account_id, peer_id, due_at, status, why, priority, created_at, updated_at)
@@ -148,6 +194,7 @@ VALUES ($1, $2, $3, $4, $5, $6, now(), now())
     }
 
     for (const row of payload.summaries ?? []) {
+      await ensureImportedPeer(db, { accountId, row });
       await db.query(
         `
 INSERT INTO summaries (account_id, peer_id, kind, content, source_model, updated_at)
@@ -191,6 +238,7 @@ VALUES ($1, $2, $3, $4, $5, $6)
   let inserted = 0;
   for (const line of lines) {
     const row = JSON.parse(line) as Record<string, unknown>;
+    await ensureImportedPeer(db, { accountId, row });
     await db.query(
       `
 INSERT INTO messages (
@@ -214,4 +262,3 @@ ON CONFLICT (account_id, peer_id, message_id) DO NOTHING
   }
   console.log(`Imported ${inserted} JSONL records from ${fromPath}.`);
 }
-
