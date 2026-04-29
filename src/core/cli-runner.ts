@@ -1,6 +1,7 @@
 import { createContext, destroyContext } from "../app/context.js";
 import { normalizeCliError } from "../app/errors.js";
 import { runArchive, runUnarchive } from "../commands/archive.js";
+import { runGroups, runMembers, runMessage, runOutbox } from "../commands/agentWrites.js";
 import { runAuth } from "../commands/auth.js";
 import { runChat } from "../commands/chat.js";
 import { runCompany } from "../commands/company.js";
@@ -30,6 +31,10 @@ export const HELP = `Usage:
   tgchats open <peer>
   tgchats search "<query>" [--chat <peer>] [--tag <tag>] [--company <name>] [--limit N]
   tgchats folders <list|create|rename|delete|order|add|remove> ...
+  tgchats outbox <preview|send-approved> ...
+  tgchats message send-draft ...
+  tgchats members <invite-preview|invite-approved> ...
+  tgchats groups <leave-preview|leave-approved> ...
   tgchats archive <peer...>
   tgchats unarchive <peer...>
   tgchats tags <set|ls|suggest> ...
@@ -89,6 +94,10 @@ export async function executeCli(argv: string[]): Promise<void> {
     if (command === "open") return await runOpen(ctx, rest);
     if (command === "search") return await runSearch(ctx, rest);
     if (command === "folders") return await runFolders(ctx, rest);
+    if (command === "outbox") return await runOutbox(ctx, rest);
+    if (command === "message") return await runMessage(ctx, rest);
+    if (command === "members") return await runMembers(ctx, rest);
+    if (command === "groups") return await runGroups(ctx, rest);
     if (command === "archive") return await runArchive(ctx, rest);
     if (command === "unarchive") return await runUnarchive(ctx, rest);
     if (command === "tags") return await runTags(ctx, rest);

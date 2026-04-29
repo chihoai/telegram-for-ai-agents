@@ -1,0 +1,78 @@
+[
+  {
+    "name": "telegram-bulk-template-message",
+    "displayName": "Bulk Template Message",
+    "category": "telegram-automation",
+    "risk": "high",
+    "requiresApproval": true,
+    "path": "skills/telegram-bulk-template-message",
+    "requiredCloudScopes": [
+      "telegram.read",
+      "telegram.message.preview",
+      "telegram.message.send",
+      "telegram.batch.write"
+    ],
+    "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
+    "templates": "skills/telegram-bulk-template-message/assets/templates.json",
+    "examples": "skills/telegram-bulk-template-message/assets/examples.json"
+  },
+  {
+    "name": "telegram-conditional-replies",
+    "displayName": "Conditional Replies",
+    "category": "telegram-automation",
+    "risk": "high",
+    "requiresApproval": true,
+    "path": "skills/telegram-conditional-replies",
+    "requiredCloudScopes": [
+      "telegram.read",
+      "crm.write",
+      "telegram.message.preview",
+      "telegram.message.send",
+      "automation.rules.write"
+    ],
+    "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
+    "templates": "skills/telegram-conditional-replies/assets/templates.json",
+    "examples": "skills/telegram-conditional-replies/assets/examples.json"
+  },
+  {
+    "name": "telegram-add-colleagues-to-group",
+    "displayName": "Add Colleagues To Group",
+    "category": "telegram-automation",
+    "risk": "high",
+    "requiresApproval": true,
+    "path": "skills/telegram-add-colleagues-to-group",
+    "requiredCloudScopes": ["telegram.read", "telegram.members.invite"],
+    "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
+    "templates": "skills/telegram-add-colleagues-to-group/assets/templates.json",
+    "examples": "skills/telegram-add-colleagues-to-group/assets/examples.json"
+  },
+  {
+    "name": "telegram-followup-tasks",
+    "displayName": "Follow-up Tasks",
+    "category": "crm-automation",
+    "risk": "low",
+    "requiresApproval": false,
+    "path": "skills/telegram-followup-tasks",
+    "requiredCloudScopes": ["telegram.read", "crm.write"],
+    "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp", "tgchats-cli"],
+    "templates": "skills/telegram-followup-tasks/assets/templates.json",
+    "examples": "skills/telegram-followup-tasks/assets/examples.json"
+  },
+  {
+    "name": "telegram-group-cleanup",
+    "displayName": "Group Cleanup",
+    "category": "telegram-organization",
+    "risk": "high",
+    "requiresApproval": true,
+    "path": "skills/telegram-group-cleanup",
+    "requiredCloudScopes": [
+      "telegram.read",
+      "crm.write",
+      "telegram.folders.write",
+      "telegram.groups.leave"
+    ],
+    "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
+    "templates": "skills/telegram-group-cleanup/assets/templates.json",
+    "examples": "skills/telegram-group-cleanup/assets/examples.json"
+  }
+]

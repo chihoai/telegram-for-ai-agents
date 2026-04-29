@@ -15,6 +15,7 @@
     "export:contracts": "tsx src/contracts/export-tool-contracts.ts",
     "mcp": "tsx src/mcp/stdio.ts",
     "start": "tsx src/cli.ts",
+    "validate:skills": "node scripts/validate-skills.mjs",
     "test": "vitest run"
   },
   "keywords": [],

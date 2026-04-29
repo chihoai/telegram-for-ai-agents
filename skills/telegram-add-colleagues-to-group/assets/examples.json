@@ -1,0 +1,17 @@
+[
+  {
+    "client": "OpenClaw",
+    "prompt": "Preview adding this colleague to the selected partner groups.",
+    "tools": ["dialogs.list", "members.invitePreview"]
+  },
+  {
+    "client": "Codex",
+    "prompt": "Add user 12345 to these three groups if the preview looks right.",
+    "tools": ["members.invitePreview", "members.inviteApproved"]
+  },
+  {
+    "client": "Claude Desktop",
+    "prompt": "Show which groups this colleague would be invited to and stop.",
+    "tools": ["members.invitePreview"]
+  }
+]

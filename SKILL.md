@@ -61,6 +61,7 @@ Rules:
 
 - MCP is the transport for agents.
 - Skills are the workflow layer on top of MCP.
+- Installable Telegram workflow skills live under [skills/](./skills/) and are indexed by [skills/catalog.json](./skills/catalog.json).
 - `AGENTS.md` in this repo is only for coding agents working on the repository itself.
 
 ## Current Product Boundary
@@ -72,6 +73,7 @@ Rules:
 ## Next Reads
 
 - For local setup and local commands: [skills/tgchats-local/SKILL.md](./skills/tgchats-local/SKILL.md)
+- For installable workflow skills: [Skill Catalog](./docs/SKILL_CATALOG.md)
 - For self-hosted examples: [Telegram Flows](./skills/tgchats-local/references/telegram-flows.md)
 - For human setup and deployment details: [README.md](./README.md)
 - For repo contributors and coding agents: [AGENTS.md](./AGENTS.md)

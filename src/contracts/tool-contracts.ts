@@ -126,6 +126,203 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
     },
   },
   {
+    name: "folders.create",
+    description: "Create a Telegram folder containing one peer.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["title", "peer"],
+      properties: {
+        accountId: { type: "string" },
+        title: { type: "string" },
+        peer: { type: "string" },
+        idempotencyKey: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "folders.addDialog",
+    description: "Add one dialog to a Telegram folder.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["folderId", "peer"],
+      properties: {
+        accountId: { type: "string" },
+        folderId: { type: "string" },
+        peer: { type: "string" },
+        idempotencyKey: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "folders.removeDialog",
+    description: "Remove one dialog from a Telegram folder.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["folderId", "peer"],
+      properties: {
+        accountId: { type: "string" },
+        folderId: { type: "string" },
+        peer: { type: "string" },
+        idempotencyKey: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "outbox.preview",
+    description: "Preview a Telegram outbox batch without sending.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        accountId: { type: "string" },
+        peers: { type: "array", maxItems: 20, items: { type: "string" } },
+        text: { type: "string" },
+        template: {
+          type: "object",
+          additionalProperties: true,
+          properties: {
+            id: { type: "string" },
+            title: { type: "string" },
+            text: { type: "string" },
+          },
+        },
+        templateId: { type: "string" },
+        schedule: { oneOf: [{ type: "string" }, { type: "number" }] },
+      },
+    },
+  },
+  {
+    name: "outbox.sendApproved",
+    description: "Execute an approved Telegram outbox preview.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["previewId"],
+      properties: {
+        previewId: { type: "string" },
+        idempotencyKey: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "message.sendDraft",
+    description: "Send one Telegram message draft to one peer.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["peer", "text"],
+      properties: {
+        accountId: { type: "string" },
+        peer: { type: "string" },
+        text: { type: "string" },
+        schedule: { oneOf: [{ type: "string" }, { type: "number" }] },
+        clientProvidedDraftId: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "members.invitePreview",
+    description: "Preview adding or inviting a Telegram user to group chats.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["userId", "groups"],
+      properties: {
+        accountId: { type: "string" },
+        userId: { type: "string" },
+        userAccessHash: { type: "string" },
+        groups: {
+          type: "array",
+          maxItems: 20,
+          items: {
+            oneOf: [
+              { type: "string" },
+              {
+                type: "object",
+                additionalProperties: true,
+                properties: {
+                  id: { type: "string" },
+                  peerId: { type: "string" },
+                  groupId: { type: "string" },
+                },
+              },
+            ],
+          },
+        },
+      },
+    },
+  },
+  {
+    name: "members.inviteApproved",
+    description: "Execute an approved Telegram member invite preview.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["previewId"],
+      properties: {
+        previewId: { type: "string" },
+        idempotencyKey: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "groups.leavePreview",
+    description: "Preview leaving Telegram groups.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["groups"],
+      properties: {
+        accountId: { type: "string" },
+        groups: {
+          type: "array",
+          maxItems: 20,
+          items: {
+            oneOf: [
+              { type: "string" },
+              {
+                type: "object",
+                additionalProperties: true,
+                properties: {
+                  id: { type: "string" },
+                  peerId: { type: "string" },
+                  groupId: { type: "string" },
+                },
+              },
+            ],
+          },
+        },
+        clear: { type: "boolean" },
+      },
+    },
+  },
+  {
+    name: "groups.leaveApproved",
+    description: "Execute an approved Telegram group leave preview.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["previewId"],
+      properties: {
+        previewId: { type: "string" },
+        idempotencyKey: { type: "string" },
+      },
+    },
+  },
+  {
     name: "tags.get",
     description: "List tags, optionally filtered to a peer.",
     transport: "local",
@@ -347,6 +544,16 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
   {
     name: "rules.run",
     description: "Execute enabled CRM automation rules.",
+    transport: "local",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {},
+    },
+  },
+  {
+    name: "rules.dryRun",
+    description: "Evaluate enabled CRM automation rules without writing actions or events.",
     transport: "local",
     inputSchema: {
       type: "object",

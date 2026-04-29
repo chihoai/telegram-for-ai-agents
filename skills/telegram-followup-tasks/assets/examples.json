@@ -1,0 +1,17 @@
+[
+  {
+    "client": "OpenClaw",
+    "prompt": "Show my follow-up tasks due today.",
+    "tools": ["tasks.today"]
+  },
+  {
+    "client": "Codex",
+    "prompt": "Suggest follow-up tasks from the last 50 messages with @alice.",
+    "tools": ["chat.read", "tasks.suggest"]
+  },
+  {
+    "client": "Claude Desktop",
+    "prompt": "Create a high-priority task to send the proposal tomorrow.",
+    "tools": ["tasks.add"]
+  }
+]

@@ -54,10 +54,29 @@ function requireStringArray(value: unknown, label: string) {
   return values;
 }
 
+function payloadArg(input: Record<string, unknown>) {
+  return ["--payload", JSON.stringify(input)];
+}
+
+function rejectUnsupportedAccountId(input: Record<string, unknown>) {
+  if (
+    Object.prototype.hasOwnProperty.call(input, "accountId") &&
+    input.accountId !== undefined &&
+    input.accountId !== null &&
+    input.accountId !== ""
+  ) {
+    throw new Error(
+      "accountId is not supported by local tool dispatch yet. Use TELEGRAM_ACCOUNT_LABEL to select the account."
+    );
+  }
+}
+
 export function buildToolCommandArgs(
   toolName: string,
   input: Record<string, unknown> = {}
 ) {
+  rejectUnsupportedAccountId(input);
+
   if (toolName === "auth.status") {
     return ["auth", "status"];
   }
@@ -132,6 +151,79 @@ export function buildToolCommandArgs(
       ];
     }
     throw new Error("Unsupported folders.update action.");
+  }
+
+  if (toolName === "folders.create") {
+    return [
+      "folders",
+      "create",
+      "--title",
+      requireString(input.title, "title"),
+      "--peer",
+      requireString(input.peer, "peer"),
+      ...stringFlag(input.idempotencyKey, "--idempotency-key"),
+    ];
+  }
+
+  if (toolName === "folders.addDialog") {
+    return [
+      "folders",
+      "add",
+      requireString(input.folderId, "folderId"),
+      requireString(input.peer, "peer"),
+    ];
+  }
+
+  if (toolName === "folders.removeDialog") {
+    return [
+      "folders",
+      "remove",
+      requireString(input.folderId, "folderId"),
+      requireString(input.peer, "peer"),
+    ];
+  }
+
+  if (toolName === "outbox.preview") {
+    return ["outbox", "preview", ...payloadArg(input)];
+  }
+
+  if (toolName === "outbox.sendApproved") {
+    return [
+      "outbox",
+      "send-approved",
+      requireString(input.previewId, "previewId"),
+      ...stringFlag(input.idempotencyKey, "--idempotency-key"),
+    ];
+  }
+
+  if (toolName === "message.sendDraft") {
+    return ["message", "send-draft", ...payloadArg(input)];
+  }
+
+  if (toolName === "members.invitePreview") {
+    return ["members", "invite-preview", ...payloadArg(input)];
+  }
+
+  if (toolName === "members.inviteApproved") {
+    return [
+      "members",
+      "invite-approved",
+      requireString(input.previewId, "previewId"),
+      ...stringFlag(input.idempotencyKey, "--idempotency-key"),
+    ];
+  }
+
+  if (toolName === "groups.leavePreview") {
+    return ["groups", "leave-preview", ...payloadArg(input)];
+  }
+
+  if (toolName === "groups.leaveApproved") {
+    return [
+      "groups",
+      "leave-approved",
+      requireString(input.previewId, "previewId"),
+      ...stringFlag(input.idempotencyKey, "--idempotency-key"),
+    ];
   }
 
   if (toolName === "tags.get") {
@@ -267,6 +359,10 @@ export function buildToolCommandArgs(
 
   if (toolName === "rules.run") {
     return ["rules", "run"];
+  }
+
+  if (toolName === "rules.dryRun") {
+    return ["rules", "run", "--dry-run"];
   }
 
   if (toolName === "rules.log") {

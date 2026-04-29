@@ -1,6 +1,11 @@
 import type { AppContext } from '../app/context.js';
 import { parseCommandArgs, optionValue } from '../app/cli-args.js';
 import {
+  createAgentWriteRunKey,
+  loadAgentWriteRun,
+  saveAgentWriteRun,
+} from '../services/agentWritePreviewStore.js';
+import {
   ensureAuthorized,
   folderTitle,
   listEditableFolders,
@@ -60,26 +65,54 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
   }
 
   if (sub === 'create') {
-    const parsed = parseCommandArgs(args.slice(1), ['--title']);
+    const parsed = parseCommandArgs(args.slice(1), ['--title', '--peer', '--idempotency-key']);
     const title = optionValue(parsed, ['--title']);
     if (!title) {
       throw new Error('Usage: tgchats folders create --title "Leads"');
     }
+    const peerInput = optionValue(parsed, ['--peer']);
+    const idempotencyKey = optionValue(parsed, ['--idempotency-key']);
+    const runKey = peerInput
+      ? createAgentWriteRunKey({
+          toolName: 'folders.create',
+          previewId: `${title}:${peerInput}`,
+          idempotencyKey,
+        })
+      : null;
+    if (runKey) {
+      const existingRun = await loadAgentWriteRun(ctx.config, runKey);
+      if (existingRun) {
+        if (ctx.config.jsonOutput) {
+          printJson({ ...existingRun, idempotentReplay: true });
+          return;
+        }
+        console.log(`Folder create already completed: ${title}`);
+        return;
+      }
+    }
+    const includePeers = peerInput
+      ? [await ctx.telegram.resolvePeer(normalizePeerRef(peerInput))]
+      : [];
     const created = await ctx.telegram.createFolder({
       title: toTextWithEntities(title),
       pinnedPeers: [],
-      includePeers: [],
+      includePeers,
       excludePeers: [],
     });
-    if (ctx.config.jsonOutput) {
-      printJson({
+    const output = {
         ok: true,
         action: 'create',
         folder: {
           id: created.id,
           title: created.title.text,
         },
-      });
+        includePeersCount: includePeers.length,
+      };
+    if (runKey) {
+      await saveAgentWriteRun(ctx.config, runKey, output);
+    }
+    if (ctx.config.jsonOutput) {
+      printJson(output);
       return;
     }
     console.log(`Created folder ${created.id}: ${created.title.text}`);
