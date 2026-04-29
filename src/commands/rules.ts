@@ -12,6 +12,7 @@ import {
   addAutomationRule,
   addRuleEvent,
   addTask,
+  hasRuleEventForMatch,
   listAutomationRules,
   listRuleEvents,
   setPeerTags,
@@ -136,6 +137,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
         limit: 25,
       });
       if (history.length === 0) continue;
+      const latestMessageId = Math.max(...history.map((message) => message.id));
 
       await upsertPeer(db, { accountId, peer: dialog.peer });
       for (const rule of activeRules) {
@@ -148,6 +150,16 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
           instruction: rule.containsText,
         });
         if (!evaluation.matched) continue;
+        if (
+          await hasRuleEventForMatch(db, {
+            accountId,
+            ruleId: rule.ruleId,
+            peerId: dialog.peer.id,
+            matchMessageId: latestMessageId,
+          })
+        ) {
+          continue;
+        }
         matchedCount += 1;
 
         const resolvedTag = evaluation.setTag ?? rule.setTag;
@@ -187,6 +199,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
           accountId,
           ruleId: rule.ruleId,
           peerId: dialog.peer.id,
+          matchMessageId: latestMessageId,
           note: `${dialog.peer.displayName}: ${evaluation.reason} | tag=${resolvedTag ?? '-'} | task=${shouldCreateTask ? 'yes' : 'no'}`,
         });
         events.push({

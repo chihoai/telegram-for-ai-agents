@@ -118,6 +118,15 @@ async function handleRequest(message: JsonRpcRequest) {
 }
 
 let buffer = Buffer.alloc(0);
+let requestQueue = Promise.resolve();
+
+function enqueueRequest(message: JsonRpcRequest) {
+  requestQueue = requestQueue
+    .then(() => handleRequest(message))
+    .catch((error) => {
+      sendError(message.id, -32000, error instanceof Error ? error.message : String(error));
+    });
+}
 
 function processBuffer() {
   while (true) {
@@ -157,7 +166,7 @@ function processBuffer() {
     buffer = buffer.subarray(messageEnd);
 
     try {
-      void handleRequest(JSON.parse(body));
+      enqueueRequest(JSON.parse(body));
     } catch (error) {
       sendError(null, -32700, "Parse error", {
         detail: error instanceof Error ? error.message : String(error),

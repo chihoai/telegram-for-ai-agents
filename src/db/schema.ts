@@ -159,4 +159,15 @@ CREATE INDEX IF NOT EXISTS rule_events_created_idx
   ON rule_events(account_id, created_at DESC);
 `,
   },
+  {
+    id: '003_rule_event_match_idempotency',
+    sql: `
+ALTER TABLE rule_events
+  ADD COLUMN IF NOT EXISTS match_message_id integer NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS rule_events_match_unique_idx
+  ON rule_events(account_id, rule_id, peer_id, match_message_id)
+  WHERE match_message_id IS NOT NULL;
+`,
+  },
 ];

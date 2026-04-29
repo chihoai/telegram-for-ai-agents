@@ -12,26 +12,38 @@ export interface AppContext {
   db?: DbPool;
   accountId?: bigint;
   ai?: AiService;
+  telegramClient?: TelegramClient;
 }
 
 export function createContext(args: string[]): AppContext {
   const config = loadConfig(args);
-  ensureSessionDir(config.sessionPath);
-
-  const telegram = createTelegramClient(config);
   const db = config.databaseUrl ? createPool(config.databaseUrl) : undefined;
   const ai = createAiService(config);
 
-  return { config, telegram, db, ai };
+  const ctx = { config, db, ai } as AppContext;
+  Object.defineProperty(ctx, 'telegram', {
+    enumerable: true,
+    get() {
+      if (!ctx.telegramClient) {
+        ensureSessionDir(config.sessionPath);
+        ctx.telegramClient = createTelegramClient(config);
+      }
+      return ctx.telegramClient;
+    },
+  });
+
+  return ctx;
 }
 
 export async function destroyContext(ctx: AppContext): Promise<void> {
-  try {
-    await ctx.telegram.destroy();
-  } catch (error) {
-    if (!ctx.config.jsonOutput) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error(`Warning: failed to destroy Telegram client cleanly (${message}).`);
+  if (ctx.telegramClient) {
+    try {
+      await ctx.telegramClient.destroy();
+    } catch (error) {
+      if (!ctx.config.jsonOutput) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`Warning: failed to destroy Telegram client cleanly (${message}).`);
+      }
     }
   }
   if (ctx.db) {

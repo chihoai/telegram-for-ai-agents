@@ -78,6 +78,13 @@ export function probeTelegramSessionStorage(
 }
 
 export function createTelegramClient(config: AppConfig): TelegramClient {
+  if (!config.apiId || !config.apiHash) {
+    throw new CliError(
+      'Telegram credentials are not configured. Set TELEGRAM_API_ID and TELEGRAM_API_HASH.',
+      'TELEGRAM_NOT_CONFIGURED',
+    );
+  }
+
   const transport = createProxyTransport(config.proxyUrl);
   if (transport) {
     console.log('Using proxy transport from TELEGRAM_PROXY_URL.');

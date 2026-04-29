@@ -102,8 +102,34 @@ async function refreshPeerSummary(
   console.log(`Summary refreshed for ${peer.displayName}.`);
 }
 
+function numericPeerIdFromRef(value: string): number | undefined {
+  const trimmed = value.trim();
+  if (!/^-?\d+$/.test(trimmed)) return undefined;
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
+async function resolveSummaryPeer(
+  ctx: AppContext,
+  peerInput: string,
+): Promise<{ id: number; displayName: string }> {
+  const numericPeerId = numericPeerIdFromRef(peerInput);
+  if (numericPeerId !== undefined) {
+    return { id: numericPeerId, displayName: String(numericPeerId) };
+  }
+
+  await ensureAuthorized(ctx.telegram);
+  const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
+  return { id: peer.id, displayName: peer.displayName };
+}
+
 export async function runSummary(ctx: AppContext, args: string[]): Promise<void> {
-  if (!ctx.ai) {
+  const sub = args[0];
+  if (!sub) {
+    throw new Error('Usage: tgchats summary <show|refresh> ...');
+  }
+
+  if (sub !== 'show' && !ctx.ai) {
     throw new Error(
       'AI mode is not configured. Set AI_MODE=gemini with GEMINI_API_KEY or AI_MODE=openclaw with OPENCLAW_BASE_URL.',
     );
@@ -111,12 +137,6 @@ export async function runSummary(ctx: AppContext, args: string[]): Promise<void>
 
   const db = requireDb(ctx);
   const accountId = await requireAccountId(ctx);
-  const sub = args[0];
-  if (!sub) {
-    throw new Error('Usage: tgchats summary <show|refresh> ...');
-  }
-
-  await ensureAuthorized(ctx.telegram);
 
   if (sub === 'show') {
     const parsed = parseCommandArgs(args.slice(1), ['--kind']);
@@ -133,7 +153,7 @@ export async function runSummary(ctx: AppContext, args: string[]): Promise<void>
       throw new Error('--kind must be rolling|since_last_seen');
     }
 
-    const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
+    const peer = await resolveSummaryPeer(ctx, peerInput);
     const summary = await getSummary(db, {
       accountId,
       peerId: peer.id,
@@ -170,6 +190,7 @@ export async function runSummary(ctx: AppContext, args: string[]): Promise<void>
   }
 
   if (sub === 'refresh') {
+    await ensureAuthorized(ctx.telegram);
     const parsed = parseCommandArgs(args.slice(1), ['--limit']);
     const limit = parsed.values.get('--limit')
       ? parsePositiveInt(parsed.values.get('--limit')!, '--limit')

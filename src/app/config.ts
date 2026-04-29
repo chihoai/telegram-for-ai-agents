@@ -1,7 +1,7 @@
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { mkdirSync } from 'node:fs';
-import { optionalEnv, requiredEnv } from './env.js';
+import { optionalEnv } from './env.js';
 import { CliError } from './errors.js';
 
 const DEFAULT_LIMIT = 5;
@@ -18,8 +18,8 @@ const DEFAULT_SESSION_PATH = join(
 export type AiMode = 'gemini' | 'openclaw';
 
 export interface AppConfig {
-  apiId: number;
-  apiHash: string;
+  apiId?: number;
+  apiHash?: string;
   sessionPath: string;
   proxyUrl?: string;
   limit: number;
@@ -122,8 +122,9 @@ function assertSupportedNodeVersion() {
 
 export function loadConfig(args: string[]): AppConfig {
   assertSupportedNodeVersion();
-  const apiId = parseApiId(requiredEnv('TELEGRAM_API_ID'));
-  const apiHash = requiredEnv('TELEGRAM_API_HASH');
+  const rawApiId = optionalEnv('TELEGRAM_API_ID');
+  const apiId = rawApiId ? parseApiId(rawApiId) : undefined;
+  const apiHash = optionalEnv('TELEGRAM_API_HASH');
   const sessionPath = optionalEnv('TELEGRAM_SESSION_PATH') ?? DEFAULT_SESSION_PATH;
   const proxyUrl = optionalEnv('TELEGRAM_PROXY_URL');
   const databaseUrl = optionalEnv('DATABASE_URL');

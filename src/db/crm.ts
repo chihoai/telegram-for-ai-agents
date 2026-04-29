@@ -337,15 +337,54 @@ ORDER BY rule_id ASC
 
 export async function addRuleEvent(
   pool: DbPool,
-  params: { accountId: bigint; ruleId: number; peerId: number; note: string },
+  params: {
+    accountId: bigint;
+    ruleId: number;
+    peerId: number;
+    note: string;
+    matchMessageId?: number;
+  },
 ): Promise<void> {
   await pool.query(
     `
-INSERT INTO rule_events (account_id, rule_id, peer_id, note)
-VALUES ($1, $2, $3, $4)
+INSERT INTO rule_events (account_id, rule_id, peer_id, note, match_message_id)
+VALUES ($1, $2, $3, $4, $5)
+ON CONFLICT (account_id, rule_id, peer_id, match_message_id)
+WHERE match_message_id IS NOT NULL
+DO NOTHING
 `,
-    [params.accountId.toString(), params.ruleId, params.peerId, params.note],
+    [
+      params.accountId.toString(),
+      params.ruleId,
+      params.peerId,
+      params.note,
+      params.matchMessageId ?? null,
+    ],
   );
+}
+
+export async function hasRuleEventForMatch(
+  pool: DbPool,
+  params: { accountId: bigint; ruleId: number; peerId: number; matchMessageId: number },
+): Promise<boolean> {
+  const result = await pool.query(
+    `
+SELECT 1
+FROM rule_events
+WHERE account_id = $1
+  AND rule_id = $2
+  AND peer_id = $3
+  AND match_message_id = $4
+LIMIT 1
+`,
+    [
+      params.accountId.toString(),
+      params.ruleId,
+      params.peerId,
+      params.matchMessageId,
+    ],
+  );
+  return (result.rowCount ?? 0) > 0;
 }
 
 export async function listRuleEvents(
