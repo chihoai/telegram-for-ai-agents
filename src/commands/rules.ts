@@ -1,5 +1,5 @@
 import type { AppContext } from '../app/context.js';
-import { parseCommandArgs, optionValue, parsePositiveInt } from '../app/cli-args.js';
+import { hasFlag, parseCommandArgs, optionValue, parsePositiveInt } from '../app/cli-args.js';
 import { requireDb } from '../app/db.js';
 import { requireAccountId } from '../app/account.js';
 import {
@@ -98,6 +98,9 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
   }
 
   if (sub === 'run') {
+    const parsed = parseCommandArgs(args.slice(1));
+    const dryRun = hasFlag(parsed, ['--dry-run']);
+
     if (!ctx.ai) {
       throw new Error(
         'AI mode is not configured. Set AI_MODE=gemini with GEMINI_API_KEY or AI_MODE=openclaw with OPENCLAW_BASE_URL.',
@@ -130,6 +133,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
       taskCreated: boolean;
       taskDueAt: string | null;
       priority: 'low' | 'med' | 'high';
+      dryRun: boolean;
     }> = [];
     for (const dialog of dialogs) {
       const history = await fetchChatHistory(ctx.telegram, {
@@ -151,6 +155,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
         });
         if (!evaluation.matched) continue;
         if (
+          !dryRun &&
           await hasRuleEventForMatch(db, {
             accountId,
             ruleId: rule.ruleId,
@@ -164,12 +169,14 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
 
         const resolvedTag = evaluation.setTag ?? rule.setTag;
         if (resolvedTag) {
-          await setPeerTags(db, {
-            accountId,
-            peerId: dialog.peer.id,
-            tags: [resolvedTag],
-            source: 'rule',
-          });
+          if (!dryRun) {
+            await setPeerTags(db, {
+              accountId,
+              peerId: dialog.peer.id,
+              tags: [resolvedTag],
+              source: 'rule',
+            });
+          }
           actionCount += 1;
         }
 
@@ -185,23 +192,27 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
           const dueAt = new Date();
           dueAt.setDate(dueAt.getDate() + followupDays);
           taskDueAtIso = dueAt.toISOString();
-          await addTask(db, {
-            accountId,
-            peerId: dialog.peer.id,
-            dueAt,
-            why: evaluation.why ?? `Automation rule "${rule.name}" matched`,
-            priority: evaluation.priority,
-          });
+          if (!dryRun) {
+            await addTask(db, {
+              accountId,
+              peerId: dialog.peer.id,
+              dueAt,
+              why: evaluation.why ?? `Automation rule "${rule.name}" matched`,
+              priority: evaluation.priority,
+            });
+          }
           actionCount += 1;
         }
 
-        await addRuleEvent(db, {
-          accountId,
-          ruleId: rule.ruleId,
-          peerId: dialog.peer.id,
-          matchMessageId: latestMessageId,
-          note: `${dialog.peer.displayName}: ${evaluation.reason} | tag=${resolvedTag ?? '-'} | task=${shouldCreateTask ? 'yes' : 'no'}`,
-        });
+        if (!dryRun) {
+          await addRuleEvent(db, {
+            accountId,
+            ruleId: rule.ruleId,
+            peerId: dialog.peer.id,
+            matchMessageId: latestMessageId,
+            note: `${dialog.peer.displayName}: ${evaluation.reason} | tag=${resolvedTag ?? '-'} | task=${shouldCreateTask ? 'yes' : 'no'}`,
+          });
+        }
         events.push({
           ruleId: rule.ruleId,
           ruleName: rule.name,
@@ -213,6 +224,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
           taskCreated: shouldCreateTask,
           taskDueAt: taskDueAtIso,
           priority: evaluation.priority,
+          dryRun,
         });
       }
     }
@@ -220,13 +232,16 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
     if (ctx.config.jsonOutput) {
       printJson({
         ok: true,
+        dryRun,
         matches: matchedCount,
         actions: actionCount,
         events,
       });
       return;
     }
-    console.log(`Rule run complete. Matches=${matchedCount}, actions=${actionCount}.`);
+    console.log(
+      `Rule ${dryRun ? 'dry run' : 'run'} complete. Matches=${matchedCount}, actions=${actionCount}.`,
+    );
     return;
   }
 

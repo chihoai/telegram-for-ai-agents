@@ -206,6 +206,14 @@ Self-hosted examples live here:
 - [Telegram Flows](./skills/tgchats-local/references/telegram-flows.md)
 - [tgjson.sh](./skills/tgchats-local/scripts/tgjson.sh) for stable JSON-wrapped CLI calls
 
+## Telegram Skills
+
+Installable workflow skills live under [`skills/`](./skills/).
+
+- Catalog guide: [docs/SKILL_CATALOG.md](./docs/SKILL_CATALOG.md)
+- Machine-readable catalog: [skills/catalog.json](./skills/catalog.json)
+- Productization notes: [docs/SKILL_PRODUCTIZATION.md](./docs/SKILL_PRODUCTIZATION.md)
+
 ## VPS Deployment
 
 Recommended production shape:
