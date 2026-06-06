@@ -42,3 +42,13 @@ Cloud should import copies into database records when a user installs or enables
 - Chiho Cloud MCP: PR 9 write scopes are the Cloud baseline after merge.
 - Local `tgchats-mcp`: exposes matching write tool names for local parity.
 - CLI: remains available for local workflows, but skills should prefer MCP when possible.
+
+## Public Catalog And Requests
+
+The public `chiho.ai/telegram-skills` page should use this repository as the packaged skill source of truth:
+
+- catalog: `skills/catalog.json`
+- skill package: `skills/<skill-name>/`
+- local repo path during development: `/Users/chris/Documents/Workspace/chiho/telegram-for-agents`
+
+Wanted skills should be represented by GitHub issues with the `telegram-skill` label. Other issues can stay in the same repository; the public wanted-skills list should filter specifically on `label:telegram-skill`.

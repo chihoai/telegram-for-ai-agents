@@ -1,0 +1,6 @@
+[
+  {
+    "prompt": "Find investor chats that need an update and create tasks.",
+    "tools": ["search.messages", "chat.read", "summary.refresh", "tasks.add"]
+  }
+]

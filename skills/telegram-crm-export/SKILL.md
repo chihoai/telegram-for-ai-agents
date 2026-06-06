@@ -1,0 +1,40 @@
+---
+name: telegram-crm-export
+description: Prepare Telegram CRM exports for audits, follow-up reports, or handoffs. Use when the user wants filtered chats, tags, companies, tasks, or summaries exported from Chiho or tgchats.
+license: MIT
+compatibility: Requires Chiho Cloud MCP or local tgchats with read access; local full export uses the tgchats CLI.
+metadata:
+  chiho.category: crm-automation
+  chiho.risk: medium
+  chiho.requiresApproval: "true"
+  chiho.cloudScopes: telegram.read, crm.read
+allowed-tools: mcp(search.messages) mcp(dialogs.list) mcp(chat.read) mcp(tags.get) mcp(company.get) mcp(tasks.today) mcp(summary.show)
+---
+
+# telegram-crm-export
+
+Use this skill to gather CRM slices for export, audit, reporting, or team handoff.
+
+## Rules
+
+- Clarify export scope before collecting data.
+- Prefer filtered exports over full account exports.
+- Do not include session files, API hashes, or private auth material.
+- Treat exported chat content as sensitive.
+- Local full backup uses `tgchats export` outside MCP.
+
+## Flow
+
+1. Determine filters: tag, company, query, peer, date range, task status, or summary kind.
+2. Use read tools to preview the export scope.
+3. For local full exports, call the documented CLI export command outside MCP.
+4. Return file location, record counts, included fields, and privacy notes.
+
+## References
+
+- [Flow](references/flow.md)
+- [Safety](references/safety.md)
+- [Cloud MCP](references/cloud-mcp.md)
+- [Local tgchats](references/tgchats-local.md)
+- [Templates](assets/templates.json)
+- [Examples](assets/examples.json)
