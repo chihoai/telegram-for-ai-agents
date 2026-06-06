@@ -16,6 +16,16 @@ This catalog defines the first installable Telegram workflow skills for Chiho Cl
 | `telegram-add-colleagues-to-group` | Add or invite colleagues to groups | High | PR 9 `telegram.members.invite` scope | Matching `members.*` tools |
 | `telegram-followup-tasks` | Find follow-ups and create CRM tasks | Low | `telegram.read`, `crm.write` | Existing task tools |
 | `telegram-group-cleanup` | Review stale groups and clean up safely | High | PR 9 folder scopes, future group leave tools | Folder tools, future group leave tools |
+| `telegram-lead-qualification` | Qualify inbound Marketing and BD leads | Low | `telegram.read`, `crm.write` | Existing tag/company/task tools |
+| `telegram-intro-request-triage` | Detect intro asks and create follow-up tasks or previews | Medium | `telegram.read`, `crm.write`, preview scope | Search, task, and preview tools |
+| `telegram-deck-followup` | Follow up after decks, proposals, or docs were sent | Low | `telegram.read`, `crm.write` | Search and task tools |
+| `telegram-vip-inbox` | Surface important contacts before general inbox triage | Low | `telegram.read`, `crm.write` | Dialog, metadata, and task tools |
+| `telegram-meeting-recap` | Summarize long threads into recaps and action items | Low | `telegram.read`, `crm.write` | Summary and task tools |
+| `telegram-crm-export` | Prepare filtered CRM exports and local backups | Medium | `telegram.read`, `crm.read` | Read tools plus local export CLI |
+| `telegram-partner-pipeline` | Track partner conversations by stage and next step | Low | `telegram.read`, `crm.write` | Tag/company/task tools |
+| `telegram-investor-updates` | Track investor update follow-ups and drafts | Medium | `telegram.read`, `crm.write`, preview scope | Summary, task, and preview tools |
+| `telegram-hiring-pipeline` | Track candidates and hiring follow-ups | Medium | `telegram.read`, `crm.write` | Search, tag, and task tools |
+| `telegram-support-escalation` | Detect urgent support issues and create escalation tasks | Medium | `telegram.read`, `crm.write` | Search, rules, tags, and task tools |
 
 ## Installing Skills
 
