@@ -4,7 +4,7 @@ import {
   ensureAuthorized,
   fetchChatHistory,
   formatMessagePreview,
-  normalizePeerRef,
+  resolveChatPeer,
 } from '../services/telegram.js';
 import { requireAccountId } from '../app/account.js';
 import { insertMessage, upsertPeer } from '../db/writes.js';
@@ -21,7 +21,8 @@ function formatDate(date: Date): string {
 }
 
 export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
-  const parsed = parseCommandArgs(args, ['--limit', '-n', '--since']);
+  const commandArgs = args[0] === '--' ? args.slice(1) : args;
+  const parsed = parseCommandArgs(commandArgs, ['--limit', '-n', '--since']);
   const peerArg = parsed.positionals[0];
   if (!peerArg) {
     throw new Error('Usage: tgchats chat <peer> [--limit N] [--since messageId]');
@@ -41,12 +42,13 @@ export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
   }
 
   await ensureAuthorized(ctx.telegram);
-  const peer = await ctx.telegram.getPeer(normalizePeerRef(peerArg));
+  const peer = await resolveChatPeer(ctx.telegram, peerArg);
   const messages = await fetchChatHistory(ctx.telegram, {
-    chatId: normalizePeerRef(peerArg),
+    chatId: peer,
     limit,
     sinceMessageId,
   });
+  let dbWarning: string | null = null;
 
   if (messages.length === 0) {
     if (ctx.config.jsonOutput) {
@@ -68,10 +70,19 @@ export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
   }
 
   if (ctx.db) {
-    const accountId = await requireAccountId(ctx);
-    await upsertPeer(ctx.db, { accountId, peer });
-    for (const message of messages) {
-      await insertMessage(ctx.db, { accountId, peer, message });
+    try {
+      const accountId = await requireAccountId(ctx);
+      await upsertPeer(ctx.db, { accountId, peer });
+      for (const message of messages) {
+        await insertMessage(ctx.db, { accountId, peer, message });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      dbWarning = `DB write skipped (${message}).`;
+      if (!ctx.config.jsonOutput) {
+        console.log(dbWarning);
+        console.log('Tip: run `tgchats db migrate` and set `DATABASE_URL`.');
+      }
     }
   }
 
@@ -86,6 +97,7 @@ export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
         username: peer.username ?? null,
       },
       count: chronological.length,
+      warning: dbWarning,
       messages: chronological.map((message) => ({
         id: message.id,
         date: message.date.toISOString(),

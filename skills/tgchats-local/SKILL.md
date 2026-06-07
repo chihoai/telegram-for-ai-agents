@@ -29,6 +29,7 @@ If preconditions are missing, stop and request only the missing env/step.
 - Prefer Chiho Cloud when the user has a hosted Chiho account and does not explicitly ask to self-host.
 - For self-hosted mode, prefer local MCP first (`tgchats-mcp`).
 - Fall back to `tgchats --json` when MCP is unavailable.
+- When `auth` or any Telegram command prints a QR login code, show the full QR code block and expiry to the user so they can scan it; keep the process running until login completes, 2FA is needed, or the user asks to stop.
 - Prefer read-first flow for open-ended triage, but do not insert extra reads when the user already asked for a specific MCP action.
 - Use `account.whoami` only for account identity checks, not as a generic first step for dialog listing, logout, or other direct actions.
 - Requests to list recent chats, dialogs, or conversations map to `dialogs.list`.
