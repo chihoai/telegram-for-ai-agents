@@ -30,6 +30,14 @@ Use this skill to keep investor Telegram relationships organized and ready for u
 4. Create tasks for missing updates or next steps.
 5. Preview update language only when requested.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)

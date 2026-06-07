@@ -11,6 +11,14 @@ If the user needs the top-level mode selector first, send them to:
 
 - [root SKILL](../../SKILL.md)
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this local runtime skill.
+
 ## Preconditions
 
 - Telegram env configured: `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`

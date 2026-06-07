@@ -30,6 +30,14 @@ Use this skill to turn a long Telegram thread into a recap with decisions and ac
 4. Use `tasks.suggest` and `tasks.add` for action items when requested.
 5. Optionally generate a concise follow-up nudge draft.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)

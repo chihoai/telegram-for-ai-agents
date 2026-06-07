@@ -31,6 +31,14 @@ Use this skill to turn Telegram conversation context into follow-up tasks.
 5. Use `tasks.add` when the user approves suggestions or gives direct instructions.
 6. Use `rules.*` when the user wants recurring follow-up behavior.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)

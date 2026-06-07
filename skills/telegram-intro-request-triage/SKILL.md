@@ -32,6 +32,14 @@ Use this skill to process Telegram intro requests without losing context or send
 5. Optionally create a response preview.
 6. Return grouped requests: ready, needs clarification, blocked, and done.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)

@@ -31,6 +31,14 @@ Use this skill to identify and clean up stale or noisy Telegram groups.
 4. Use `folders.*`, `tags.set`, or `tasks.add` for approved organization actions.
 5. Use `groups.leavePreview` and `groups.leaveApproved` only when the user approves or policy explicitly allows automatic execution.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)
