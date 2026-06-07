@@ -1,11 +1,11 @@
 # Telegram Skill Catalog
 
-This catalog defines the first installable Telegram workflow skills for Chiho Cloud and the self-hosted `tgchats` runtime.
+This catalog defines the first installable Telegram workflow skills for Chiho.ai Cloud and the self-hosted `tgchats` runtime.
 
 ## Repository Split
 
 - `telegram-for-agents` owns public Skill directories, examples, local MCP/CLI contracts, and install guidance.
-- `chiho/monorepo` owns Chiho Cloud execution: hosted MCP tools, token scopes, approval policies, audit logs, durable jobs, and UI.
+- `chiho/monorepo` owns Chiho.ai Cloud execution: the hosted CRM table UI, MCP tools, token scopes, approval policies, audit logs, and durable jobs.
 
 ## Initial Skills
 
@@ -39,7 +39,7 @@ Install options:
 
 Client notes:
 
-- OpenClaw: install the skill directory and configure the Chiho Cloud MCP server or local `tgchats-mcp`.
+- OpenClaw: install the skill directory and configure the Chiho.ai Cloud MCP server or local `tgchats-mcp`.
 - Codex: place the skill directory in the configured skill location, or reference the repo-local `SKILL.md` directly during development.
 - Claude Desktop: use the skill directory as the workflow artifact and configure MCP separately.
 

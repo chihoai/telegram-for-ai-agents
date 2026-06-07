@@ -2,7 +2,7 @@
 name: telegram-meeting-recap
 description: Summarize Telegram conversations into meeting recaps, decisions, and action items. Use when the user wants a concise recap after a call, meeting, or long planning thread.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read, summary, and task tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read, summary, and task tools.
 metadata:
   chiho.category: crm-automation
   chiho.risk: low

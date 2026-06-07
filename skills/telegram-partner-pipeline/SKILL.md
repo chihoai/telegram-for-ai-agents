@@ -2,7 +2,7 @@
 name: telegram-partner-pipeline
 description: Manage partnership pipeline conversations in Telegram with stages, summaries, and follow-up tasks. Use when the user wants to track BD or partner relationships from Telegram chats.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read and CRM write tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read and CRM write tools.
 metadata:
   chiho.category: crm-automation
   chiho.risk: low

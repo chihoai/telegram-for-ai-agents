@@ -2,7 +2,7 @@
 name: telegram-add-colleagues-to-group
 description: Add or invite one Telegram user to selected group chats. Use when the user wants to add a colleague, teammate, contractor, or partner to Telegram groups.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with member invite write tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with member invite write tools.
 metadata:
   chiho.category: telegram-automation
   chiho.risk: high

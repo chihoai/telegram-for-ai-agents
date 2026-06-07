@@ -2,7 +2,7 @@
 name: telegram-hiring-pipeline
 description: Track candidates and hiring conversations in Telegram with stage tags, summaries, and follow-up tasks. Use when the user wants to manage recruiting or candidate follow-ups from Telegram.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read and CRM task tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read and CRM task tools.
 metadata:
   chiho.category: crm-automation
   chiho.risk: medium

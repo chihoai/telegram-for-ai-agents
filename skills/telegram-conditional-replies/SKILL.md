@@ -2,7 +2,7 @@
 name: telegram-conditional-replies
 description: Create, dry-run, or execute conditional Telegram reply workflows. Use when the user wants automatic or semi-automatic replies based on chat content, tags, folders, or follow-up state.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with rule tools; message execution requires write-scoped tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with rule tools; message execution requires write-scoped tools.
 metadata:
   chiho.category: telegram-automation
   chiho.risk: high

@@ -6,7 +6,7 @@ It is not the runtime onboarding entry point for end users or external AI agents
 For agent setup and product entry paths, start at:
 
 - `SKILL.md` for the public entry point
-- Chiho Cloud vs self-hosted mode selection lives there
+- Chiho.ai Cloud vs self-hosted mode selection lives there
 - `README.md` for human setup and deployment details
 
 ## Contributor Commands

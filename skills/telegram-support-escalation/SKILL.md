@@ -2,7 +2,7 @@
 name: telegram-support-escalation
 description: Detect urgent support or customer issues in Telegram and create escalation tasks. Use when the user wants to triage complaints, outages, bugs, or customer support risks from Telegram conversations.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read and CRM task tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read and CRM task tools.
 metadata:
   chiho.category: crm-automation
   chiho.risk: medium

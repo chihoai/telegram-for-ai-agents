@@ -26,7 +26,8 @@ If preconditions are missing, stop and request only the missing env/step.
 
 ## Execution Rules
 
-- Prefer Chiho Cloud when the user has a hosted Chiho account and does not explicitly ask to self-host.
+- Prefer Chiho.ai Cloud when the user has a hosted Chiho account and does not explicitly ask to self-host.
+- Prefer Chiho.ai Cloud when the user wants the hosted web UI or CRM table experience.
 - For self-hosted mode, prefer local MCP first (`tgchats-mcp`).
 - Fall back to `tgchats --json` when MCP is unavailable.
 - When `auth` or any Telegram command prints a QR login code, show the full QR code block and expiry to the user so they can scan it; keep the process running until login completes, 2FA is needed, or the user asks to stop.

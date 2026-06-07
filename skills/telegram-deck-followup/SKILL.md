@@ -2,7 +2,7 @@
 name: telegram-deck-followup
 description: Track Telegram conversations where a deck, proposal, or document was sent and create follow-up tasks if there is no reply. Use when the user wants BD, sales, investor, or partnership follow-ups after sending materials.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read, search, and CRM task tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read, search, and CRM task tools.
 metadata:
   chiho.category: crm-automation
   chiho.risk: low
