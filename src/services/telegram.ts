@@ -111,6 +111,27 @@ export function normalizePeerRef(value: string | number): string | number {
   return trimmed;
 }
 
+export async function resolveChatPeer(
+  client: TelegramClient,
+  value: string | number,
+): Promise<Peer> {
+  const normalized = normalizePeerRef(value);
+
+  if (typeof normalized === 'number') {
+    const dialogs = await listDialogs(client, {
+      all: false,
+      includeArchived: true,
+      limit: 1000,
+    });
+    const dialog = dialogs.find((item) => item.peer.id === normalized);
+    if (dialog) {
+      return dialog.peer;
+    }
+  }
+
+  return client.getPeer(normalized);
+}
+
 export async function listDialogs(
   client: TelegramClient,
   options: ListDialogsOptions,
@@ -144,9 +165,13 @@ export function peerToRow(peer: Peer): {
 
 export async function fetchChatHistory(
   client: TelegramClient,
-  params: { chatId: string | number; limit: number; sinceMessageId?: number },
+  params: { chatId: string | number | Peer; limit: number; sinceMessageId?: number },
 ): Promise<Message[]> {
-  const iterator = client.iterHistory(normalizePeerRef(params.chatId), {
+  const chatId =
+    typeof params.chatId === 'object'
+      ? params.chatId
+      : normalizePeerRef(params.chatId);
+  const iterator = client.iterHistory(chatId, {
     limit: params.limit,
     ...(params.sinceMessageId ? { minId: params.sinceMessageId } : {}),
   });
