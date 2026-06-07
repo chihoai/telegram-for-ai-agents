@@ -26,7 +26,7 @@ Choose this when:
 
 Hosted flow:
 
-1. Connect Telegram in Chiho's web app.
+1. Connect Telegram in [Chiho's web app](https://chiho.ai/signup).
 2. Use the Chiho.ai CRM UI for table-based inbox, contact, tag, task, and follow-up workflows.
 3. Mint an API token from `https://chiho.ai/profile/agent-access`.
 4. Point the MCP client at `https://api.chiho.ai/mcp`.
