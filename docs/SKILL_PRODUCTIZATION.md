@@ -39,7 +39,7 @@ Cloud should import copies into database records when a user installs or enables
 
 ## Runtime Status
 
-- Chiho.ai Cloud MCP: PR 9 write scopes are the Cloud baseline after merge.
+- Chiho.ai Cloud MCP: hosted read/write tools with scoped tokens, previews, approvals, and audit logs.
 - Local `tgchats-mcp`: exposes matching write tool names for local parity.
 - CLI: remains available for local workflows, but skills should prefer MCP when possible.
 

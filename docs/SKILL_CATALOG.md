@@ -11,11 +11,11 @@ This catalog defines the first installable Telegram workflow skills for Chiho.ai
 
 | Skill | Purpose | Risk | Cloud requirements | Local requirements |
 | --- | --- | --- | --- | --- |
-| `telegram-bulk-template-message` | Send approved templates to selected chats | High | PR 9 write scopes: `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Matching `outbox.*` tools |
+| `telegram-bulk-template-message` | Send approved templates to selected chats | High | `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Matching `outbox.*` tools |
 | `telegram-conditional-replies` | Draft or run conditional reply rules | High | `rules.*`, message write scopes for execution | `rules.*`, matching message write tools |
-| `telegram-add-colleagues-to-group` | Add or invite colleagues to groups | High | PR 9 `telegram.members.invite` scope | Matching `members.*` tools |
+| `telegram-add-colleagues-to-group` | Add or invite colleagues to groups | High | `telegram.members.invite` | Matching `members.*` tools |
 | `telegram-followup-tasks` | Find follow-ups and create CRM tasks | Low | `telegram.read`, `crm.write` | Existing task tools |
-| `telegram-group-cleanup` | Review stale groups and clean up safely | High | PR 9 folder scopes, future group leave tools | Folder tools, future group leave tools |
+| `telegram-group-cleanup` | Review stale groups and clean up safely | High | Folder write scopes, future group leave tools | Folder tools, future group leave tools |
 | `telegram-lead-qualification` | Qualify inbound Marketing and BD leads | Low | `telegram.read`, `crm.write` | Existing tag/company/task tools |
 | `telegram-intro-request-triage` | Detect intro asks and create follow-up tasks or previews | Medium | `telegram.read`, `crm.write`, preview scope | Search, task, and preview tools |
 | `telegram-deck-followup` | Follow up after decks, proposals, or docs were sent | Low | `telegram.read`, `crm.write` | Search and task tools |
@@ -47,18 +47,18 @@ Every skill should remain portable: `SKILL.md` contains the routing rules, `refe
 
 ## Contract Reference
 
-PR 9 Cloud write tools are available after `chihoai/chiho#9` lands in `staging` and `main`.
+Cloud write tools are the hosted MCP baseline for skills that preview, send, invite, or organize Telegram state.
 
 | Tool | Status | Required scopes | Notes |
 | --- | --- | --- | --- |
-| `outbox.preview` | PR 9 Cloud baseline | `telegram.message.preview` | Creates a preview record without sending. |
-| `outbox.sendApproved` | PR 9 Cloud baseline | `telegram.message.send`, `telegram.batch.write` | Executes an approved preview. |
-| `message.sendDraft` | PR 9 Cloud baseline | `telegram.message.send` | Sends one message to one resolved peer. |
-| `members.invitePreview` | PR 9 Cloud baseline | `telegram.members.invite` | Previews adding/inviting a user to groups. |
-| `members.inviteApproved` | PR 9 Cloud baseline | `telegram.members.invite` | Executes an approved member invite preview. |
-| `folders.create` | PR 9 Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
-| `folders.addDialog` | PR 9 Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
-| `folders.removeDialog` | PR 9 Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
+| `outbox.preview` | Cloud baseline | `telegram.message.preview` | Creates a preview record without sending. |
+| `outbox.sendApproved` | Cloud baseline | `telegram.message.send`, `telegram.batch.write` | Executes an approved preview. |
+| `message.sendDraft` | Cloud baseline | `telegram.message.send` | Sends one message to one resolved peer. |
+| `members.invitePreview` | Cloud baseline | `telegram.members.invite` | Previews adding/inviting a user to groups. |
+| `members.inviteApproved` | Cloud baseline | `telegram.members.invite` | Executes an approved member invite preview. |
+| `folders.create` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
+| `folders.addDialog` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
+| `folders.removeDialog` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
 | `groups.leavePreview` | Planned | `telegram.groups.leave` | Needed for `telegram-group-cleanup`. |
 | `groups.leaveApproved` | Planned | `telegram.groups.leave` | Needed for `telegram-group-cleanup`. |
 
@@ -75,7 +75,7 @@ The validator checks:
 - every `skills/*/SKILL.md` has frontmatter with `name` and `description`
 - skill directory names match frontmatter names
 - local Markdown links point to existing files
-- `allowed-tools` entries reference known local, PR 9 Cloud, or planned Skill tools
+- `allowed-tools` entries reference known local, Cloud baseline, or planned Skill tools
 - JSON files in skill `assets/` parse successfully
 - `skills/catalog.json` points to existing skill directories and assets
 
