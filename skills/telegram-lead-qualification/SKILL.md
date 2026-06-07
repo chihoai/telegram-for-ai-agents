@@ -32,6 +32,14 @@ Use this skill to turn Telegram conversation context into a qualified CRM lead r
 5. Apply tags, company links, and tasks only when requested or when policy allows automatic CRM writes.
 6. Return the qualification, evidence, next action, and any persisted changes.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)

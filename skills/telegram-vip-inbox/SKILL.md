@@ -30,6 +30,14 @@ Use this skill to surface high-priority Telegram conversations as a VIP queue.
 4. Refresh summaries for important chats with missing context.
 5. Add follow-up tasks or VIP tags when requested.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)

@@ -36,6 +36,14 @@ Use this skill to send one approved template to multiple Telegram chats.
 
 Use the same MCP tool names as Cloud: `outbox.preview` followed by `outbox.sendApproved`.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)

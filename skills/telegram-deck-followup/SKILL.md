@@ -31,6 +31,14 @@ Use this skill to make sure deck, proposal, and document sends get followed up.
 4. Create follow-up tasks for silent threads.
 5. Optionally add a recurring rule for future deck follow-ups.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)

@@ -37,6 +37,14 @@ Use this skill for rule-driven reply workflows.
 
 Until `rules.enable`, `rules.disable`, and `rules.update` exist, treat persistent conditional replies as conservative rule creation plus explicit dry-run/run/log review.
 
+## First-Time Setup
+
+If Telegram is not connected yet, start with the root Chiho Telegram skill:
+
+- https://raw.githubusercontent.com/chihoai/telegram-for-ai-agents/main/SKILL.md
+
+Use that root skill to choose Chiho.ai Cloud or self-hosted tgchats, then return to this workflow skill.
+
 ## References
 
 - [Flow](references/flow.md)
