@@ -7,13 +7,13 @@ Build a public `chiho.ai/telegram-skills` catalog page that presents Telegram wo
 This implementation should happen in the Chiho web app repo:
 
 ```text
-/Users/chris/Documents/Workspace/chiho/monorepo
+chiho/monorepo
 ```
 
 The Telegram skill source repo is also available locally and should be treated as the source of truth for packaged skills:
 
 ```text
-/Users/chris/Documents/Workspace/chiho/telegram-for-agents
+chihoai/telegram-for-ai-agents
 ```
 
 GitHub source:
@@ -43,8 +43,8 @@ Recommended production data source:
 
 For local development in `chiho/monorepo`, either:
 
-- read from `/Users/chris/Documents/Workspace/chiho/telegram-for-agents/skills/catalog.json`, or
-- configure an env var such as `TELEGRAM_SKILLS_REPO_PATH=/Users/chris/Documents/Workspace/chiho/telegram-for-agents`.
+- read from a sibling checkout of `chihoai/telegram-for-ai-agents`, or
+- configure an env var such as `TELEGRAM_SKILLS_REPO_PATH` that points at a local checkout.
 
 ## Page Structure
 
@@ -217,7 +217,7 @@ For high-risk skills, show a clear approval requirement badge. High-risk include
 These can be done from the local repo:
 
 ```text
-/Users/chris/Documents/Workspace/chiho/telegram-for-agents
+chihoai/telegram-for-ai-agents
 ```
 
 Recommended follow-up work:
