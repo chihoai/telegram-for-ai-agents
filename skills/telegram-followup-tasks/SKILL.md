@@ -2,7 +2,7 @@
 name: telegram-followup-tasks
 description: Find Telegram chats that need follow-up and create CRM tasks. Use when the user wants a follow-up queue, task suggestions, or reminders based on Telegram conversations.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with read and CRM task tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with read and CRM task tools.
 metadata:
   chiho.category: crm-automation
   chiho.risk: low

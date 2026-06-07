@@ -2,7 +2,7 @@
 name: telegram-group-cleanup
 description: Review Telegram group chats and recommend cleanup actions such as archiving, organizing into folders, tagging, or leaving stale groups. Use when the user wants to reduce noisy or low-value Telegram groups.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with read tools; leaving groups requires group leave write tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with read tools; leaving groups requires group leave write tools.
 metadata:
   chiho.category: telegram-organization
   chiho.risk: high

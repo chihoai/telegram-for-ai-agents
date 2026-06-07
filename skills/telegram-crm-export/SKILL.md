@@ -2,7 +2,7 @@
 name: telegram-crm-export
 description: Prepare Telegram CRM exports for audits, follow-up reports, or handoffs. Use when the user wants filtered chats, tags, companies, tasks, or summaries exported from Chiho.ai or tgchats.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with read access; local full export uses the tgchats CLI.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with read access; local full export uses the tgchats CLI.
 metadata:
   chiho.category: crm-automation
   chiho.risk: medium

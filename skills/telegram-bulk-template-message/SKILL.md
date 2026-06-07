@@ -2,7 +2,7 @@
 name: telegram-bulk-template-message
 description: Send an approved Telegram message template to selected chats through Chiho.ai or tgchats. Use when the user wants a batch announcement, follow-up, update, or outreach message sent to multiple Telegram chats.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with a connected Telegram session and message write tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with a connected Telegram session and message write tools.
 metadata:
   chiho.category: telegram-automation
   chiho.risk: high

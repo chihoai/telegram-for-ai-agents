@@ -2,7 +2,7 @@
 name: telegram-intro-request-triage
 description: Detect and triage Telegram intro requests, then create follow-up tasks or response drafts. Use when the user wants to handle requests for introductions, referrals, investor intros, hiring intros, or partner handoffs.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read and CRM task tools; message sending remains preview-first.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read and CRM task tools; message sending remains preview-first.
 metadata:
   chiho.category: crm-automation
   chiho.risk: medium

@@ -2,7 +2,7 @@
 name: telegram-vip-inbox
 description: Build and maintain a VIP Telegram inbox queue using tags, summaries, and follow-up tasks. Use when the user wants important contacts surfaced before general inbox triage.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read and CRM tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read and CRM tools.
 metadata:
   chiho.category: crm-automation
   chiho.risk: low

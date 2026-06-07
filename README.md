@@ -9,16 +9,17 @@ Use it when you want:
 
 - one login instead of manually inviting bots into chats
 - full Telegram account access for an agent
-- either Chiho Cloud or a self-hosted `tgchats` runtime
+- either Chiho.ai Cloud with the hosted web CRM UI, or a self-hosted `tgchats` runtime
 
 Start with [SKILL.md](./SKILL.md).
-That is the public entry point for both Chiho Cloud and the self-hosted path.
+That is the public entry point for both Chiho.ai Cloud and the self-hosted path.
 Use [AGENTS.md](./AGENTS.md) only for coding and contributing inside this repo.
 
 ## Features
 
 - One-time Telegram login for full account-level agent access
 - No manual bot invites per chat
+- Chiho.ai Cloud path includes the hosted CRM table UI for organizing Telegram chats, contacts, tags, tasks, and follow-ups
 - Telegram auth with QR-first + phone fallback
 - Inbox and per-chat history browsing
 - Local MCP server for agent integrations (`tgchats-mcp`)

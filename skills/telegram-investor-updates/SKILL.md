@@ -2,7 +2,7 @@
 name: telegram-investor-updates
 description: Manage investor conversations and update follow-ups from Telegram. Use when the user wants to find investor chats, summarize context, or prepare investor update tasks and drafts.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read and CRM tools; message sending is preview-first.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read and CRM tools; message sending is preview-first.
 metadata:
   chiho.category: crm-automation
   chiho.risk: medium

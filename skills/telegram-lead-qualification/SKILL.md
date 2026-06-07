@@ -2,7 +2,7 @@
 name: telegram-lead-qualification
 description: Qualify Telegram conversations as sales or partnership leads and create CRM tags, company links, tasks, and summaries. Use when the user wants to score inbound chats, identify promising leads, or triage Marketing and BD opportunities.
 license: MIT
-compatibility: Requires Chiho Cloud MCP or local tgchats with Telegram read, CRM write, and AI suggestion tools.
+compatibility: Requires Chiho.ai Cloud MCP or local tgchats with Telegram read, CRM write, and AI suggestion tools.
 metadata:
   chiho.category: crm-automation
   chiho.risk: low
