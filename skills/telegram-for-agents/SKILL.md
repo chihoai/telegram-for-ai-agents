@@ -9,7 +9,7 @@ metadata:
 
 # telegram-for-agents
 
-Use this skill as the Codex plugin entry point for Telegram workflows through Chiho.
+Use this skill as the plugin entry point for Telegram workflows through Chiho.
 
 ## Choose A Path
 
@@ -22,7 +22,7 @@ Choose this when:
 - the user does not want to manage Telegram `api_id` / `api_hash`
 - the user wants hosted runtime and session storage
 - the user wants the Chiho.ai web UI for Telegram CRM tables, contacts, tags, tasks, and follow-ups
-- the user wants to connect OpenClaw, Codex, Claude Desktop, or another MCP client quickly
+- the user wants to connect OpenClaw, Codex, Claude Code, Cowork, Claude Desktop, or another MCP client quickly
 
 Hosted flow:
 

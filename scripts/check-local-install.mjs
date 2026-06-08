@@ -144,7 +144,7 @@ assert(
 );
 assert(
   await fileExists(pluginEntrySkillPath),
-  `Missing Codex plugin entry skill at ${pluginEntrySkillPath}`
+  `Missing plugin entry skill at ${pluginEntrySkillPath}`
 );
 assert(
   await fileExists(pluginMcpLauncherPath),

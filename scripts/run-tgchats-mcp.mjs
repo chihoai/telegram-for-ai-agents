@@ -27,8 +27,28 @@ const child = spawn(command, args, {
   stdio: "inherit"
 });
 
+let forwardingSignal = false;
+
+function forwardSignal(signal) {
+  if (forwardingSignal) {
+    return;
+  }
+
+  forwardingSignal = true;
+  if (!child.killed) {
+    child.kill(signal);
+  }
+}
+
+process.once("SIGINT", () => forwardSignal("SIGINT"));
+process.once("SIGTERM", () => forwardSignal("SIGTERM"));
+
 child.on("exit", (code, signal) => {
   if (signal) {
+    if (forwardingSignal) {
+      process.exit(0);
+    }
+
     process.kill(process.pid, signal);
     return;
   }

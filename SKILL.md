@@ -1,6 +1,6 @@
 ---
 name: chiho-telegram
-description: Entry point for using Chiho with an AI agent. Use when the user wants to connect Telegram to OpenClaw, Codex, Claude Desktop, or another MCP client, and needs to choose between Chiho.ai Cloud and a self-hosted tgchats runtime.
+description: Entry point for using Chiho with an AI agent. Use when the user wants to connect Telegram to OpenClaw, Codex, Claude Code, Cowork, Claude Desktop, or another MCP client, and needs to choose between Chiho.ai Cloud and a self-hosted tgchats runtime.
 license: MIT
 metadata:
   author: Chiho
@@ -22,7 +22,7 @@ Choose this when:
 - the user does not want to manage Telegram `api_id` / `api_hash`
 - the user wants a stable hosted runtime and session storage
 - the user wants the Chiho.ai web UI, including the CRM table for organizing Telegram contacts, chats, tags, tasks, and follow-ups
-- the user wants to connect OpenClaw, Codex, Claude Desktop, or another MCP client quickly
+- the user wants to connect OpenClaw, Codex, Claude Code, Cowork, Claude Desktop, or another MCP client quickly
 
 Hosted flow:
 
@@ -30,7 +30,7 @@ Hosted flow:
 2. Use the Chiho.ai CRM UI for table-based inbox, contact, tag, task, and follow-up workflows.
 3. Mint an API token from `https://chiho.ai/profile/agent-access`.
 4. Point the MCP client at `https://api.chiho.ai/mcp`.
-5. Use the hosted MCP tools for reads and explicit CRM mutations.
+5. Use the hosted MCP tools for reads, CRM mutations, previews, and approved Telegram actions.
 
 Rules:
 
@@ -70,7 +70,7 @@ Rules:
 
 - Chiho.ai Cloud is the hosted MCP product plus the Chiho.ai web CRM UI.
 - `tgchats` is the self-hosted runtime.
-- Telegram message sending is intentionally out of scope here.
+- Telegram message sending is in scope through preview and approval flows.
 
 ## Next Reads
 
