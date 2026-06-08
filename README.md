@@ -211,6 +211,18 @@ Self-hosted examples live here:
 
 Installable workflow skills live under [`skills/`](./skills/).
 
+Install one published workflow skill with the `skills` CLI:
+
+```bash
+npx skills add https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group
+```
+
+For docs-only agents or manual inspection, fetch the skill instructions directly:
+
+```bash
+curl -fsSL https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group/SKILL.md
+```
+
 - Catalog guide: [docs/SKILL_CATALOG.md](./docs/SKILL_CATALOG.md)
 - Machine-readable catalog: [skills/catalog.json](./skills/catalog.json)
 - Productization notes: [docs/SKILL_PRODUCTIZATION.md](./docs/SKILL_PRODUCTIZATION.md)

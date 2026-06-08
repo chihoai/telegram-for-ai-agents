@@ -33,9 +33,23 @@ These skills are shipped as directories so they can be installed by clients that
 
 Install options:
 
+- Published workflow: install a single skill with the `skills` CLI:
+
+```bash
+npx skills add https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group
+```
+
+- Docs-only/manual inspection: fetch the skill instructions directly:
+
+```bash
+curl -fsSL https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group/SKILL.md
+```
+
 - Whole catalog: install or copy `skills/` into the client skill workspace.
 - One workflow: install or copy a single `skills/<skill-name>/` directory.
 - Docs-only client: point the agent at the relevant `SKILL.md` and let it follow the referenced MCP/CLI flows.
+
+Use `npx skills add` when you want the skill installed into a supported agent workspace. Use `curl` when you only want to inspect or pipe the `SKILL.md` instructions. Replace `telegram-add-colleagues-to-group` with any skill name from the catalog.
 
 Client notes:
 
