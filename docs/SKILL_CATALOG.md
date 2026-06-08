@@ -66,6 +66,8 @@ Every skill should remain portable: `SKILL.md` contains the routing rules, `refe
 
 Cloud write tools are the hosted MCP baseline for skills that preview, send, invite, or organize Telegram state.
 
+Cloud Telegram reads and cloud CRM metadata are separate surfaces. A dialog can be visible to `dialogs.list` or `chat.read` before it has been synced into CRM metadata. When CRM tools such as `tags.get`, `company.get`, `summary.show`, or suggestion tools report that chat metadata is unavailable, keep using Telegram read tools for context and ask for sync/import before persisting CRM changes. Cloud `chat.read` may also return a minimum page size even when a smaller `limit` is requested.
+
 | Tool | Status | Required scopes | Notes |
 | --- | --- | --- | --- |
 | `outbox.preview` | Cloud baseline | `telegram.message.preview` | Creates a preview record without sending. |
