@@ -119,10 +119,40 @@ async function fileExists(filePath) {
 const cliPath = path.join(projectRoot, "dist", "cli.js");
 const mcpPath = path.join(projectRoot, "dist", "mcp", "stdio.js");
 const contractsPath = path.join(projectRoot, "docs", "tool-contracts.json");
+const pluginManifestPath = path.join(projectRoot, ".codex-plugin", "plugin.json");
+const pluginMcpPath = path.join(projectRoot, ".mcp.json");
+const pluginEntrySkillPath = path.join(projectRoot, "skills", "telegram-for-agents", "SKILL.md");
+const pluginMcpLauncherPath = path.join(projectRoot, "scripts", "run-tgchats-mcp.mjs");
 
 assert(await fileExists(cliPath), `Missing CLI build output at ${cliPath}`);
 assert(await fileExists(mcpPath), `Missing MCP build output at ${mcpPath}`);
 assert(await fileExists(contractsPath), `Missing contract export at ${contractsPath}`);
+assert(await fileExists(pluginManifestPath), `Missing Codex plugin manifest at ${pluginManifestPath}`);
+assert(await fileExists(pluginMcpPath), `Missing Codex plugin MCP config at ${pluginMcpPath}`);
+assert(
+  await fileExists(pluginEntrySkillPath),
+  `Missing Codex plugin entry skill at ${pluginEntrySkillPath}`
+);
+assert(
+  await fileExists(pluginMcpLauncherPath),
+  `Missing Codex plugin MCP launcher at ${pluginMcpLauncherPath}`
+);
+
+const pluginManifest = JSON.parse(await fs.readFile(pluginManifestPath, "utf8"));
+assert(pluginManifest.name === "chiho-telegram", "Codex plugin manifest name changed unexpectedly");
+assert(pluginManifest.skills === "./skills/", "Codex plugin manifest must point at ./skills/");
+assert(pluginManifest.mcpServers === "./.mcp.json", "Codex plugin manifest must point at ./.mcp.json");
+
+const pluginMcp = JSON.parse(await fs.readFile(pluginMcpPath, "utf8"));
+const tgchatsMcp = pluginMcp?.mcpServers?.["tgchats-local"];
+assert(tgchatsMcp?.command === "node", "Codex plugin MCP command must use node");
+assert(
+  Array.isArray(tgchatsMcp?.args) &&
+    tgchatsMcp.args.length === 1 &&
+    tgchatsMcp.args[0] === "./scripts/run-tgchats-mcp.mjs",
+  "Codex plugin MCP args must launch scripts/run-tgchats-mcp.mjs"
+);
+assert(tgchatsMcp.cwd === ".", "Codex plugin MCP cwd must be plugin root");
 
 const helpOutput = runNode([cliPath, "--help"]);
 assert(helpOutput.includes("tgchats"), "CLI help output did not mention tgchats");
@@ -159,6 +189,7 @@ if (authStatus.sessionPresent) {
 
 const contracts = JSON.parse(await fs.readFile(contractsPath, "utf8"));
 const mcpClient = createMcpClient(process.execPath, [mcpPath]);
+const pluginMcpClient = createMcpClient(process.execPath, [pluginMcpLauncherPath]);
 
 try {
   const initialize = await mcpClient.request({
@@ -196,15 +227,40 @@ try {
     "MCP tool order or names did not match docs/tool-contracts.json"
   );
 
+  const pluginInitialize = await pluginMcpClient.request({
+    id: 3,
+    jsonrpc: "2.0",
+    method: "initialize",
+    params: {},
+  });
+  assert(
+    pluginInitialize?.result?.serverInfo?.name === "tgchats-local",
+    "plugin MCP launcher did not initialize the tgchats local MCP server"
+  );
+  const pluginToolsList = await pluginMcpClient.request({
+    id: 4,
+    jsonrpc: "2.0",
+    method: "tools/list",
+    params: {},
+  });
+  const pluginToolNames = pluginToolsList?.result?.tools?.map((tool) => tool.name) || [];
+  assert(
+    JSON.stringify(pluginToolNames) === JSON.stringify(contractNames),
+    "plugin MCP launcher tool order or names did not match docs/tool-contracts.json"
+  );
+
   console.log(
     JSON.stringify(
       {
         checked: {
           authStatus,
           cliHelp: true,
+          codexPlugin: pluginManifest.name,
           contracts: contractNames.length,
           mcpInitialize: initialize.result.serverInfo,
+          pluginMcpInitialize: pluginInitialize.result.serverInfo,
           mcpTools: toolNames.length,
+          pluginMcpTools: pluginToolNames.length,
         },
         ok: true,
       },
@@ -214,4 +270,5 @@ try {
   );
 } finally {
   await mcpClient.close();
+  await pluginMcpClient.close();
 }
