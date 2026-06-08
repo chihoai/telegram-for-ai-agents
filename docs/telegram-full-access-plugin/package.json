@@ -1,0 +1,15 @@
+{
+  "name": "@seichris/telegram-full-access",
+  "version": "0.1.0",
+  "description": "OpenClaw package metadata for Telegram full access through Chiho.ai and tgchats.",
+  "license": "MIT",
+  "type": "module",
+  "openclaw": {
+    "compat": {
+      "pluginApi": "^1.0.0"
+    },
+    "build": {
+      "openclawVersion": "^0.20.0"
+    }
+  }
+}
