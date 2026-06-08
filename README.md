@@ -218,7 +218,7 @@ Self-hosted examples live here:
 
 Installable workflow skills live under [`skills/`](./skills/).
 
-Codex users can install the whole repository as a plugin when they want the mode selector, workflow skills, and local MCP configuration together. The plugin skill entry point is [`skills/chiho-telegram/SKILL.md`](./skills/chiho-telegram/SKILL.md).
+Codex users can install the whole repository as a plugin when they want the mode selector, workflow skills, and local MCP configuration together. The plugin skill entry point is [`skills/telegram-for-agents/SKILL.md`](./skills/telegram-for-agents/SKILL.md).
 
 Install one published workflow skill with the `skills` CLI:
 

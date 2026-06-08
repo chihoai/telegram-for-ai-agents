@@ -1,5 +1,5 @@
 ---
-name: chiho-telegram
+name: telegram-for-agents
 description: Use when the user wants to connect, read, search, organize, summarize, or act on Telegram chats through Chiho.ai Cloud or a self-hosted tgchats MCP runtime.
 license: MIT
 metadata:
@@ -7,7 +7,7 @@ metadata:
   version: 1.0.0
 ---
 
-# chiho-telegram
+# telegram-for-agents
 
 Use this skill as the Codex plugin entry point for Telegram workflows through Chiho.
 

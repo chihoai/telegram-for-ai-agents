@@ -8,7 +8,7 @@ The repository is also a Codex plugin root:
 
 - `.codex-plugin/plugin.json` contains the `chiho-telegram` plugin manifest.
 - `.mcp.json` registers the self-hosted `tgchats-local` MCP server.
-- `skills/chiho-telegram/SKILL.md` is the plugin entry point and mode selector.
+- `skills/telegram-for-agents/SKILL.md` is the plugin entry point and mode selector.
 - `skills/tgchats-local/SKILL.md` handles self-hosted local routing.
 - Workflow skills remain in `skills/<skill-name>/` and can still be installed individually.
 

@@ -9,7 +9,7 @@ This catalog defines the first installable Telegram workflow skills for Chiho.ai
 
 ## Initial Skills
 
-The Codex plugin entry skill is `chiho-telegram`; it selects Chiho.ai Cloud or self-hosted `tgchats` and then routes to the workflow skills below.
+The Codex plugin entry skill is `telegram-for-agents`; it selects Chiho.ai Cloud or self-hosted `tgchats` and then routes to the workflow skills below.
 
 | Skill | Purpose | Risk | Cloud requirements | Local requirements |
 | --- | --- | --- | --- | --- |
