@@ -6,6 +6,16 @@
   "publisher": "seichris",
   "homepage": "https://github.com/chihoai/telegram-for-ai-agents",
   "repository": "https://github.com/chihoai/telegram-for-ai-agents",
+  "contracts": {
+    "tools": []
+  },
+  "activation": {
+    "onStartup": false
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false
+  },
   "skills": [
     {
       "name": "telegram-full-access",
