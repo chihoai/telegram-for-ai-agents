@@ -1,8 +1,8 @@
 # telegram-for-agents
 
-`telegram-for-agents` lets you log into Telegram once and give your agent full read and write access to your Telegram account.
+`telegram-for-agents` lets you log into Telegram once and give your agent account-level read/write access through an explicit user-owned Telegram login.
 
-This is not the limited Bot API flow where you add a bot to chats manually.
+This is not the limited-access Bot API flow where you add a bot to chats manually.
 Your agent works with your real Telegram account, with the same account-level surface you get in Telegram Web or the Telegram apps.
 
 Use it when you want:
