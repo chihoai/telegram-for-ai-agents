@@ -140,6 +140,14 @@ Codex plugin:
 - The plugin bundles the repo's `skills/` directory and registers the local MCP server from [`.mcp.json`](./.mcp.json).
 - The MCP launcher prefers `dist/mcp/stdio.js`, falls back to the dev `tsx` entrypoint when dependencies are installed, and finally falls back to a `tgchats-mcp` binary in `PATH`.
 
+Claude Code / Cowork plugin:
+
+- This repository can also be installed as the `chiho-telegram` Claude plugin.
+- The Claude plugin manifest lives at [`.claude-plugin/plugin.json`](./.claude-plugin/plugin.json).
+- Claude automatically discovers the repo's `skills/` directory as namespaced plugin skills, including `/chiho-telegram:telegram-for-agents`.
+- The Claude plugin registers the same local MCP server through [`claude-mcp.json`](./claude-mcp.json), using `${CLAUDE_PLUGIN_ROOT}` so installed plugin cache paths resolve correctly.
+- For local development, run `claude --plugin-dir .` from the repository root.
+
 Machine-readable surfaces:
 
 - Add `--json` to supported commands
@@ -219,6 +227,8 @@ Self-hosted examples live here:
 Installable workflow skills live under [`skills/`](./skills/).
 
 Codex users can install the whole repository as a plugin when they want the mode selector, workflow skills, and local MCP configuration together. The plugin skill entry point is [`skills/telegram-for-agents/SKILL.md`](./skills/telegram-for-agents/SKILL.md).
+
+Claude Code and Cowork users can install the whole repository as the `chiho-telegram` plugin when they want the same mode selector, workflow skills, and local MCP configuration in Claude-native plugin form. In Claude Code, the entry skill is `/chiho-telegram:telegram-for-agents`.
 
 Install one published workflow skill with the `skills` CLI:
 

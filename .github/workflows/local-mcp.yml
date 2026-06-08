@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - ".codex-plugin/**"
+      - ".claude-plugin/**"
       - ".mcp.json"
+      - "claude-mcp.json"
       - ".github/workflows/local-mcp.yml"
       - "package.json"
       - "package-lock.json"
@@ -18,7 +20,9 @@ on:
       - main
     paths:
       - ".codex-plugin/**"
+      - ".claude-plugin/**"
       - ".mcp.json"
+      - "claude-mcp.json"
       - ".github/workflows/local-mcp.yml"
       - "package.json"
       - "package-lock.json"
