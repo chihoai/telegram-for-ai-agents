@@ -1,0 +1,23 @@
+{
+  "name": "chiho-telegram",
+  "version": "1.0.0",
+  "description": "Use Chiho Telegram workflows in Claude Code and Cowork with hosted Chiho.ai Cloud or a self-hosted tgchats MCP runtime.",
+  "author": {
+    "name": "Chiho",
+    "url": "https://chiho.ai/"
+  },
+  "homepage": "https://chiho.ai/",
+  "repository": "https://github.com/chihoai/telegram-for-ai-agents",
+  "license": "MIT",
+  "keywords": [
+    "telegram",
+    "crm",
+    "mcp",
+    "inbox",
+    "follow-up",
+    "sales",
+    "business-development",
+    "automation"
+  ],
+  "mcpServers": "./claude-mcp.json"
+}

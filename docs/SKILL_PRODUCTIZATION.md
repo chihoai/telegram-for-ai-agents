@@ -2,6 +2,30 @@
 
 Use `skills/catalog.json` as the machine-readable source for catalog discovery.
 
+## Codex Plugin Model
+
+The repository is also a Codex plugin root:
+
+- `.codex-plugin/plugin.json` contains the `chiho-telegram` plugin manifest.
+- `.mcp.json` registers the self-hosted `tgchats-local` MCP server.
+- `skills/telegram-for-agents/SKILL.md` is the plugin entry point and mode selector.
+- `skills/tgchats-local/SKILL.md` handles self-hosted local routing.
+- Workflow skills remain in `skills/<skill-name>/` and can still be installed individually.
+
+Use the plugin when Codex should receive skills and MCP setup together. Use individual skills when another client only needs one workflow playbook.
+
+## Claude Plugin Model
+
+The repository is also a Claude Code / Cowork plugin root:
+
+- `.claude-plugin/plugin.json` contains the `chiho-telegram` Claude plugin manifest.
+- `claude-mcp.json` registers the self-hosted `tgchats-local` MCP server with `${CLAUDE_PLUGIN_ROOT}` paths for Claude's plugin cache.
+- `skills/telegram-for-agents/SKILL.md` is the namespaced plugin entry point, invoked in Claude Code as `/chiho-telegram:telegram-for-agents`.
+- `skills/tgchats-local/SKILL.md` handles self-hosted local routing.
+- Workflow skills remain in `skills/<skill-name>/` and can still be installed individually.
+
+Use the Claude plugin when Claude Code or Cowork should receive the skill catalog and MCP setup together. Keep `claude-mcp.json` separate from `.mcp.json` because Claude-installed plugins resolve from a cached plugin root, while Codex uses the repository-relative MCP config.
+
 ## Cloud Install Model
 
 1. Read `skills/catalog.json`.

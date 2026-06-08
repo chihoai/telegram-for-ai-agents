@@ -3,23 +3,33 @@ name: Local MCP
 on:
   pull_request:
     paths:
+      - ".codex-plugin/**"
+      - ".claude-plugin/**"
+      - ".mcp.json"
+      - "claude-mcp.json"
       - ".github/workflows/local-mcp.yml"
       - "package.json"
       - "package-lock.json"
       - "README.md"
       - "docs/**"
       - "scripts/**"
+      - "skills/**"
       - "src/**"
   push:
     branches:
       - main
     paths:
+      - ".codex-plugin/**"
+      - ".claude-plugin/**"
+      - ".mcp.json"
+      - "claude-mcp.json"
       - ".github/workflows/local-mcp.yml"
       - "package.json"
       - "package-lock.json"
       - "README.md"
       - "docs/**"
       - "scripts/**"
+      - "skills/**"
       - "src/**"
 
 jobs:
@@ -46,6 +56,9 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Validate skills
+        run: npm run validate:skills
 
       - name: Check local install surface
         run: npm run check:local-install

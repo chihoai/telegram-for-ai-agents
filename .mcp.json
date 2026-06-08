@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "tgchats-local": {
+      "command": "node",
+      "args": ["./scripts/run-tgchats-mcp.mjs"],
+      "cwd": "."
+    }
+  }
+}

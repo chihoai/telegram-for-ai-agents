@@ -9,6 +9,8 @@ This catalog defines the first installable Telegram workflow skills for Chiho.ai
 
 ## Initial Skills
 
+The plugin entry skill is `telegram-for-agents`; it selects Chiho.ai Cloud or self-hosted `tgchats` and then routes to the workflow skills below. In Claude Code, the namespaced command is `/chiho-telegram:telegram-for-agents`.
+
 | Skill | Purpose | Risk | Cloud requirements | Local requirements |
 | --- | --- | --- | --- | --- |
 | `telegram-bulk-template-message` | Send approved templates to selected chats | High | `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Matching `outbox.*` tools |
@@ -55,6 +57,7 @@ Client notes:
 
 - OpenClaw: install the skill directory and configure the Chiho.ai Cloud MCP server or local `tgchats-mcp`.
 - Codex: place the skill directory in the configured skill location, or reference the repo-local `SKILL.md` directly during development.
+- Claude Code / Cowork: install the whole repository as the `chiho-telegram` plugin, or install a single skill directory and configure MCP separately.
 - Claude Desktop: use the skill directory as the workflow artifact and configure MCP separately.
 
 Every skill should remain portable: `SKILL.md` contains the routing rules, `references/` contains details, and `assets/` contains templates/examples.
