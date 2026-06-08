@@ -2,6 +2,18 @@
 
 Use `skills/catalog.json` as the machine-readable source for catalog discovery.
 
+## Codex Plugin Model
+
+The repository is also a Codex plugin root:
+
+- `.codex-plugin/plugin.json` contains the `chiho-telegram` plugin manifest.
+- `.mcp.json` registers the self-hosted `tgchats-local` MCP server.
+- `skills/chiho-telegram/SKILL.md` is the plugin entry point and mode selector.
+- `skills/tgchats-local/SKILL.md` handles self-hosted local routing.
+- Workflow skills remain in `skills/<skill-name>/` and can still be installed individually.
+
+Use the plugin when Codex should receive skills and MCP setup together. Use individual skills when another client only needs one workflow playbook.
+
 ## Cloud Install Model
 
 1. Read `skills/catalog.json`.

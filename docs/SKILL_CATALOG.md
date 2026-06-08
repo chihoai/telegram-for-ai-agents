@@ -9,6 +9,8 @@ This catalog defines the first installable Telegram workflow skills for Chiho.ai
 
 ## Initial Skills
 
+The Codex plugin entry skill is `chiho-telegram`; it selects Chiho.ai Cloud or self-hosted `tgchats` and then routes to the workflow skills below.
+
 | Skill | Purpose | Risk | Cloud requirements | Local requirements |
 | --- | --- | --- | --- | --- |
 | `telegram-bulk-template-message` | Send approved templates to selected chats | High | `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Matching `outbox.*` tools |

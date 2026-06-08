@@ -133,6 +133,13 @@ After build:
 ./dist/mcp/stdio.js
 ```
 
+Codex plugin:
+
+- This repository can also be installed as the `chiho-telegram` Codex plugin.
+- The plugin manifest lives at [`.codex-plugin/plugin.json`](./.codex-plugin/plugin.json).
+- The plugin bundles the repo's `skills/` directory and registers the local MCP server from [`.mcp.json`](./.mcp.json).
+- The MCP launcher prefers `dist/mcp/stdio.js`, falls back to the dev `tsx` entrypoint when dependencies are installed, and finally falls back to a `tgchats-mcp` binary in `PATH`.
+
 Machine-readable surfaces:
 
 - Add `--json` to supported commands
@@ -210,6 +217,8 @@ Self-hosted examples live here:
 ## Telegram Skills
 
 Installable workflow skills live under [`skills/`](./skills/).
+
+Codex users can install the whole repository as a plugin when they want the mode selector, workflow skills, and local MCP configuration together. The plugin skill entry point is [`skills/chiho-telegram/SKILL.md`](./skills/chiho-telegram/SKILL.md).
 
 Install one published workflow skill with the `skills` CLI:
 
