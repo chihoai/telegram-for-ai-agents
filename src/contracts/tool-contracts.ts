@@ -575,12 +575,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["ruleId"],
       properties: {
-        ruleId: {
-          oneOf: [
-            { type: "integer", minimum: 1 },
-            { type: "string" },
-          ],
-        },
+        ruleId: { type: "integer", minimum: 1 },
       },
     },
   },
@@ -593,12 +588,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["ruleId"],
       properties: {
-        ruleId: {
-          oneOf: [
-            { type: "integer", minimum: 1 },
-            { type: "string" },
-          ],
-        },
+        ruleId: { type: "integer", minimum: 1 },
       },
     },
   },

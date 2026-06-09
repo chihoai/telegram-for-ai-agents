@@ -241,13 +241,14 @@ Expected:
 
 ## Rules Smoke
 
-Create a harmless CRM-only rule:
+Create a harmless CRM-only rule. Keep the smoke rule free of default tag or
+follow-up actions so cleanup can remove the rule without leaving rule-created
+tags or tasks behind.
 
 ```bash
-npm run dev -- rules add --name "Codex smoke test - safe to delete" --instruction "Create a low-priority follow-up task when this test rule matches." --tag "Codex Smoke Test" --followup-days 1 --json
+npm run dev -- rules add --name "Codex smoke test - safe to delete" --instruction "Smoke-test rule listing and dry-run only; do not create tags or tasks." --json
 npm run dev -- rules list --json
 npm run dev -- rules run --dry-run --json
-npm run dev -- rules run --json
 npm run dev -- rules log --limit 20 --json
 npm run dev -- rules disable <ruleId> --json
 npm run dev -- rules delete <ruleId> --json
@@ -257,8 +258,7 @@ Expected:
 
 - `rules.list` shows the rule.
 - `rules run --dry-run` evaluates without writing.
-- `rules run` writes only CRM actions.
-- `rules.log` records events.
+- `rules.log` remains readable.
 - `rules.disable` and `rules.delete` clean up the smoke rule by stable `ruleId`.
 
 ## Folder And Telegram State Smoke

@@ -880,15 +880,8 @@
       ],
       "properties": {
         "ruleId": {
-          "oneOf": [
-            {
-              "type": "integer",
-              "minimum": 1
-            },
-            {
-              "type": "string"
-            }
-          ]
+          "type": "integer",
+          "minimum": 1
         }
       }
     }
@@ -905,15 +898,8 @@
       ],
       "properties": {
         "ruleId": {
-          "oneOf": [
-            {
-              "type": "integer",
-              "minimum": 1
-            },
-            {
-              "type": "string"
-            }
-          ]
+          "type": "integer",
+          "minimum": 1
         }
       }
     }

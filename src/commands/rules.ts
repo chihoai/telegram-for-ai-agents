@@ -22,6 +22,14 @@ import {
 import { upsertPeer } from '../db/writes.js';
 import { printJson } from '../output.js';
 
+export function parseRuleId(raw: string | undefined): number {
+  if (!raw || !/^[1-9]\d*$/.test(raw)) {
+    throw new Error('rule_id must be a positive integer.');
+  }
+
+  return Number(raw);
+}
+
 export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
   const db = requireDb(ctx);
   const accountId = await requireAccountId(ctx);
@@ -104,10 +112,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
     if (!ruleIdRaw) {
       throw new Error('Usage: tgchats rules disable <rule_id>');
     }
-    const ruleId = Number.parseInt(ruleIdRaw, 10);
-    if (!Number.isInteger(ruleId) || ruleId <= 0) {
-      throw new Error('rule_id must be a positive integer.');
-    }
+    const ruleId = parseRuleId(ruleIdRaw);
 
     const updated = await setAutomationRuleEnabled(db, {
       accountId,
@@ -127,10 +132,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
     if (!ruleIdRaw) {
       throw new Error('Usage: tgchats rules delete <rule_id>');
     }
-    const ruleId = Number.parseInt(ruleIdRaw, 10);
-    if (!Number.isInteger(ruleId) || ruleId <= 0) {
-      throw new Error('rule_id must be a positive integer.');
-    }
+    const ruleId = parseRuleId(ruleIdRaw);
 
     const deleted = await deleteAutomationRule(db, { accountId, ruleId });
     if (ctx.config.jsonOutput) {

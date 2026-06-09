@@ -8,7 +8,7 @@ metadata:
   chiho.risk: high
   chiho.requiresApproval: "true"
   chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, automation.rules.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(rules.list) mcp(rules.add) mcp(rules.dryRun) mcp(rules.run) mcp(rules.log) mcp(message.sendDraft) mcp(outbox.preview) mcp(outbox.sendApproved)
+allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(rules.list) mcp(rules.add) mcp(rules.disable) mcp(rules.delete) mcp(rules.dryRun) mcp(rules.run) mcp(rules.log) mcp(message.sendDraft) mcp(outbox.preview) mcp(outbox.sendApproved)
 ---
 
 # telegram-conditional-replies
@@ -35,7 +35,7 @@ Use this skill for rule-driven reply workflows.
 
 ## Execution Boundary
 
-Until `rules.enable`, `rules.disable`, and `rules.update` exist, treat persistent conditional replies as conservative rule creation plus explicit dry-run/run/log review.
+Use `rules.disable` or `rules.delete` to stop or clean up persistent conditional reply rules. Until `rules.update` exists, replace a rule by creating a narrower new rule and deleting the old one after review.
 
 ## First-Time Setup
 
