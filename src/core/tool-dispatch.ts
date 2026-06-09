@@ -55,12 +55,11 @@ function requireStringArray(value: unknown, label: string) {
 }
 
 function requirePositiveInteger(value: unknown, label: string) {
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
     throw new Error(`${label} must be a positive integer.`);
   }
 
-  return String(parsed);
+  return String(value);
 }
 
 function payloadArg(input: Record<string, unknown>) {

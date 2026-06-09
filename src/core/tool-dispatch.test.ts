@@ -96,6 +96,17 @@ describe("buildToolCommandArgs", () => {
     ]);
   });
 
+  it("rejects non-integer cleanup rule ids", () => {
+    for (const ruleId of [true, "1", "1.0", "01", 1.5, 0, -1]) {
+      expect(() => buildToolCommandArgs("rules.disable", { ruleId })).toThrow(
+        "ruleId must be a positive integer"
+      );
+      expect(() => buildToolCommandArgs("rules.delete", { ruleId })).toThrow(
+        "ruleId must be a positive integer"
+      );
+    }
+  });
+
   it("rejects unsupported accountId inputs", () => {
     expect(() =>
       buildToolCommandArgs("dialogs.list", {
