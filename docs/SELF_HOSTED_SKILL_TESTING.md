@@ -218,7 +218,7 @@ npm run dev -- tasks suggest <peer> --apply --json
 Use a test peer or harmless bot/group.
 
 ```bash
-npm run dev -- tags set <peer> "Codex Smoke Test" --json
+npm run dev -- --json tags set <peer> "Codex Smoke Test"
 npm run dev -- company link <peer> --company "Codex Smoke Test" --json
 npm run dev -- tasks add <peer> --due 2026-06-08 --priority low --why "Codex self-hosted smoke test" --json
 npm run dev -- tasks today --json
