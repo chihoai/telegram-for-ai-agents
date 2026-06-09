@@ -50,10 +50,25 @@ Open issue:
 
 Implementation follow-up on 2026-06-09:
 
+- Local PR: `chihoai/telegram-for-ai-agents#18`, branch `codex/crm-cleanup-tools`, latest checked head `82fba96`.
+- Cloud PR: `chihoai/chiho#59`, branch `codex/validate-sync-once-dialogs`, latest checked head `0cb4bfc`.
 - Local `tgchats`/`tgchats-mcp` cleanup parity was implemented for `tags.clear`, `company.unlink`, `rules.disable`, and `rules.delete`.
 - Local `tags.set { tags: [] }` now dispatches to tag cleanup.
+- Local rule cleanup accepts canonical string IDs from Postgres `bigserial` results, while rejecting malformed, decimal, partial, leading-zero, boolean, and unsafe integer inputs.
+- Local `tags set <peer> <tag...> --json` no longer persists `--json` as a tag.
 - Hosted Chiho.ai Cloud backend support was implemented in `/Users/chris/Documents/Workspace/chiho/monorepo-cloud-mcp-pr` for `tags.clear`, `company.unlink`, `rules.disable`, `rules.delete`, and `tags.set { tags: [] }`.
-- Hosted Chiho.ai Cloud still needs deployment and live retest before removing the Cloud product-gap notes below.
+- Hosted Cloud `sync.once` dialog-count validation was implemented so schema-invalid `dialogs` values are rejected instead of clamped.
+- Hosted Cloud contracts were updated so cleanup `ruleId` accepts integer or canonical digit string IDs.
+- Hosted Cloud smoke tooling now separates reversible write checks from tag/company metadata writes: use `--mutate` for reversible task/rule checks and add `--crm-metadata` only for safe test peers.
+- Hosted Cloud smoke tooling now fails fast when an explicit `--peer` is not found instead of mutating a fallback dialog.
+- Hosted Cloud peer-scoped CRM tools now advertise and honor `accountId` for personal multi-account routing.
+- Hosted Cloud team token paths now reject forbidden `accountId` on peer CRM tools and `summary.refresh { all: true }` instead of silently mutating/reading outside the requested account boundary.
+- Hosted Cloud `summary.refresh` now routes personal single-peer and bulk refreshes through the selected account, but deliberately avoids passing account IDs into team summary generation to prevent team dialog ID repair/corruption.
+- Verification passed before handoff:
+  - Local: `npm test`, `npm run build`, `npm run validate:skills`, `npm run check:local-install`, `git diff --check`; local install check reported 42 local MCP tools.
+  - Cloud: `npm test --workspace @chiho/backend`, targeted MCP tests, `npm run typecheck --workspace @chiho/backend`, `npm run sync:agent-contracts:check --workspace @chiho/backend`, `node --check backend/scripts/smoke-agent-mcp.mjs`, `git diff --check`.
+- Final subagent review passes reported no active P0/P1/P2 findings on both PR heads.
+- Hosted Chiho.ai Cloud still needs merge/deployment and live retest before treating these as production behavior.
 
 ## Quick MCP Smoke Script
 
@@ -132,6 +147,17 @@ These have been exercised against Chiho.ai Cloud:
 - `folders.list`
 - `rules.list`
 
+Implemented in PRs but not yet live-retested against `https://api.chiho.ai/mcp`:
+
+- `tags.clear`
+- `company.unlink`
+- `rules.disable`
+- `rules.delete`
+- `tags.set { tags: [] }`
+- `summary.refresh` personal account routing
+- `summary.refresh { all: true, accountId }`
+- Team-token rejection for forbidden `accountId`
+
 ## Untested Or Lightly Tested Tools
 
 Test these next:
@@ -144,29 +170,41 @@ Test these next:
 
 2. Rules
    - [x] `rules.list` tested on 2026-06-08
-   - `rules.add` not run because no cleanup/disable/delete path is exposed
-   - `rules.run`
-   - `rules.log`
+   - [ ] `rules.add` live retest after Cloud PR deploy
+   - [ ] `rules.disable` live retest after Cloud PR deploy
+   - [ ] `rules.delete` live retest after Cloud PR deploy
+   - [ ] `rules.run`
+   - [ ] `rules.log`
 
 3. CRM mutations beyond tasks
    - [x] `tags.set { tags: [] }` cleanup boundary tested on 2026-06-08; rejected as non-empty array required
-   - `tags.set` positive mutation not run because empty-state restore is unavailable
-   - `company.link` positive mutation not run because `company.unlink` is unavailable
-   - `company.get` after linking not run
-   - `tags.get` after setting not run
+   - [ ] `tags.set` positive mutation live retest after Cloud PR deploy
+   - [ ] `tags.clear` live retest after Cloud PR deploy
+   - [ ] `company.link` positive mutation live retest after Cloud PR deploy
+   - [ ] `company.unlink` live retest after Cloud PR deploy
+   - [ ] `company.get` after linking not run
+   - [ ] `tags.get` after setting not run
 
-4. Write/approval tools, if token scopes allow
+4. Account scope and summary routing
+   - [ ] Personal multi-account `tags.get`/`tags.set`/`tags.clear` with explicit `accountId`
+   - [ ] Personal multi-account `company.get`/`company.link`/`company.unlink` with explicit `accountId`
+   - [ ] Personal `summary.refresh { peer, accountId }`
+   - [ ] Personal `summary.refresh { all: true, accountId }`
+   - [ ] Team token valid `accountId` on a scoped peer
+   - [ ] Team token forbidden `accountId` should return `403`
+
+5. Write/approval tools, if token scopes allow
    - [x] `outbox.preview` unavailable for current token on 2026-06-08
    - `outbox.sendApproved`
    - [x] `message.sendDraft` unavailable for current token on 2026-06-08
 
-5. Member/group tools, if token scopes allow
+6. Member/group tools, if token scopes allow
    - [x] `members.invitePreview` unavailable for current token on 2026-06-08
    - `members.inviteApproved`
    - [x] `groups.leavePreview` unavailable for current token on 2026-06-08
    - `groups.leaveApproved`
 
-6. Skill-referenced but possibly unavailable hosted tools
+7. Skill-referenced but possibly unavailable hosted tools
    - [x] `search.messages` unavailable for current token on 2026-06-08
    - [x] `nudge.generate` unavailable for current token on 2026-06-08
 
@@ -195,11 +233,15 @@ Test:
 
 - `tags.set` with a clearly temporary tag, such as `Codex Smoke Test`.
 - `tags.get` to confirm the tag.
+- `tags.clear` to clean up the temporary tag.
 - `company.link` with a test company value, such as `Codex Smoke Test`.
 - `company.get` to confirm the link.
+- `company.unlink` to clean up the temporary company.
 - Optionally restore prior state if needed.
 
 Avoid human contacts unless the user explicitly chooses one.
+
+Do not run tag/company mutation smoke on a real business contact unless the prior state has been captured and the user accepts timestamp churn. The Cloud smoke runner intentionally requires `--crm-metadata` for these writes.
 
 ### 3. Rules Smoke
 
@@ -212,8 +254,10 @@ Suggested behavior:
 - `rules.list` should show it.
 - `rules.run` should execute without sending messages.
 - `rules.log` should show the run.
+- `rules.disable` should disable the smoke rule.
+- `rules.delete` should delete the smoke rule.
 
-Check whether there is a delete/disable rule path. If not, record this as a product gap.
+If any cleanup step is missing after deployment, record it as a regression against `chihoai/chiho#59`.
 
 ### 4. Folder Write Smoke
 
@@ -285,9 +329,21 @@ For each workflow skill:
 ## Product Gaps To Watch For
 
 - Large `sync.once` can fail with `FLOOD_WAIT` after doing partial work.
-- Runtime currently clamps invalid numeric inputs in some cases instead of rejecting schema-invalid values, for example `sync.once { dialogs: 0 }`.
+- `sync.once` invalid `dialogs` rejection was implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
 - Some skill catalog tools may not be exposed by hosted Cloud MCP yet, especially `search.messages`, `nudge.generate`, and planned group leave tools.
-- Rule cleanup/disable/delete path is missing for the current token/tool surface.
-- CRM cleanup paths are missing for the current token/tool surface: `tags.clear` and `company.unlink` are unavailable, and `tags.set` rejects `tags: []`.
+- Rule cleanup/disable/delete was implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
+- CRM cleanup paths were implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
 - Folder write cleanup path should be confirmed.
 - Preview/send tools need token scopes beyond the current read/CRM token.
+
+## Still Not Done
+
+- Merge/deploy Cloud PR `chihoai/chiho#59`.
+- Live retest `tools/list` after deploy; expected tool count should increase from the earlier 23-tool baseline if cleanup tools are exposed to the token.
+- Live retest `tags.clear`, `company.unlink`, `rules.disable`, `rules.delete`, and `tags.set { tags: [] }`.
+- Live retest account-scoped CRM behavior for personal multi-account tokens.
+- Live retest team-token forbidden-account behavior: switching `peer` or `accountId` outside team scope should return `403`.
+- Live retest Cloud smoke script with `--mutate` only, then separately with `--mutate --crm-metadata` on a safe test peer.
+- Resolve or retest `sync.once { dialogs: 100 }` / `FLOOD_WAIT` from `chihoai/chiho#57`.
+- Confirm folder write tools and cleanup once a token with `telegram.folders.write` is available.
+- Confirm preview/send and member/group approval tools only with explicit user approval and appropriate token scopes.
