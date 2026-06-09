@@ -12,13 +12,28 @@ import {
   addAutomationRule,
   addRuleEvent,
   addTask,
+  deleteAutomationRule,
   hasRuleEventForMatch,
   listAutomationRules,
   listRuleEvents,
+  setAutomationRuleEnabled,
   setPeerTags,
 } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
 import { printJson } from '../output.js';
+
+export function parseRuleId(raw: string | undefined): number {
+  if (!raw || !/^[1-9]\d*$/.test(raw)) {
+    throw new Error('rule_id must be a positive integer.');
+  }
+
+  const parsed = Number(raw);
+  if (!Number.isSafeInteger(parsed)) {
+    throw new Error('rule_id must be a positive integer.');
+  }
+
+  return parsed;
+}
 
 export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
   const db = requireDb(ctx);
@@ -26,7 +41,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
 
   const sub = args[0];
   if (!sub) {
-    throw new Error('Usage: tgchats rules <list|add|run|log> ...');
+    throw new Error('Usage: tgchats rules <list|add|disable|delete|run|log> ...');
   }
 
   if (sub === 'list') {
@@ -94,6 +109,42 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
       return;
     }
     console.log(`Rule #${ruleId} created.`);
+    return;
+  }
+
+  if (sub === 'disable') {
+    const ruleIdRaw = args[1];
+    if (!ruleIdRaw) {
+      throw new Error('Usage: tgchats rules disable <rule_id>');
+    }
+    const ruleId = parseRuleId(ruleIdRaw);
+
+    const updated = await setAutomationRuleEnabled(db, {
+      accountId,
+      ruleId,
+      enabled: false,
+    });
+    if (ctx.config.jsonOutput) {
+      printJson({ ok: true, ruleId, updated });
+      return;
+    }
+    console.log(updated ? `Rule #${ruleId} disabled.` : `Rule #${ruleId} not found.`);
+    return;
+  }
+
+  if (sub === 'delete') {
+    const ruleIdRaw = args[1];
+    if (!ruleIdRaw) {
+      throw new Error('Usage: tgchats rules delete <rule_id>');
+    }
+    const ruleId = parseRuleId(ruleIdRaw);
+
+    const deleted = await deleteAutomationRule(db, { accountId, ruleId });
+    if (ctx.config.jsonOutput) {
+      printJson({ ok: true, ruleId, deleted });
+      return;
+    }
+    console.log(deleted ? `Rule #${ruleId} deleted.` : `Rule #${ruleId} not found.`);
     return;
   }
 

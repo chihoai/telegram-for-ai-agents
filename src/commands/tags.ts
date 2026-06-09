@@ -8,9 +8,19 @@ import {
 } from '../services/telegram.js';
 import { requireAccountId } from '../app/account.js';
 import { requireDb } from '../app/db.js';
-import { listPeerTags, setPeerTags } from '../db/crm.js';
+import { clearPeerTags, listPeerTags, setPeerTags } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
 import { printJson } from '../output.js';
+
+export function parseTagsSetArgs(args: string[]): { peer: string; tags: string[] } {
+  const parsed = parseCommandArgs(args);
+  const [peer, ...tags] = parsed.positionals;
+  if (!peer || tags.length === 0) {
+    throw new Error('Usage: tgchats tags set <peer> <tag...>');
+  }
+
+  return { peer, tags };
+}
 
 export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
   const db = requireDb(ctx);
@@ -18,15 +28,11 @@ export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
 
   const sub = args[0];
   if (!sub) {
-    throw new Error('Usage: tgchats tags <set|ls|suggest> ...');
+    throw new Error('Usage: tgchats tags <set|clear|ls|suggest> ...');
   }
 
   if (sub === 'set') {
-    const peerInput = args[1];
-    const tags = args.slice(2);
-    if (!peerInput || tags.length === 0) {
-      throw new Error('Usage: tgchats tags set <peer> <tag...>');
-    }
+    const { peer: peerInput, tags } = parseTagsSetArgs(args.slice(1));
 
     await ensureAuthorized(ctx.telegram);
     const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
@@ -50,6 +56,30 @@ export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
       return;
     }
     console.log(`Tags set for ${peer.displayName}: ${tags.join(', ')}`);
+    return;
+  }
+
+  if (sub === 'clear') {
+    const peerInput = args[1];
+    if (!peerInput) {
+      throw new Error('Usage: tgchats tags clear <peer>');
+    }
+
+    await ensureAuthorized(ctx.telegram);
+    const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
+    const removed = await clearPeerTags(db, { accountId, peerId: peer.id });
+    if (ctx.config.jsonOutput) {
+      printJson({
+        ok: true,
+        peer: {
+          id: peer.id,
+          displayName: peer.displayName,
+        },
+        removed,
+      });
+      return;
+    }
+    console.log(`Cleared ${removed} tag${removed === 1 ? '' : 's'} for ${peer.displayName}.`);
     return;
   }
 
