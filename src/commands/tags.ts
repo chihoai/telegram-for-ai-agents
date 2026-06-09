@@ -12,6 +12,16 @@ import { clearPeerTags, listPeerTags, setPeerTags } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
 import { printJson } from '../output.js';
 
+export function parseTagsSetArgs(args: string[]): { peer: string; tags: string[] } {
+  const parsed = parseCommandArgs(args);
+  const [peer, ...tags] = parsed.positionals;
+  if (!peer || tags.length === 0) {
+    throw new Error('Usage: tgchats tags set <peer> <tag...>');
+  }
+
+  return { peer, tags };
+}
+
 export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
   const db = requireDb(ctx);
   const accountId = await requireAccountId(ctx);
@@ -22,11 +32,7 @@ export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
   }
 
   if (sub === 'set') {
-    const peerInput = args[1];
-    const tags = args.slice(2);
-    if (!peerInput || tags.length === 0) {
-      throw new Error('Usage: tgchats tags set <peer> <tag...>');
-    }
+    const { peer: peerInput, tags } = parseTagsSetArgs(args.slice(1));
 
     await ensureAuthorized(ctx.telegram);
     const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
