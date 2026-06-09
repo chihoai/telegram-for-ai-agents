@@ -12,9 +12,11 @@ import {
   addAutomationRule,
   addRuleEvent,
   addTask,
+  deleteAutomationRule,
   hasRuleEventForMatch,
   listAutomationRules,
   listRuleEvents,
+  setAutomationRuleEnabled,
   setPeerTags,
 } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
@@ -26,7 +28,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
 
   const sub = args[0];
   if (!sub) {
-    throw new Error('Usage: tgchats rules <list|add|run|log> ...');
+    throw new Error('Usage: tgchats rules <list|add|disable|delete|run|log> ...');
   }
 
   if (sub === 'list') {
@@ -94,6 +96,48 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
       return;
     }
     console.log(`Rule #${ruleId} created.`);
+    return;
+  }
+
+  if (sub === 'disable') {
+    const ruleIdRaw = args[1];
+    if (!ruleIdRaw) {
+      throw new Error('Usage: tgchats rules disable <rule_id>');
+    }
+    const ruleId = Number.parseInt(ruleIdRaw, 10);
+    if (!Number.isInteger(ruleId) || ruleId <= 0) {
+      throw new Error('rule_id must be a positive integer.');
+    }
+
+    const updated = await setAutomationRuleEnabled(db, {
+      accountId,
+      ruleId,
+      enabled: false,
+    });
+    if (ctx.config.jsonOutput) {
+      printJson({ ok: true, ruleId, updated });
+      return;
+    }
+    console.log(updated ? `Rule #${ruleId} disabled.` : `Rule #${ruleId} not found.`);
+    return;
+  }
+
+  if (sub === 'delete') {
+    const ruleIdRaw = args[1];
+    if (!ruleIdRaw) {
+      throw new Error('Usage: tgchats rules delete <rule_id>');
+    }
+    const ruleId = Number.parseInt(ruleIdRaw, 10);
+    if (!Number.isInteger(ruleId) || ruleId <= 0) {
+      throw new Error('rule_id must be a positive integer.');
+    }
+
+    const deleted = await deleteAutomationRule(db, { accountId, ruleId });
+    if (ctx.config.jsonOutput) {
+      printJson({ ok: true, ruleId, deleted });
+      return;
+    }
+    console.log(deleted ? `Rule #${ruleId} deleted.` : `Rule #${ruleId} not found.`);
     return;
   }
 

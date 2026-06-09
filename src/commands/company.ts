@@ -8,7 +8,7 @@ import {
 } from '../services/telegram.js';
 import { requireDb } from '../app/db.js';
 import { requireAccountId } from '../app/account.js';
-import { getPeerCompany, linkPeerCompany } from '../db/crm.js';
+import { getPeerCompany, linkPeerCompany, unlinkPeerCompany } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
 import { printJson } from '../output.js';
 
@@ -18,7 +18,7 @@ export async function runCompany(ctx: AppContext, args: string[]): Promise<void>
 
   const sub = args[0];
   if (!sub) {
-    throw new Error('Usage: tgchats company <link|show|suggest> ...');
+    throw new Error('Usage: tgchats company <link|unlink|show|suggest> ...');
   }
 
   if (sub === 'link') {
@@ -54,6 +54,31 @@ export async function runCompany(ctx: AppContext, args: string[]): Promise<void>
     }
     console.log(
       `Linked ${peer.displayName} to ${companyName}${role ? ` (${role})` : ''}.`,
+    );
+    return;
+  }
+
+  if (sub === 'unlink') {
+    const peerInput = args[1];
+    if (!peerInput) {
+      throw new Error('Usage: tgchats company unlink <peer>');
+    }
+
+    await ensureAuthorized(ctx.telegram);
+    const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
+    const unlinked = await unlinkPeerCompany(db, { accountId, peerId: peer.id });
+    if (ctx.config.jsonOutput) {
+      printJson({
+        ok: true,
+        peer: { id: peer.id, displayName: peer.displayName },
+        unlinked,
+      });
+      return;
+    }
+    console.log(
+      unlinked
+        ? `Unlinked company for ${peer.displayName}.`
+        : `No company linked for ${peer.displayName}.`,
     );
     return;
   }

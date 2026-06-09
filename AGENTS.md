@@ -90,9 +90,9 @@ Command matrix (source of truth: `src/cli.ts`):
 - `inbox`, `chat`, `open`, `search`
 - `folders list/create/rename/delete/order/add/remove`
 - `archive`, `unarchive`
-- `tags set/ls/suggest`, `company link/show/suggest`, `tasks add/done/today/suggest`
+- `tags set/clear/ls/suggest`, `company link/unlink/show/suggest`, `tasks add/done/today/suggest`
 - `summary show/refresh`, `nudge`
-- `rules list/add/run/log`
+- `rules list/add/disable/delete/run/log`
 - `sync backfill/once/tail`
 - `export`, `import`
 - `db migrate`

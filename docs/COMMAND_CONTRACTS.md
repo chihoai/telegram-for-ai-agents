@@ -145,6 +145,26 @@ If DB is unavailable, `"metadata": null`.
 }
 ```
 
+## `tgchats tags clear <peer> --json`
+
+```json
+{
+  "ok": true,
+  "peer": { "id": 123, "displayName": "string" },
+  "removed": 2
+}
+```
+
+## `tgchats company unlink <peer> --json`
+
+```json
+{
+  "ok": true,
+  "peer": { "id": 123, "displayName": "string" },
+  "unlinked": true
+}
+```
+
 ## `tgchats tasks today --json`
 
 ```json
@@ -221,6 +241,26 @@ If absent: `"summary": null`.
       "priority": "low|med|high"
     }
   ]
+}
+```
+
+## `tgchats rules disable <rule_id> --json`
+
+```json
+{
+  "ok": true,
+  "ruleId": 1,
+  "updated": true
+}
+```
+
+## `tgchats rules delete <rule_id> --json`
+
+```json
+{
+  "ok": true,
+  "ruleId": 1,
+  "deleted": true
 }
 ```
 

@@ -17,7 +17,8 @@ High-value JSON commands:
 - `inbox --json`
 - `chat <peer> --json`
 - `open <peer> --json`
-- `tags ls --json`
+- `tags ls|clear --json`
+- `company unlink <peer> --json`
 - `tasks today --json`
 - `summary show <peer> --json`
-- `rules list|run|log --json`
+- `rules list|disable|delete|run|log --json`

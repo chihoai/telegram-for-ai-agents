@@ -41,6 +41,20 @@ DO UPDATE SET source = excluded.source
   }
 }
 
+export async function clearPeerTags(
+  pool: DbPool,
+  params: { accountId: bigint; peerId: number },
+): Promise<number> {
+  const result = await pool.query(
+    `
+DELETE FROM peer_tags
+WHERE account_id = $1 AND peer_id = $2
+`,
+    [params.accountId.toString(), params.peerId],
+  );
+  return result.rowCount ?? 0;
+}
+
 export async function listPeerTags(
   pool: DbPool,
   params: { accountId: bigint; peerId?: number },
@@ -117,6 +131,20 @@ LIMIT 1
     [params.accountId.toString(), params.peerId],
   );
   return result.rows[0] ?? null;
+}
+
+export async function unlinkPeerCompany(
+  pool: DbPool,
+  params: { accountId: bigint; peerId: number },
+): Promise<boolean> {
+  const result = await pool.query(
+    `
+DELETE FROM peer_company
+WHERE account_id = $1 AND peer_id = $2
+`,
+    [params.accountId.toString(), params.peerId],
+  );
+  return (result.rowCount ?? 0) > 0;
 }
 
 export async function addTask(
@@ -333,6 +361,35 @@ ORDER BY rule_id ASC
     [params.accountId.toString()],
   );
   return result.rows;
+}
+
+export async function setAutomationRuleEnabled(
+  pool: DbPool,
+  params: { accountId: bigint; ruleId: number; enabled: boolean },
+): Promise<boolean> {
+  const result = await pool.query(
+    `
+UPDATE automation_rules
+SET enabled = $3
+WHERE account_id = $1 AND rule_id = $2
+`,
+    [params.accountId.toString(), params.ruleId, params.enabled],
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function deleteAutomationRule(
+  pool: DbPool,
+  params: { accountId: bigint; ruleId: number },
+): Promise<boolean> {
+  const result = await pool.query(
+    `
+DELETE FROM automation_rules
+WHERE account_id = $1 AND rule_id = $2
+`,
+    [params.accountId.toString(), params.ruleId],
+  );
+  return (result.rowCount ?? 0) > 0;
 }
 
 export async function addRuleEvent(

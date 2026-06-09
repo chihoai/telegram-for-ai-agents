@@ -54,6 +54,15 @@ function requireStringArray(value: unknown, label: string) {
   return values;
 }
 
+function requirePositiveInteger(value: unknown, label: string) {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+
+  return String(parsed);
+}
+
 function payloadArg(input: Record<string, unknown>) {
   return ["--payload", JSON.stringify(input)];
 }
@@ -231,12 +240,20 @@ export function buildToolCommandArgs(
   }
 
   if (toolName === "tags.set") {
+    if (Array.isArray(input.tags) && input.tags.length === 0) {
+      return ["tags", "clear", requireString(input.peer, "peer")];
+    }
+
     return [
       "tags",
       "set",
       requireString(input.peer, "peer"),
       ...requireStringArray(input.tags, "tags"),
     ];
+  }
+
+  if (toolName === "tags.clear") {
+    return ["tags", "clear", requireString(input.peer, "peer")];
   }
 
   if (toolName === "tags.suggest") {
@@ -262,6 +279,10 @@ export function buildToolCommandArgs(
       requireString(input.company, "company"),
       ...stringFlag(input.role, "--role"),
     ];
+  }
+
+  if (toolName === "company.unlink") {
+    return ["company", "unlink", requireString(input.peer, "peer")];
   }
 
   if (toolName === "company.suggest") {
@@ -355,6 +376,14 @@ export function buildToolCommandArgs(
       ...stringFlag(input.tag, "--tag"),
       ...integerFlag(input.followupDays, "--followup-days"),
     ];
+  }
+
+  if (toolName === "rules.disable") {
+    return ["rules", "disable", requirePositiveInteger(input.ruleId, "ruleId")];
+  }
+
+  if (toolName === "rules.delete") {
+    return ["rules", "delete", requirePositiveInteger(input.ruleId, "ruleId")];
   }
 
   if (toolName === "rules.run") {

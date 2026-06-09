@@ -35,6 +35,9 @@ These are example self-hosted flows for local `tgchats` users.
    - `npm run dev -- rules run --json`
 4. Audit:
    - `npm run dev -- rules log --limit 100 --json`
+5. Cleanup:
+   - `npm run dev -- rules disable <rule_id> --json`
+   - `npm run dev -- rules delete <rule_id> --json`
 
 ## Sync Worker Bootstrap
 

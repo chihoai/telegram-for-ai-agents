@@ -336,7 +336,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
   },
   {
     name: "tags.set",
-    description: "Set manual tags for a Telegram peer.",
+    description: "Set manual tags for a Telegram peer. An empty tags array clears tags for the peer.",
     transport: "local",
     inputSchema: {
       type: "object",
@@ -346,9 +346,21 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
         peer: { type: "string" },
         tags: {
           type: "array",
-          minItems: 1,
           items: { type: "string" },
         },
+      },
+    },
+  },
+  {
+    name: "tags.clear",
+    description: "Clear CRM tags for a Telegram peer.",
+    transport: "local",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["peer"],
+      properties: {
+        peer: { type: "string" },
       },
     },
   },
@@ -392,6 +404,19 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
         peer: { type: "string" },
         company: { type: "string" },
         role: { type: "string" },
+      },
+    },
+  },
+  {
+    name: "company.unlink",
+    description: "Remove linked company metadata for a peer.",
+    transport: "local",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["peer"],
+      properties: {
+        peer: { type: "string" },
       },
     },
   },
@@ -538,6 +563,42 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
         instruction: { type: "string" },
         tag: { type: "string" },
         followupDays: { type: "integer", minimum: 1 },
+      },
+    },
+  },
+  {
+    name: "rules.disable",
+    description: "Disable a CRM automation rule by rule ID.",
+    transport: "local",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["ruleId"],
+      properties: {
+        ruleId: {
+          oneOf: [
+            { type: "integer", minimum: 1 },
+            { type: "string" },
+          ],
+        },
+      },
+    },
+  },
+  {
+    name: "rules.delete",
+    description: "Delete a CRM automation rule by rule ID.",
+    transport: "local",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["ruleId"],
+      properties: {
+        ruleId: {
+          oneOf: [
+            { type: "integer", minimum: 1 },
+            { type: "string" },
+          ],
+        },
       },
     },
   },

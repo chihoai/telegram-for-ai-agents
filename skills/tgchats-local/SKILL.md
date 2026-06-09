@@ -128,6 +128,8 @@ Use these mappings when the user's intent is already specific:
 - Rules:
   - `npm run dev -- rules list --json`
   - `npm run dev -- rules add --name "<name>" --instruction "<instruction>" --tag <tag> --json`
+  - `npm run dev -- rules disable <rule_id> --json`
+  - `npm run dev -- rules delete <rule_id> --json`
   - `npm run dev -- rules run --json`
   - `npm run dev -- rules log --limit 50 --json`
 
