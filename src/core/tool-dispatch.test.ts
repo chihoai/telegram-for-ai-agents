@@ -94,10 +94,30 @@ describe("buildToolCommandArgs", () => {
       "delete",
       "12",
     ]);
+    expect(buildToolCommandArgs("rules.disable", { ruleId: "12" })).toEqual([
+      "rules",
+      "disable",
+      "12",
+    ]);
+    expect(buildToolCommandArgs("rules.delete", { ruleId: "12" })).toEqual([
+      "rules",
+      "delete",
+      "12",
+    ]);
   });
 
   it("rejects non-integer cleanup rule ids", () => {
-    for (const ruleId of [true, "1", "1.0", "01", 1.5, 0, -1]) {
+    for (const ruleId of [
+      true,
+      "1.0",
+      "01",
+      "12abc",
+      1.5,
+      0,
+      -1,
+      Number.MAX_SAFE_INTEGER + 1,
+      String(Number.MAX_SAFE_INTEGER + 1),
+    ]) {
       expect(() => buildToolCommandArgs("rules.disable", { ruleId })).toThrow(
         "ruleId must be a positive integer"
       );

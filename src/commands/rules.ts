@@ -27,7 +27,12 @@ export function parseRuleId(raw: string | undefined): number {
     throw new Error('rule_id must be a positive integer.');
   }
 
-  return Number(raw);
+  const parsed = Number(raw);
+  if (!Number.isSafeInteger(parsed)) {
+    throw new Error('rule_id must be a positive integer.');
+  }
+
+  return parsed;
 }
 
 export async function runRules(ctx: AppContext, args: string[]): Promise<void> {

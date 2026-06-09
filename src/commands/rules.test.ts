@@ -12,5 +12,8 @@ describe("parseRuleId", () => {
     expect(() => parseRuleId("12.9")).toThrow("positive integer");
     expect(() => parseRuleId("12-old")).toThrow("positive integer");
     expect(() => parseRuleId("0")).toThrow("positive integer");
+    expect(() => parseRuleId(String(Number.MAX_SAFE_INTEGER + 1))).toThrow(
+      "positive integer"
+    );
   });
 });

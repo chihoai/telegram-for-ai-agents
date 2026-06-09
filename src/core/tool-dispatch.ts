@@ -55,7 +55,18 @@ function requireStringArray(value: unknown, label: string) {
 }
 
 function requirePositiveInteger(value: unknown, label: string) {
-  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
+  if (typeof value === "string" && /^[1-9]\d*$/.test(value.trim())) {
+    const parsed = Number(value.trim());
+    if (Number.isSafeInteger(parsed)) {
+      return value.trim();
+    }
+  }
+
+  if (
+    typeof value !== "number" ||
+    !Number.isSafeInteger(value) ||
+    value <= 0
+  ) {
     throw new Error(`${label} must be a positive integer.`);
   }
 
