@@ -4,6 +4,7 @@ import type { AppContext } from '../app/context.js';
 import { parseCommandArgs, optionValue } from '../app/cli-args.js';
 import { requireDb } from '../app/db.js';
 import { requireAccountId } from '../app/account.js';
+import { CliError } from '../app/errors.js';
 
 function csvEscape(value: string): string {
   if (value.includes(',') || value.includes('"') || value.includes('\n')) {
@@ -23,7 +24,14 @@ export async function runExport(ctx: AppContext, args: string[]): Promise<void> 
   const format = (optionValue(parsed, ['--format']) ?? 'json').toLowerCase();
   const outPath = optionValue(parsed, ['--out']) ?? `./exports/export-${Date.now()}.${format}`;
 
-  await mkdir(dirname(outPath), { recursive: true });
+  try {
+    await mkdir(dirname(outPath), { recursive: true });
+  } catch {
+    throw new CliError(
+      'Export output directory could not be created. Check --out and local filesystem permissions.',
+      'EXPORT_PATH_INVALID',
+    );
+  }
 
   const peers = await db.query('SELECT * FROM peers WHERE account_id = $1 ORDER BY peer_id', [
     accountId.toString(),

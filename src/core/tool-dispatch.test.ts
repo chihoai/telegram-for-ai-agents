@@ -61,10 +61,12 @@ describe("buildToolCommandArgs", () => {
   });
 
   it("maps rules.dryRun to rules run dry-run", () => {
-    expect(buildToolCommandArgs("rules.dryRun", {})).toEqual([
+    expect(buildToolCommandArgs("rules.dryRun", { dialogs: 3 })).toEqual([
       "rules",
       "run",
       "--dry-run",
+      "--dialogs",
+      "3",
     ]);
   });
 

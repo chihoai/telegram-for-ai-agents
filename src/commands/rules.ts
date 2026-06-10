@@ -35,6 +35,20 @@ export function parseRuleId(raw: string | undefined): number {
   return parsed;
 }
 
+export function parseRulesRunArgs(args: string[]): {
+  dryRun: boolean;
+  dialogsLimit: number;
+} {
+  const parsed = parseCommandArgs(args, ['--dialogs']);
+  const dialogsLimit = optionValue(parsed, ['--dialogs'])
+    ? parsePositiveInt(optionValue(parsed, ['--dialogs'])!, '--dialogs')
+    : 200;
+  return {
+    dryRun: hasFlag(parsed, ['--dry-run']),
+    dialogsLimit,
+  };
+}
+
 export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
   const db = requireDb(ctx);
   const accountId = await requireAccountId(ctx);
@@ -149,8 +163,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
   }
 
   if (sub === 'run') {
-    const parsed = parseCommandArgs(args.slice(1));
-    const dryRun = hasFlag(parsed, ['--dry-run']);
+    const { dryRun, dialogsLimit } = parseRulesRunArgs(args.slice(1));
 
     if (!ctx.ai) {
       throw new Error(
@@ -170,7 +183,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
       return;
     }
 
-    const dialogs = await listDialogs(ctx.telegram, { all: false, limit: 200 });
+    const dialogs = await listDialogs(ctx.telegram, { all: false, limit: dialogsLimit });
     let matchedCount = 0;
     let actionCount = 0;
     const events: Array<{

@@ -43,4 +43,11 @@ describe("normalizeCliError", () => {
       message: "Database schema is not initialized. Run `tgchats db migrate`.",
     });
   });
+
+  it("maps Telegram peer resolution failures to a stable code", () => {
+    expect(normalizeCliError(new Error("Invalid marked peer id: 0"))).toEqual({
+      code: "TELEGRAM_PEER_INVALID",
+      message: "Telegram peer could not be resolved. Check the peer id or username.",
+    });
+  });
 });

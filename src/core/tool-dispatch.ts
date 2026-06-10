@@ -397,11 +397,16 @@ export function buildToolCommandArgs(
   }
 
   if (toolName === "rules.run") {
-    return ["rules", "run"];
+    return ["rules", "run", ...integerFlag(input.dialogs, "--dialogs")];
   }
 
   if (toolName === "rules.dryRun") {
-    return ["rules", "run", "--dry-run"];
+    return [
+      "rules",
+      "run",
+      "--dry-run",
+      ...integerFlag(input.dialogs, "--dialogs"),
+    ];
   }
 
   if (toolName === "rules.log") {
