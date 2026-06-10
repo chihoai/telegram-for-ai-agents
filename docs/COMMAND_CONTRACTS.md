@@ -365,3 +365,6 @@ Optional:
 - `tgchats logout --json`
 
 These follow the same top-level contract shape: success uses `"ok": true`, failure uses `"ok": false` with `"error"`.
+`sync backfill --json` can also return `"partial": true` with `skippedDialogs` and
+`rateLimitBackoffs` when Telegram returns a flood-wait for one or more dialogs
+after bounded retries.

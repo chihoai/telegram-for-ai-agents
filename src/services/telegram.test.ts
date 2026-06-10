@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchChatHistory, resolveChatPeer } from './telegram.js';
+import {
+  fetchChatHistory,
+  resolveChatPeer,
+  telegramRateLimit,
+  withTelegramRateLimitBackoff,
+} from './telegram.js';
 
 describe('resolveChatPeer', () => {
   it('uses visible dialogs for numeric peer ids', async () => {
@@ -61,5 +66,80 @@ describe('fetchChatHistory', () => {
       fetchChatHistory(client as any, { chatId: peer as any, limit: 10 }),
     ).resolves.toEqual([message]);
     expect(client.iterHistory).toHaveBeenCalledWith(peer, { limit: 10 });
+  });
+});
+
+describe('telegram rate-limit backoff', () => {
+  it('extracts retry delays from Telegram flood-wait errors', () => {
+    expect(telegramRateLimit({ errorMessage: 'FLOOD_WAIT_12' })).toEqual({
+      code: 'FLOOD_WAIT_12',
+      waitMs: 12_000,
+    });
+    expect(telegramRateLimit(new Error('RPC failed: SLOWMODE_WAIT_0'))).toEqual({
+      code: 'SLOWMODE_WAIT_0',
+      waitMs: 1_000,
+    });
+    expect(telegramRateLimit({ code: 420, text: 'FLOOD_WAIT_%d', seconds: 12 })).toEqual({
+      code: 'FLOOD_WAIT_12',
+      waitMs: 12_000,
+    });
+    expect(telegramRateLimit(new Error('PEER_ID_INVALID'))).toBeNull();
+  });
+
+  it('retries bounded rate-limit errors and returns the eventual value', async () => {
+    const sleep = vi.fn(async () => undefined);
+    const onBackoff = vi.fn();
+    const run = vi
+      .fn<() => Promise<string>>()
+      .mockRejectedValueOnce({ errorMessage: 'FLOOD_WAIT_2' })
+      .mockResolvedValueOnce('ok');
+
+    await expect(
+      withTelegramRateLimitBackoff('history', run, { sleep, onBackoff }),
+    ).resolves.toEqual({
+      ok: true,
+      value: 'ok',
+      backoffs: [
+        {
+          operation: 'history',
+          attempt: 1,
+          code: 'FLOOD_WAIT_2',
+          waitMs: 2_000,
+        },
+      ],
+    });
+    expect(sleep).toHaveBeenCalledWith(2_000);
+    expect(onBackoff).toHaveBeenCalledWith({
+      operation: 'history',
+      attempt: 1,
+      code: 'FLOOD_WAIT_2',
+      waitMs: 2_000,
+    });
+  });
+
+  it('returns a structured failure when the retry delay is too large', async () => {
+    const error = { errorMessage: 'FLOOD_WAIT_999' };
+    const sleep = vi.fn(async () => undefined);
+
+    await expect(
+      withTelegramRateLimitBackoff('history', () => Promise.reject(error), {
+        maxWaitMs: 1_000,
+        sleep,
+      }),
+    ).resolves.toEqual({
+      ok: false,
+      error,
+      code: 'FLOOD_WAIT_999',
+      retryAfterMs: 999_000,
+      backoffs: [
+        {
+          operation: 'history',
+          attempt: 1,
+          code: 'FLOOD_WAIT_999',
+          waitMs: 999_000,
+        },
+      ],
+    });
+    expect(sleep).not.toHaveBeenCalled();
   });
 });

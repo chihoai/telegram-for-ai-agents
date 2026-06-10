@@ -2,6 +2,11 @@ import type { TelegramClient, Message, Dialog, Peer } from '@mtcute/node';
 import { tl } from '@mtcute/node';
 import qrcodeTerminal from 'qrcode-terminal';
 
+const RATE_LIMIT_ERROR_PREFIX_RE = /^(FLOOD_WAIT|SLOWMODE_WAIT|FLOOD_TEST_PHONE_WAIT|FLOOD_PREMIUM_WAIT)$/;
+const RATE_LIMIT_ERROR_RE = /\b(FLOOD_WAIT|SLOWMODE_WAIT|FLOOD_TEST_PHONE_WAIT|FLOOD_PREMIUM_WAIT)_(\d+)\b/;
+const DEFAULT_TELEGRAM_BACKOFF_ATTEMPTS = 3;
+const DEFAULT_TELEGRAM_MAX_BACKOFF_MS = 2 * 60 * 1000;
+
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat(undefined, {
     year: 'numeric',
@@ -10,6 +15,126 @@ function formatDate(date: Date): string {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function errorText(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
+export interface TelegramRateLimit {
+  code: string;
+  waitMs: number;
+}
+
+export interface TelegramBackoffEvent extends TelegramRateLimit {
+  operation: string;
+  attempt: number;
+}
+
+export interface TelegramBackoffOptions {
+  maxAttempts?: number;
+  maxWaitMs?: number;
+  sleep?: (ms: number) => Promise<void>;
+  onBackoff?: (event: TelegramBackoffEvent) => void;
+}
+
+export type TelegramBackoffResult<T> =
+  | {
+      ok: true;
+      value: T;
+      backoffs: TelegramBackoffEvent[];
+    }
+  | {
+      ok: false;
+      error: unknown;
+      code: string;
+      retryAfterMs: number;
+      backoffs: TelegramBackoffEvent[];
+    };
+
+export function telegramRateLimit(error: unknown): TelegramRateLimit | null {
+  const text = (error as { text?: unknown })?.text;
+  const rawSeconds = (error as { seconds?: unknown })?.seconds;
+  if (typeof text === 'string' && typeof rawSeconds === 'number' && Number.isSafeInteger(rawSeconds)) {
+    const prefix = text.endsWith('_%d') ? text.slice(0, -3) : text;
+    if (RATE_LIMIT_ERROR_PREFIX_RE.test(prefix)) {
+      return {
+        code: `${prefix}_${rawSeconds}`,
+        waitMs: Math.max(1, rawSeconds) * 1000,
+      };
+    }
+  }
+
+  const explicit =
+    (error as { errorMessage?: unknown; code?: unknown })?.errorMessage ??
+    (error as { code?: unknown })?.code;
+  const haystack = [explicit, errorText(error)]
+    .filter((value): value is string => typeof value === 'string')
+    .join(' ');
+  const match = haystack.match(RATE_LIMIT_ERROR_RE);
+  if (!match) {
+    return null;
+  }
+
+  const seconds = Number.parseInt(match[2], 10);
+  if (!Number.isSafeInteger(seconds) || seconds < 0) {
+    return null;
+  }
+  return {
+    code: `${match[1]}_${seconds}`,
+    waitMs: Math.max(1, seconds) * 1000,
+  };
+}
+
+export async function withTelegramRateLimitBackoff<T>(
+  operation: string,
+  run: () => Promise<T>,
+  options: TelegramBackoffOptions = {},
+): Promise<TelegramBackoffResult<T>> {
+  const maxAttempts = options.maxAttempts ?? DEFAULT_TELEGRAM_BACKOFF_ATTEMPTS;
+  const maxWaitMs = options.maxWaitMs ?? DEFAULT_TELEGRAM_MAX_BACKOFF_MS;
+  const sleepFn = options.sleep ?? sleep;
+  const backoffs: TelegramBackoffEvent[] = [];
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return { ok: true, value: await run(), backoffs };
+    } catch (error) {
+      const rateLimit = telegramRateLimit(error);
+      if (!rateLimit) {
+        throw error;
+      }
+
+      const event = {
+        operation,
+        attempt,
+        ...rateLimit,
+      };
+      backoffs.push(event);
+
+      if (attempt >= maxAttempts || rateLimit.waitMs > maxWaitMs) {
+        return {
+          ok: false,
+          error,
+          code: rateLimit.code,
+          retryAfterMs: rateLimit.waitMs,
+          backoffs,
+        };
+      }
+
+      options.onBackoff?.(event);
+      await sleepFn(rateLimit.waitMs);
+    }
+  }
+
+  throw new Error('unreachable telegram backoff state');
 }
 
 function truncate(value: string, maxLength: number): string {
