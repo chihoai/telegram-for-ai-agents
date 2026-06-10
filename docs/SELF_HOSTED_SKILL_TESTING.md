@@ -104,6 +104,13 @@ Verified on 2026-06-10:
   - Bad session storage paths return `TELEGRAM_SESSION_STORAGE_OPEN_FAILED`.
   - Invalid folder references and invalid task-id syntax return non-zero JSON errors.
   - A syntactically valid but absent task id returns `ok: true` with `updated: false`.
+- Workflow skill coverage passed through local MCP for all 15 workflow skills listed below:
+  - Low/medium-risk workflows used read tools, local search, AI suggestions, summaries, nudges, and dry-run rules.
+  - High-risk workflows used preview-only tools: `outbox.preview`, `members.invitePreview`, and `groups.leavePreview`.
+  - No approved send, invite, or leave tools were executed in this workflow pass.
+  - Five preview records were created as audit artifacts.
+  - One disposable conditional-reply rule was created, dry-run, logged, disabled, and deleted.
+  - One full-matrix `summary.refresh` call returned `ok: false`; an isolated local MCP retry of the meeting-recap sequence (`chat.read`, `summary.refresh`, `nudge.generate`) passed. Treat this as a transient AI-output smoke hiccup unless it recurs.
 
 Implementation fixes made during the same run:
 
@@ -126,7 +133,7 @@ Current local blockers and gaps from the same run:
 - `folders create --title <title>` without `--peer` reaches Telegram with an empty `include_peers` vector and is rejected by Telegram.
 - `folders remove` cannot remove the last included peer from a folder; Telegram rejects the resulting empty `include_peers` vector.
 - Long folder titles such as `Codex Smoke Test <timestamp>` can fail with Telegram `400` / "message too long"; use a short folder name for smoke tests.
-- Workflow skill coverage remains to be exercised skill-by-skill against the self-hosted local runtime.
+- Workflow preview records remain in the local preview store as audit artifacts; they did not execute Telegram writes.
 
 Harness note:
 
@@ -479,6 +486,10 @@ Expected:
 - Import succeeds in a disposable DB or clearly reports duplicate/validation behavior.
 
 ## Workflow Skill Coverage
+
+Verified on 2026-06-10 through local MCP with redacted user and group targets.
+All listed workflows were exercised. High-risk workflows stopped at preview
+records; no approved send, invite, or leave tools were executed.
 
 Test these with local MCP or CLI fallback:
 
