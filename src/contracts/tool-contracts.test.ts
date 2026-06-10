@@ -38,4 +38,16 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
       });
     }
   });
+
+  it("requires title and peer for folders.update create", () => {
+    const tool = TOOL_CONTRACT_DEFINITIONS.find((candidate) => candidate.name === "folders.update");
+    expect(tool?.inputSchema).toMatchObject({
+      oneOf: expect.arrayContaining([
+        expect.objectContaining({
+          required: ["action", "title", "peer"],
+          properties: { action: { enum: ["create"] } },
+        }),
+      ]),
+    });
+  });
 });

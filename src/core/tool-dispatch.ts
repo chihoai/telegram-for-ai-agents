@@ -164,7 +164,14 @@ export function buildToolCommandArgs(
   if (toolName === "folders.update") {
     const action = requireString(input.action, "action");
     if (action === "create") {
-      return ["folders", "create", "--title", requireString(input.title, "title")];
+      return [
+        "folders",
+        "create",
+        "--title",
+        requireString(input.title, "title"),
+        "--peer",
+        requireString(input.peer, "peer"),
+      ];
     }
     if (action === "rename") {
       return [

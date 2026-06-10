@@ -17,7 +17,7 @@ Do not print Telegram API hashes, session files, session strings, database URLs 
 
 Verified on 2026-06-10:
 
-- `npm test` passed: 16 files / 67 tests.
+- `npm test` passed: 16 files / 73 tests.
 - `npm run validate:skills` passed: 17 skill directories.
 - `npm run check:local-install` passed.
 - `npm run check:local-install` rebuilt the project, exported `docs/tool-contracts.json`, and reported 42 local MCP tools.
@@ -121,6 +121,7 @@ Implementation fixes made during the same run:
 - Fixed `archive` and `unarchive` so trailing flags are ignored, numeric peer IDs are normalized, and `--json` returns machine-readable JSON.
 - Added bounded `rules run --dialogs <n>` support and exposed it through local MCP `rules.run` / `rules.dryRun` contracts.
 - Added stable JSON error codes for missing AI config, invalid Telegram peers, invalid export paths, and bad Telegram session storage paths.
+- Added local folder preflight errors for empty folder creation and removing the last included peer.
 
 Current local blockers and gaps from the same run:
 
@@ -130,8 +131,8 @@ Current local blockers and gaps from the same run:
 - Use `rules run --dry-run --dialogs <small-n> --json` for smoke testing; unbounded rule runs still default to recent 200 dialogs and can be slow with AI.
 - Approved high-risk Telegram writes were executed only against the user-provided smoke targets listed above.
 - Rejoining `<approved-test-group-id>` was not attempted after `groups leave-approved`; the group leave was the intended approved side effect for this smoke run.
-- `folders create --title <title>` without `--peer` reaches Telegram with an empty `include_peers` vector and is rejected by Telegram.
-- `folders remove` cannot remove the last included peer from a folder; Telegram rejects the resulting empty `include_peers` vector.
+- `folders create --title <title>` without `--peer` now fails locally with `FOLDER_PEER_REQUIRED`.
+- `folders remove` now fails locally with `FOLDER_EMPTY_NOT_ALLOWED` before removing the last included peer.
 - Long folder titles such as `Codex Smoke Test <timestamp>` can fail with Telegram `400` / "message too long"; use a short folder name for smoke tests.
 - Workflow preview records remain in the local preview store as audit artifacts; they did not execute Telegram writes.
 
@@ -432,7 +433,7 @@ Expected:
 
 - Folder create/add/remove/delete works and can clean up.
 - Folder create should include at least one peer; Telegram rejects empty folder filters.
-- Folder remove should not remove the last included peer; delete the folder instead when cleaning up a one-peer smoke folder.
+- Folder remove cannot remove the last included peer; delete the folder instead when cleaning up a one-peer smoke folder.
 - Keep smoke folder titles short.
 - Archive/unarchive returns success and does not affect unintended peers.
 

@@ -14,10 +14,27 @@ describe("buildToolCommandArgs", () => {
   it("maps folders.update order to folders order", () => {
     expect(
       buildToolCommandArgs("folders.update", {
+        action: "create",
+        title: "Leads",
+        peer: "@alice",
+      })
+    ).toEqual(["folders", "create", "--title", "Leads", "--peer", "@alice"]);
+
+    expect(
+      buildToolCommandArgs("folders.update", {
         action: "order",
         folderIds: ["1", "2", "3"],
       })
     ).toEqual(["folders", "order", "1", "2", "3"]);
+  });
+
+  it("requires an initial peer for folders.update create", () => {
+    expect(() =>
+      buildToolCommandArgs("folders.update", {
+        action: "create",
+        title: "Leads",
+      })
+    ).toThrow("peer is required");
   });
 
   it("maps PR 9 folder tools to folder commands", () => {

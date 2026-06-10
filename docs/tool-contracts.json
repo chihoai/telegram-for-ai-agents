@@ -152,6 +152,77 @@
       "required": [
         "action"
       ],
+      "oneOf": [
+        {
+          "required": [
+            "action",
+            "title",
+            "peer"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "required": [
+            "action",
+            "folder",
+            "title"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "rename"
+              ]
+            }
+          }
+        },
+        {
+          "required": [
+            "action",
+            "folder"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "delete"
+              ]
+            }
+          }
+        },
+        {
+          "required": [
+            "action",
+            "folderIds"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "order"
+              ]
+            }
+          }
+        },
+        {
+          "required": [
+            "action",
+            "folder",
+            "peers"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "add",
+                "remove"
+              ]
+            }
+          }
+        }
+      ],
       "properties": {
         "action": {
           "type": "string",
@@ -168,6 +239,9 @@
           "type": "string"
         },
         "title": {
+          "type": "string"
+        },
+        "peer": {
           "type": "string"
         },
         "folderIds": {

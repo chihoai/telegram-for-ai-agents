@@ -107,6 +107,28 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       required: ["action"],
+      oneOf: [
+        {
+          required: ["action", "title", "peer"],
+          properties: { action: { enum: ["create"] } },
+        },
+        {
+          required: ["action", "folder", "title"],
+          properties: { action: { enum: ["rename"] } },
+        },
+        {
+          required: ["action", "folder"],
+          properties: { action: { enum: ["delete"] } },
+        },
+        {
+          required: ["action", "folderIds"],
+          properties: { action: { enum: ["order"] } },
+        },
+        {
+          required: ["action", "folder", "peers"],
+          properties: { action: { enum: ["add", "remove"] } },
+        },
+      ],
       properties: {
         action: {
           type: "string",
@@ -114,6 +136,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
         },
         folder: { type: "string" },
         title: { type: "string" },
+        peer: { type: "string" },
         folderIds: {
           type: "array",
           items: { type: "integer" },
