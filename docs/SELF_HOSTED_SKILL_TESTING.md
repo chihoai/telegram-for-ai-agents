@@ -467,9 +467,10 @@ Audit behavior:
 
 - Preview tools write JSON records next to the Telegram session under `agent-write-previews/`.
 - Approved execution tools write idempotency/audit JSON records under `agent-write-runs/`.
+- `message.sendDraft` is a direct send path, not a preview-first path. It writes only an `agent-write-runs/` record keyed by `clientProvidedDraftId` when present, otherwise by a payload hash.
 - Preview records include `previewId`, `kind`, `createdAt`, `expiresAt`, `payloadHash`, `payload`, and `summary`.
-- Preview records expire after 30 minutes; approved execution fails if the referenced preview is missing, expired, or has the wrong kind.
-- Run records are keyed by tool name, preview id, and optional idempotency key. Reusing the same idempotency key returns an `idempotentReplay`.
+- Preview records expire after 30 minutes; first-time approved execution fails if the referenced preview is missing, expired, or has the wrong kind.
+- Run records for preview-approved tools are keyed by tool name, preview id, and optional idempotency key. Reusing the same idempotency key returns an `idempotentReplay`, even if the original preview later expires or is removed.
 - Treat both preview and run records as sensitive because they can include peer ids, message text, invite targets, and group ids.
 
 ## Export And Import

@@ -142,7 +142,7 @@ If DB is unavailable, `"metadata": null`.
 
 ## High-Risk Preview And Approved Writes
 
-High-risk Telegram writes use a preview-first boundary:
+Most high-risk Telegram writes use a preview-first boundary:
 
 - `tgchats outbox preview --json`
 - `tgchats members invite-preview --json`
@@ -162,13 +162,15 @@ Preview calls do not send messages, invite members, or leave groups. They persis
 }
 ```
 
-Approved execution tools require a valid `previewId`:
+First-time approved execution tools require a valid `previewId`:
 
 - `tgchats outbox send-approved <previewId> --json`
 - `tgchats members invite-approved <previewId> --json`
 - `tgchats groups leave-approved <previewId> --json`
 
-Preview records expire after 30 minutes. Approved runs persist idempotency/audit records under `agent-write-runs/`; reusing the same optional `--idempotency-key` returns an `idempotentReplay`.
+Preview records expire after 30 minutes. Approved runs persist idempotency/audit records under `agent-write-runs/`; reusing the same optional `--idempotency-key` returns an `idempotentReplay`, even if the original preview later expires or is removed.
+
+`tgchats message send-draft --json` is a direct send path, not preview-first. It writes an `agent-write-runs/` audit record keyed by `clientProvidedDraftId` when present, otherwise by a hash of the peer, text, and schedule payload.
 
 ## `tgchats tags ls --json`
 
