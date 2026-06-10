@@ -193,7 +193,8 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
   }
 
   if (sub === 'order') {
-    const ids = parseFolderOrderIds(args.slice(1));
+    const parsed = parseCommandArgs(args.slice(1));
+    const ids = parseFolderOrderIds(parsed.positionals);
     await ensureAuthorized(ctx.telegram);
     await ctx.telegram.setFoldersOrder(ids);
     if (ctx.config.jsonOutput) {

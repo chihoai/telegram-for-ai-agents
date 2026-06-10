@@ -117,6 +117,16 @@ describe("runFolders", () => {
     expect(ctx.telegram.setFoldersOrder).not.toHaveBeenCalled();
   });
 
+  it("does not treat --json as a folder order id", async () => {
+    const ctx = createContext(tempDir, {
+      setFoldersOrder: vi.fn(async () => undefined),
+    });
+
+    await runFolders(ctx, ["order", "1", "2", "--json"]);
+
+    expect(ctx.telegram.setFoldersOrder).toHaveBeenCalledWith([1, 2]);
+  });
+
   it("rejects removing the last included peer from a folder", async () => {
     const ctx = createContext(tempDir, {
       getFolders: vi.fn(async () => ({ filters: [createFolder([peerA])] })),
