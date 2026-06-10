@@ -5,6 +5,10 @@ export interface ToolContractDefinition {
   transport: "shared" | "local";
 }
 
+const ACCOUNT_ID_PROPERTY = {
+  accountId: { type: "string" },
+} as const;
+
 export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
   {
     name: "auth.status",
@@ -13,7 +17,9 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
     inputSchema: {
       type: "object",
       additionalProperties: false,
-      properties: {},
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+      },
     },
   },
   {
@@ -23,7 +29,9 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
     inputSchema: {
       type: "object",
       additionalProperties: false,
-      properties: {},
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+      },
     },
   },
   {
@@ -34,7 +42,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         limit: { type: "integer", minimum: 1, maximum: 200 },
         all: { type: "boolean" },
       },
@@ -49,7 +57,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         limit: { type: "integer", minimum: 1, maximum: 200 },
         sinceMessageId: { type: "integer", minimum: 1 },
@@ -78,6 +86,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["query"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         query: { type: "string" },
         limit: { type: "integer", minimum: 1, maximum: 200 },
         chat: { type: "string" },
@@ -95,7 +104,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
       },
     },
   },
@@ -130,6 +139,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
         },
       ],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         action: {
           type: "string",
           enum: ["create", "rename", "delete", "order", "add", "remove"],
@@ -157,7 +167,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["title", "peer"],
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         title: { type: "string" },
         peer: { type: "string" },
         idempotencyKey: { type: "string" },
@@ -173,7 +183,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["folderId", "peer"],
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         folderId: { type: "string" },
         peer: { type: "string" },
         idempotencyKey: { type: "string" },
@@ -189,7 +199,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["folderId", "peer"],
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         folderId: { type: "string" },
         peer: { type: "string" },
         idempotencyKey: { type: "string" },
@@ -204,7 +214,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         peers: { type: "array", maxItems: 20, items: { type: "string" } },
         text: { type: "string" },
         template: {
@@ -230,6 +240,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["previewId"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         previewId: { type: "string" },
         idempotencyKey: { type: "string" },
       },
@@ -244,7 +255,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer", "text"],
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         text: { type: "string" },
         schedule: { oneOf: [{ type: "string" }, { type: "number" }] },
@@ -261,7 +272,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["userId", "groups"],
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         userId: { type: "string" },
         userAccessHash: { type: "string" },
         groups: {
@@ -294,6 +305,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["previewId"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         previewId: { type: "string" },
         idempotencyKey: { type: "string" },
       },
@@ -308,7 +320,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["groups"],
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         groups: {
           type: "array",
           maxItems: 20,
@@ -340,6 +352,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["previewId"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         previewId: { type: "string" },
         idempotencyKey: { type: "string" },
       },
@@ -353,6 +366,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
       },
     },
@@ -366,6 +380,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer", "tags"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         tags: {
           type: "array",
@@ -383,6 +398,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
       },
     },
@@ -396,6 +412,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         limit: { type: "integer", minimum: 1, maximum: 200 },
         apply: { type: "boolean" },
@@ -411,6 +428,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
       },
     },
@@ -424,6 +442,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer", "company"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         company: { type: "string" },
         role: { type: "string" },
@@ -439,6 +458,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
       },
     },
@@ -452,6 +472,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         limit: { type: "integer", minimum: 1, maximum: 200 },
         apply: { type: "boolean" },
@@ -465,7 +486,9 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
     inputSchema: {
       type: "object",
       additionalProperties: false,
-      properties: {},
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+      },
     },
   },
   {
@@ -477,6 +500,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer", "due", "why"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         due: { type: "string" },
         why: { type: "string" },
@@ -496,6 +520,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["taskId"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         taskId: { type: "integer", minimum: 1 },
       },
     },
@@ -509,6 +534,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         limit: { type: "integer", minimum: 1, maximum: 200 },
         apply: { type: "boolean" },
@@ -524,6 +550,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         kind: {
           type: "string",
@@ -540,6 +567,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         limit: { type: "integer", minimum: 1, maximum: 200 },
         all: { type: "boolean" },
@@ -555,6 +583,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["peer"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         style: {
           type: "string",
@@ -570,7 +599,9 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
     inputSchema: {
       type: "object",
       additionalProperties: false,
-      properties: {},
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+      },
     },
   },
   {
@@ -582,6 +613,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["name", "instruction"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         name: { type: "string" },
         instruction: { type: "string" },
         tag: { type: "string" },
@@ -598,6 +630,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["ruleId"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         ruleId: {
           oneOf: [
             { type: "integer", minimum: 1 },
@@ -616,6 +649,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       additionalProperties: false,
       required: ["ruleId"],
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         ruleId: {
           oneOf: [
             { type: "integer", minimum: 1 },
@@ -633,6 +667,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         dialogs: { type: "integer", minimum: 1, maximum: 1000 },
       },
     },
@@ -645,6 +680,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         dialogs: { type: "integer", minimum: 1, maximum: 1000 },
       },
     },
@@ -657,6 +693,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
+        ...ACCOUNT_ID_PROPERTY,
         limit: { type: "integer", minimum: 1, maximum: 200 },
       },
     },
@@ -669,7 +706,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         dialogs: { type: "integer", minimum: 1, maximum: 1000 },
         perChatLimit: { type: "integer", minimum: 1, maximum: 1000 },
       },
@@ -683,7 +720,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
         dialogs: { type: "integer", minimum: 1, maximum: 1000 },
       },
     },
@@ -696,7 +733,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
       type: "object",
       additionalProperties: false,
       properties: {
-        accountId: { type: "string" },
+        ...ACCOUNT_ID_PROPERTY,
       },
     },
   },

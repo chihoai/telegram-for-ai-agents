@@ -97,19 +97,34 @@ function requirePositiveInteger(value: unknown, label: string) {
   return String(value);
 }
 
-function payloadArg(input: Record<string, unknown>) {
-  return ["--payload", JSON.stringify(input)];
+function inputWithoutAccountId(input: Record<string, unknown>) {
+  const { accountId: _accountId, ...rest } = input;
+  return rest;
 }
 
-function rejectUnsupportedAccountId(input: Record<string, unknown>) {
+function payloadArg(input: Record<string, unknown>) {
+  return ["--payload", JSON.stringify(inputWithoutAccountId(input))];
+}
+
+function validateLocalAccountId(input: Record<string, unknown>) {
   if (
-    Object.prototype.hasOwnProperty.call(input, "accountId") &&
-    input.accountId !== undefined &&
-    input.accountId !== null &&
-    input.accountId !== ""
+    !Object.prototype.hasOwnProperty.call(input, "accountId") ||
+    input.accountId === undefined ||
+    input.accountId === null ||
+    input.accountId === ""
   ) {
+    return;
+  }
+
+  if (typeof input.accountId !== "string" || input.accountId.trim().length === 0) {
+    throw new Error("accountId must be a non-empty string.");
+  }
+
+  const requestedAccountId = input.accountId.trim();
+  const configuredAccountId = process.env.TELEGRAM_ACCOUNT_LABEL?.trim() || "default";
+  if (requestedAccountId !== configuredAccountId) {
     throw new Error(
-      "accountId is not supported by local tool dispatch yet. Use TELEGRAM_ACCOUNT_LABEL to select the account."
+      `accountId "${requestedAccountId}" does not match configured local account "${configuredAccountId}". Set TELEGRAM_ACCOUNT_LABEL before starting tgchats-mcp to select a different local account.`
     );
   }
 }
@@ -118,7 +133,7 @@ export function buildToolCommandArgs(
   toolName: string,
   input: Record<string, unknown> = {}
 ) {
-  rejectUnsupportedAccountId(input);
+  validateLocalAccountId(input);
 
   if (toolName === "auth.status") {
     return ["auth", "status"];
