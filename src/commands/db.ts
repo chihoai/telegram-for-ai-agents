@@ -1,5 +1,6 @@
 import type { AppContext } from '../app/context.js';
 import { migrate } from '../db/migrate.js';
+import { printJson } from '../output.js';
 
 export async function runDb(ctx: AppContext, args: string[]): Promise<void> {
   const sub = args[0];
@@ -19,6 +20,9 @@ export async function runDb(ctx: AppContext, args: string[]): Promise<void> {
   }
 
   await migrate(ctx.db);
+  if (ctx.config.jsonOutput) {
+    printJson({ ok: true, action: 'migrate' });
+    return;
+  }
   console.log('DB migrations applied.');
 }
-

@@ -72,7 +72,7 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
     }
     const peerInput = optionValue(parsed, ['--peer']);
     const idempotencyKey = optionValue(parsed, ['--idempotency-key']);
-    const runKey = peerInput
+    const runKey = peerInput && idempotencyKey
       ? createAgentWriteRunKey({
           toolName: 'folders.create',
           previewId: `${title}:${peerInput}`,
@@ -189,8 +189,9 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
   }
 
   if (sub === 'add' || sub === 'remove') {
-    const folderRef = args[1];
-    const peerInputs = args.slice(2);
+    const parsed = parseCommandArgs(args.slice(1));
+    const folderRef = parsed.positionals[0];
+    const peerInputs = parsed.positionals.slice(1);
     if (!folderRef || peerInputs.length === 0) {
       throw new Error(`Usage: tgchats folders ${sub} <id|title> <peer...>`);
     }
