@@ -104,7 +104,7 @@ Verified on 2026-06-10:
   - Bad session storage paths return `TELEGRAM_SESSION_STORAGE_OPEN_FAILED`.
   - Invalid folder references and invalid task-id syntax return non-zero JSON errors.
   - A syntactically valid but absent task id returns `ok: true` with `updated: false`.
-- Workflow skill coverage passed through local MCP for all 15 workflow skills listed below:
+- Workflow skill coverage completed for all 15 workflow skills listed below, using local MCP where supported and the previously verified CLI export/import path for full local exports, with one retried AI-output failure:
   - Low/medium-risk workflows used read tools, local search, AI suggestions, summaries, nudges, and dry-run rules.
   - High-risk workflows used preview-only tools: `outbox.preview`, `members.invitePreview`, and `groups.leavePreview`.
   - No approved send, invite, or leave tools were executed in this workflow pass.
@@ -487,9 +487,10 @@ Expected:
 
 ## Workflow Skill Coverage
 
-Verified on 2026-06-10 through local MCP with redacted user and group targets.
-All listed workflows were exercised. High-risk workflows stopped at preview
-records; no approved send, invite, or leave tools were executed.
+Verified on 2026-06-10 with redacted user and group targets. Workflow tools
+used local MCP where supported; full local export/import relies on the verified
+CLI fallback. All listed workflows were exercised. High-risk workflows stopped
+at preview records; no approved send, invite, or leave tools were executed.
 
 Test these with local MCP or CLI fallback:
 
@@ -548,7 +549,7 @@ Expected:
 
 ## Product Gaps To Watch For
 
-- Rule cleanup/disable/delete path may be missing.
+- Rule cleanup/disable/delete path is now covered for local CRM rules; keep retesting cleanup when rule actions expand.
 - Large backfills may need better Telegram rate-limit backoff.
 - Local MCP account selection currently depends on `TELEGRAM_ACCOUNT_LABEL`; `accountId` is not supported by local dispatch.
 - Some high-risk write tools may require more explicit preview/run audit documentation.
