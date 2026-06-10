@@ -207,6 +207,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
       dryRun: boolean;
     }> = [];
     for (const dialog of dialogs) {
+      let peerUpserted = false;
       const history = await fetchChatHistory(ctx.telegram, {
         chatId: String(dialog.peer.id),
         limit: 25,
@@ -214,7 +215,6 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
       if (history.length === 0) continue;
       const latestMessageId = Math.max(...history.map((message) => message.id));
 
-      await upsertPeer(db, { accountId, peer: dialog.peer });
       for (const rule of activeRules) {
         const evaluation = await ctx.ai.evaluateRule({
           context: {
@@ -237,6 +237,11 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
           continue;
         }
         matchedCount += 1;
+
+        if (!dryRun && !peerUpserted) {
+          await upsertPeer(db, { accountId, peer: dialog.peer });
+          peerUpserted = true;
+        }
 
         const resolvedTag = evaluation.setTag ?? rule.setTag;
         if (resolvedTag) {

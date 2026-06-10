@@ -111,4 +111,81 @@ describe("runRules", () => {
       code: "AI_NOT_CONFIGURED",
     });
   });
+
+  it("does not write peer metadata during active dry-runs", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const query = vi.fn(async (sql: string) => {
+      if (sql.includes("INSERT INTO accounts")) {
+        return { rows: [{ id: "1" }], rowCount: 1 };
+      }
+      if (sql.includes("FROM automation_rules")) {
+        return {
+          rows: [
+            {
+              ruleId: 1,
+              name: "Pricing",
+              containsText: "pricing",
+              setTag: "Lead",
+              followupDays: null,
+              enabled: true,
+            },
+          ],
+          rowCount: 1,
+        };
+      }
+      throw new Error(`Unexpected write/query during dry-run: ${sql}`);
+    });
+    const peer = {
+      id: 123,
+      type: "user",
+      displayName: "Test Peer",
+      username: null,
+    };
+    const message = {
+      id: 10,
+      date: new Date("2026-06-10T00:00:00.000Z"),
+      sender: peer,
+      text: "pricing?",
+      isService: false,
+      media: null,
+    };
+
+    const ctx = {
+      config: {
+        accountLabel: "default",
+        sessionPath: "/tmp/test.session",
+        jsonOutput: true,
+      },
+      db: {
+        query,
+      },
+      telegram: {
+        start: vi.fn(async () => undefined),
+        iterDialogs: vi.fn(async function* () {
+          yield { peer, lastMessage: message };
+        }),
+        iterHistory: vi.fn(async function* () {
+          yield message;
+        }),
+      },
+      ai: {
+        evaluateRule: vi.fn(async () => ({
+          matched: true,
+          reason: "Asked about pricing",
+          setTag: "Lead",
+          shouldCreateTask: false,
+          dueInDays: null,
+          priority: "med",
+          why: null,
+        })),
+      },
+    } as unknown as AppContext;
+
+    await runRules(ctx, ["run", "--dry-run", "--dialogs", "1"]);
+
+    expect(query).not.toHaveBeenCalledWith(
+      expect.stringContaining("INSERT INTO peers"),
+      expect.anything()
+    );
+  });
 });

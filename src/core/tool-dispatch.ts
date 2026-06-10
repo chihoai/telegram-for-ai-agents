@@ -6,12 +6,22 @@ function integerFlag(value: unknown, flag: string) {
     return [];
   }
 
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
-    throw new Error(`${flag} must be a positive integer.`);
+  if (typeof value === "string" && /^[1-9]\d*$/.test(value.trim())) {
+    const parsed = Number(value.trim());
+    if (Number.isSafeInteger(parsed)) {
+      return [flag, value.trim()];
+    }
   }
 
-  return [flag, String(parsed)];
+  if (
+    typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value > 0
+  ) {
+    return [flag, String(value)];
+  }
+
+  throw new Error(`${flag} must be a positive integer.`);
 }
 
 function boundedIntegerFlag(value: unknown, flag: string, max: number) {

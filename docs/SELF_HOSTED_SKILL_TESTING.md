@@ -17,7 +17,7 @@ Do not print Telegram API hashes, session files, session strings, database URLs 
 
 Verified on 2026-06-10:
 
-- `npm test` passed: 16 files / 66 tests.
+- `npm test` passed: 16 files / 67 tests.
 - `npm run validate:skills` passed: 17 skill directories.
 - `npm run check:local-install` passed.
 - `npm run check:local-install` rebuilt the project, exported `docs/tool-contracts.json`, and reported 42 local MCP tools.
