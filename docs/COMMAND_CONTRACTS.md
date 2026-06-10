@@ -140,6 +140,36 @@ Each dialog may also include an optional `peerRef` object when the runtime can p
 
 If DB is unavailable, `"metadata": null`.
 
+## High-Risk Preview And Approved Writes
+
+High-risk Telegram writes use a preview-first boundary:
+
+- `tgchats outbox preview --json`
+- `tgchats members invite-preview --json`
+- `tgchats groups leave-preview --json`
+
+Preview calls do not send messages, invite members, or leave groups. They persist a preview record next to the Telegram session under `agent-write-previews/` with:
+
+```json
+{
+  "previewId": "string",
+  "kind": "outbox|members.invite|groups.leave",
+  "createdAt": "2026-03-03T12:00:00.000Z",
+  "expiresAt": "2026-03-03T12:30:00.000Z",
+  "payloadHash": "sha256",
+  "payload": {},
+  "summary": {}
+}
+```
+
+Approved execution tools require a valid `previewId`:
+
+- `tgchats outbox send-approved <previewId> --json`
+- `tgchats members invite-approved <previewId> --json`
+- `tgchats groups leave-approved <previewId> --json`
+
+Preview records expire after 30 minutes. Approved runs persist idempotency/audit records under `agent-write-runs/`; reusing the same optional `--idempotency-key` returns an `idempotentReplay`.
+
 ## `tgchats tags ls --json`
 
 ```json

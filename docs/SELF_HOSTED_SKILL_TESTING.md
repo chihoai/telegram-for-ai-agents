@@ -463,6 +463,15 @@ Expected:
 - Approved execution is idempotent where an idempotency key is provided.
 - Unsafe targets are rejected clearly.
 
+Audit behavior:
+
+- Preview tools write JSON records next to the Telegram session under `agent-write-previews/`.
+- Approved execution tools write idempotency/audit JSON records under `agent-write-runs/`.
+- Preview records include `previewId`, `kind`, `createdAt`, `expiresAt`, `payloadHash`, `payload`, and `summary`.
+- Preview records expire after 30 minutes; approved execution fails if the referenced preview is missing, expired, or has the wrong kind.
+- Run records are keyed by tool name, preview id, and optional idempotency key. Reusing the same idempotency key returns an `idempotentReplay`.
+- Treat both preview and run records as sensitive because they can include peer ids, message text, invite targets, and group ids.
+
 ## Export And Import
 
 After a small sync:
@@ -553,5 +562,5 @@ Expected:
 - Rule cleanup/disable/delete path is now covered for local CRM rules; keep retesting cleanup when rule actions expand.
 - Large backfills may need better Telegram rate-limit backoff.
 - Local MCP account selection currently depends on `TELEGRAM_ACCOUNT_LABEL`; `accountId` is not supported by local dispatch.
-- Some high-risk write tools may require more explicit preview/run audit documentation.
+- High-risk preview/run audit behavior is documented above; keep it current when write tool payloads change.
 - Export/import should be tested against a disposable DB to avoid polluting real CRM state.
