@@ -282,6 +282,35 @@ If absent: `"summary": null`.
 }
 ```
 
+## `tgchats archive <peer...> --json`
+
+```json
+{
+  "ok": true,
+  "action": "archive",
+  "count": 1
+}
+```
+
+## `tgchats unarchive <peer...> --json`
+
+```json
+{
+  "ok": true,
+  "action": "unarchive",
+  "count": 1
+}
+```
+
+## `tgchats db migrate --json`
+
+```json
+{
+  "ok": true,
+  "action": "migrate"
+}
+```
+
 ## Additional JSON surfaces used by MCP
 
 - `tgchats search ... --json`

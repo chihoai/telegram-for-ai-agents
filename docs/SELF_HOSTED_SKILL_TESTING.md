@@ -17,7 +17,7 @@ Do not print Telegram API hashes, session files, session strings, database URLs 
 
 Verified on 2026-06-10:
 
-- `npm test` passed: 12 files / 47 tests.
+- `npm test` passed: 15 files / 55 tests.
 - `npm run validate:skills` passed: 17 skill directories.
 - `npm run check:local-install` passed.
 - `npm run check:local-install` rebuilt the project, exported `docs/tool-contracts.json`, and reported 42 local MCP tools.
@@ -76,14 +76,14 @@ Verified on 2026-06-10:
   - `outbox preview`
   - `members invite-preview`
   - `groups leave-preview`
-- Approved high-risk write smoke ran on 2026-06-10 with explicit user-provided targets:
-  - DM/user target: `444617363`.
-  - Group target: `-5183468656`.
-  - `outbox preview` followed by `outbox send-approved` succeeded and sent one test DM, message id `240083`.
-  - `message send-draft` succeeded and sent one test DM, message id `240084`.
+- Approved high-risk write smoke ran on 2026-06-10 with explicit user-provided targets, redacted here so future smoke runs do not reuse stale targets:
+  - DM/user target: `<approved-dm-peer-id>`.
+  - Group target: `<approved-test-group-id>`.
+  - `outbox preview` followed by `outbox send-approved` succeeded and sent one test DM.
+  - `message send-draft` succeeded and sent one test DM.
   - `members invite-preview` succeeded; `members invite-approved` returned a clear Telegram result: the user was already in the group.
-  - `groups leave-preview` followed by `groups leave-approved` succeeded; the local Telegram account left group `-5183468656`.
-  - `archive 444617363 --json` followed by `unarchive 444617363 --json` succeeded and restored the DM.
+  - `groups leave-preview` followed by `groups leave-approved` succeeded; the local Telegram account left the approved test group.
+  - `archive <approved-dm-peer-id> --json` followed by `unarchive <approved-dm-peer-id> --json` succeeded and restored the DM.
 - Failure-mode checks passed:
   - Missing Telegram credentials return `TELEGRAM_NOT_CONFIGURED`.
   - Missing `DATABASE_URL` returns `DATABASE_NOT_CONFIGURED` for CRM commands.
@@ -99,7 +99,7 @@ Implementation fixes made during the same run:
 Current local blockers and gaps from the same run:
 
 - AI-backed commands are blocked only when using the configured OpenClaw endpoint: `OpenClaw health preflight failed after 4 attempts: fetch failed`.
-- OpenClaw diagnosis on 2026-06-10: `OPENCLAW_BASE_URL` was set and `OPENCLAW_API_KEY` was present, but `https://clawd2.8o.vc` failed TLS/network handshakes with `ECONNRESET` / `SSL_ERROR_SYSCALL`.
+- OpenClaw diagnosis on 2026-06-10: `OPENCLAW_BASE_URL` was set and `OPENCLAW_API_KEY` was present, but the configured OpenClaw host failed TLS/network handshakes with `ECONNRESET` / `SSL_ERROR_SYSCALL`.
 - Use `AI_MODE=gemini` locally until the OpenClaw endpoint is healthy; Gemini smoke passed for `tags suggest` and `nudge`.
 - `rules run --dry-run` still needs follow-up for runtime/latency with Gemini because the smoke command timed out after 180 seconds.
 - Approved high-risk Telegram writes were executed only against the user-provided smoke targets listed above.
