@@ -122,6 +122,7 @@ Implementation fixes made during the same run:
 - Added bounded `rules run --dialogs <n>` support and exposed it through local MCP `rules.run` / `rules.dryRun` contracts.
 - Added stable JSON error codes for missing AI config, invalid Telegram peers, invalid export paths, and bad Telegram session storage paths.
 - Added local folder preflight errors for empty folder creation and removing the last included peer.
+- Added bounded Telegram rate-limit backoff for `sync backfill`; JSON output now includes `rateLimitBackoffs` and `skippedDialogs` when a large backfill has to continue after a flood-wait.
 
 Current local blockers and gaps from the same run:
 
@@ -317,7 +318,7 @@ Rules:
 
 - Run only one writer process per Telegram account/session.
 - Stop `sync tail` after confirming it starts and processes updates.
-- Expect Telegram rate limits for large backfills; increase limits gradually.
+- Expect Telegram rate limits for large backfills; `sync backfill --json` now reports bounded retry metadata in `rateLimitBackoffs` and any partial skips in `skippedDialogs`.
 
 After sync:
 
@@ -561,7 +562,7 @@ Expected:
 ## Product Gaps To Watch For
 
 - Rule cleanup/disable/delete path is now covered for local CRM rules; keep retesting cleanup when rule actions expand.
-- Large backfills may need better Telegram rate-limit backoff.
+- Large backfills now have bounded Telegram rate-limit backoff; keep live-testing larger limits gradually because Telegram can still require waits longer than the local smoke threshold.
 - Local MCP `accountId` now validates against `TELEGRAM_ACCOUNT_LABEL`; true multi-session switching still requires starting `tgchats-mcp` with the matching session/account environment.
 - High-risk preview/run audit behavior is documented above; keep it current when write tool payloads change.
 - Export/import should be tested against a disposable DB to avoid polluting real CRM state.
