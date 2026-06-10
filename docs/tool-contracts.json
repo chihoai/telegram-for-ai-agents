@@ -170,6 +170,9 @@
         "title": {
           "type": "string"
         },
+        "peer": {
+          "type": "string"
+        },
         "folderIds": {
           "type": "array",
           "items": {

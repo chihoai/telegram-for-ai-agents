@@ -15,6 +15,7 @@ import {
   uniqueInputPeers,
 } from '../services/telegram.js';
 import { tl } from '@mtcute/node';
+import { CliError } from '../app/errors.js';
 import { printJson } from '../output.js';
 
 function inputPeerKey(peer: tl.TypeInputPeer): string {
@@ -71,6 +72,12 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
       throw new Error('Usage: tgchats folders create --title "Leads"');
     }
     const peerInput = optionValue(parsed, ['--peer']);
+    if (!peerInput) {
+      throw new CliError(
+        'Folder creation requires at least one peer. Use --peer <peer> for the initial included chat.',
+        'FOLDER_PEER_REQUIRED',
+      );
+    }
     const idempotencyKey = optionValue(parsed, ['--idempotency-key']);
     const runKey = peerInput && idempotencyKey
       ? createAgentWriteRunKey({
@@ -90,9 +97,7 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
         return;
       }
     }
-    const includePeers = peerInput
-      ? [await ctx.telegram.resolvePeer(normalizePeerRef(peerInput))]
-      : [];
+    const includePeers = [await ctx.telegram.resolvePeer(normalizePeerRef(peerInput))];
     const created = await ctx.telegram.createFolder({
       title: toTextWithEntities(title),
       pinnedPeers: [],
@@ -208,6 +213,12 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
     } else {
       const removeSet = new Set(resolvedPeers.map(inputPeerKey));
       next = current.filter((peer) => !removeSet.has(inputPeerKey(peer)));
+      if (next.length === 0) {
+        throw new CliError(
+          'Folder remove would leave the folder with no included peers. Delete the folder instead.',
+          'FOLDER_EMPTY_NOT_ALLOWED',
+        );
+      }
     }
 
     await ctx.telegram.editFolder({

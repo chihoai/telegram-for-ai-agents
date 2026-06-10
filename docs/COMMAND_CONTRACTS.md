@@ -10,7 +10,8 @@ General:
 - Stable failure codes are included as `"code"` when available, including
   `TELEGRAM_NOT_CONFIGURED`, `DATABASE_NOT_CONFIGURED`, `AI_NOT_CONFIGURED`,
   `TELEGRAM_PEER_INVALID`, `EXPORT_PATH_INVALID`, and
-  `TELEGRAM_SESSION_STORAGE_OPEN_FAILED`.
+  `TELEGRAM_SESSION_STORAGE_OPEN_FAILED`. Folder preflight failures use
+  `FOLDER_PEER_REQUIRED` and `FOLDER_EMPTY_NOT_ALLOWED`.
 - Dates are ISO-8601 strings
 
 ## `tgchats whoami --json`

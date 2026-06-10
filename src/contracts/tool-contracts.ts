@@ -114,6 +114,7 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
         },
         folder: { type: "string" },
         title: { type: "string" },
+        peer: { type: "string" },
         folderIds: {
           type: "array",
           items: { type: "integer" },
