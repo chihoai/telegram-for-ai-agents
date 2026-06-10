@@ -99,7 +99,22 @@ describe("runFolders", () => {
     await expect(runFolders(ctx, ["create", "--title", "CodexTest", "--json"])).rejects.toMatchObject({
       code: "FOLDER_PEER_REQUIRED",
     });
+    expect(ctx.telegram.start).not.toHaveBeenCalled();
     expect(ctx.telegram.createFolder).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed folder order ids before auth", async () => {
+    const ctx = createContext(tempDir, {
+      setFoldersOrder: vi.fn(async () => undefined),
+    });
+
+    for (const value of ["1abc", "nope", "0"]) {
+      await expect(runFolders(ctx, ["order", "1", value, "3", "--json"])).rejects.toThrow(
+        "Usage: tgchats folders order <id...>"
+      );
+    }
+    expect(ctx.telegram.start).not.toHaveBeenCalled();
+    expect(ctx.telegram.setFoldersOrder).not.toHaveBeenCalled();
   });
 
   it("rejects removing the last included peer from a folder", async () => {

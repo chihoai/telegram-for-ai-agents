@@ -28,6 +28,24 @@ function printFolder(folder: tl.RawDialogFilter): void {
   );
 }
 
+function parseFolderOrderIds(values: string[]): number[] {
+  const ids: number[] = [];
+  for (const value of values) {
+    if (!/^[1-9]\d*$/.test(value)) {
+      throw new Error('Usage: tgchats folders order <id...>');
+    }
+    const parsed = Number(value);
+    if (!Number.isSafeInteger(parsed)) {
+      throw new Error('Usage: tgchats folders order <id...>');
+    }
+    ids.push(parsed);
+  }
+  if (ids.length === 0) {
+    throw new Error('Usage: tgchats folders order <id...>');
+  }
+  return ids;
+}
+
 export async function runFolders(ctx: AppContext, args: string[]): Promise<void> {
   const sub = args[0];
   if (!sub) {
@@ -36,9 +54,8 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
     );
   }
 
-  await ensureAuthorized(ctx.telegram);
-
   if (sub === 'list') {
+    await ensureAuthorized(ctx.telegram);
     const folders = await listEditableFolders(ctx.telegram);
     if (folders.length === 0) {
       if (ctx.config.jsonOutput) {
@@ -78,6 +95,7 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
         'FOLDER_PEER_REQUIRED',
       );
     }
+    await ensureAuthorized(ctx.telegram);
     const idempotencyKey = optionValue(parsed, ['--idempotency-key']);
     const runKey = peerInput && idempotencyKey
       ? createAgentWriteRunKey({
@@ -131,6 +149,7 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
     if (!folderRef || !title) {
       throw new Error('Usage: tgchats folders rename <id|title> --title "Customers"');
     }
+    await ensureAuthorized(ctx.telegram);
     await ctx.telegram.editFolder({
       folder: folderRef,
       modification: { title: toTextWithEntities(title) },
@@ -155,6 +174,7 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
     if (!folderRef) {
       throw new Error('Usage: tgchats folders delete <id|title>');
     }
+    await ensureAuthorized(ctx.telegram);
     const folder = await resolveFolderByRef(ctx.telegram, folderRef);
     await ctx.telegram.deleteFolder(folder.id);
     if (ctx.config.jsonOutput) {
@@ -173,13 +193,8 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
   }
 
   if (sub === 'order') {
-    const ids = args
-      .slice(1)
-      .map((value) => Number.parseInt(value, 10))
-      .filter((value) => Number.isInteger(value));
-    if (ids.length === 0) {
-      throw new Error('Usage: tgchats folders order <id...>');
-    }
+    const ids = parseFolderOrderIds(args.slice(1));
+    await ensureAuthorized(ctx.telegram);
     await ctx.telegram.setFoldersOrder(ids);
     if (ctx.config.jsonOutput) {
       printJson({
@@ -201,6 +216,7 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
       throw new Error(`Usage: tgchats folders ${sub} <id|title> <peer...>`);
     }
 
+    await ensureAuthorized(ctx.telegram);
     const folder = await resolveFolderByRef(ctx.telegram, folderRef);
     const resolvedPeers = await Promise.all(
       peerInputs.map(async (peerInput) => ctx.telegram.resolvePeer(normalizePeerRef(peerInput))),
