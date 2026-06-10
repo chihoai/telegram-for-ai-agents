@@ -14,6 +14,20 @@ function integerFlag(value: unknown, flag: string) {
   return [flag, String(parsed)];
 }
 
+function boundedIntegerFlag(value: unknown, flag: string, max: number) {
+  const result = integerFlag(value, flag);
+  if (result.length === 0) {
+    return result;
+  }
+
+  const parsed = Number(result[1]);
+  if (parsed > max) {
+    throw new Error(`${flag} must be at most ${max}.`);
+  }
+
+  return result;
+}
+
 function stringFlag(value: unknown, flag: string) {
   if (typeof value !== "string" || value.trim().length === 0) {
     return [];
@@ -397,7 +411,11 @@ export function buildToolCommandArgs(
   }
 
   if (toolName === "rules.run") {
-    return ["rules", "run", ...integerFlag(input.dialogs, "--dialogs")];
+    return [
+      "rules",
+      "run",
+      ...boundedIntegerFlag(input.dialogs, "--dialogs", 1000),
+    ];
   }
 
   if (toolName === "rules.dryRun") {
@@ -405,7 +423,7 @@ export function buildToolCommandArgs(
       "rules",
       "run",
       "--dry-run",
-      ...integerFlag(input.dialogs, "--dialogs"),
+      ...boundedIntegerFlag(input.dialogs, "--dialogs", 1000),
     ];
   }
 

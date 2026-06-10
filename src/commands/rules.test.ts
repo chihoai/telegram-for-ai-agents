@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { parseRuleId, parseRulesRunArgs } from "./rules.js";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { parseRuleId, parseRulesRunArgs, runRules } from "./rules.js";
+import type { AppContext } from "../app/context.js";
 
 describe("parseRuleId", () => {
   it("accepts exact positive integer ids", () => {
@@ -34,8 +35,80 @@ describe("parseRulesRunArgs", () => {
   });
 
   it("rejects invalid dialog limits", () => {
-    expect(() => parseRulesRunArgs(["--dialogs", "0"])).toThrow(
-      "--dialogs must be a positive integer"
-    );
+    for (const value of ["0", "1001", "3abc", "3.7"]) {
+      expect(() => parseRulesRunArgs(["--dialogs", value])).toThrow(
+        value === "1001"
+          ? "--dialogs must be at most 1000"
+          : "--dialogs must be a positive integer"
+      );
+    }
+  });
+});
+
+describe("runRules", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("includes dryRun in the no-enabled-rules JSON response", async () => {
+    const logs: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((value: string) => {
+      logs.push(value);
+    });
+
+    const ctx = {
+      config: {
+        accountLabel: "default",
+        sessionPath: "/tmp/test.session",
+        jsonOutput: true,
+      },
+      db: {
+        query: vi.fn(async (sql: string) => {
+          if (sql.includes("INSERT INTO accounts")) {
+            return { rows: [{ id: "1" }], rowCount: 1 };
+          }
+          if (sql.includes("FROM automation_rules")) {
+            return { rows: [], rowCount: 0 };
+          }
+          throw new Error(`Unexpected query: ${sql}`);
+        }),
+      },
+      telegram: {
+        start: vi.fn(async () => undefined),
+      },
+      ai: {},
+    } as unknown as AppContext;
+
+    await runRules(ctx, ["run", "--dry-run"]);
+
+    expect(JSON.parse(logs.at(-1) ?? "")).toEqual({
+      ok: true,
+      dryRun: true,
+      matches: 0,
+      actions: 0,
+      events: [],
+    });
+  });
+
+  it("uses a stable error code when AI is not configured for rule execution", async () => {
+    const ctx = {
+      config: {
+        accountLabel: "default",
+        sessionPath: "/tmp/test.session",
+        jsonOutput: true,
+      },
+      db: {
+        query: vi.fn(async (sql: string) => {
+          if (sql.includes("INSERT INTO accounts")) {
+            return { rows: [{ id: "1" }], rowCount: 1 };
+          }
+          throw new Error(`Unexpected query: ${sql}`);
+        }),
+      },
+    } as unknown as AppContext;
+
+    await expect(runRules(ctx, ["run"])).rejects.toMatchObject({
+      code: "AI_NOT_CONFIGURED",
+    });
   });
 });

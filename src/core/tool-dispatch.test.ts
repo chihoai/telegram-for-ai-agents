@@ -70,6 +70,21 @@ describe("buildToolCommandArgs", () => {
     ]);
   });
 
+  it("rejects malformed or over-limit rule dialog bounds", () => {
+    for (const dialogs of [0, "3abc", "3.7", 1001]) {
+      expect(() => buildToolCommandArgs("rules.run", { dialogs })).toThrow(
+        dialogs === 1001
+          ? "--dialogs must be at most 1000"
+          : "--dialogs must be a positive integer"
+      );
+      expect(() => buildToolCommandArgs("rules.dryRun", { dialogs })).toThrow(
+        dialogs === 1001
+          ? "--dialogs must be at most 1000"
+          : "--dialogs must be a positive integer"
+      );
+    }
+  });
+
   it("maps cleanup tools to cleanup commands", () => {
     expect(buildToolCommandArgs("tags.clear", { peer: "@alice" })).toEqual([
       "tags",

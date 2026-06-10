@@ -20,7 +20,10 @@ import {
   setPeerTags,
 } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
+import { CliError } from '../app/errors.js';
 import { printJson } from '../output.js';
+
+const MAX_RULE_RUN_DIALOGS = 1000;
 
 export function parseRuleId(raw: string | undefined): number {
   if (!raw || !/^[1-9]\d*$/.test(raw)) {
@@ -43,6 +46,9 @@ export function parseRulesRunArgs(args: string[]): {
   const dialogsLimit = optionValue(parsed, ['--dialogs'])
     ? parsePositiveInt(optionValue(parsed, ['--dialogs'])!, '--dialogs')
     : 200;
+  if (dialogsLimit > MAX_RULE_RUN_DIALOGS) {
+    throw new Error(`--dialogs must be at most ${MAX_RULE_RUN_DIALOGS}.`);
+  }
   return {
     dryRun: hasFlag(parsed, ['--dry-run']),
     dialogsLimit,
@@ -166,8 +172,9 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
     const { dryRun, dialogsLimit } = parseRulesRunArgs(args.slice(1));
 
     if (!ctx.ai) {
-      throw new Error(
+      throw new CliError(
         'AI mode is not configured. Set AI_MODE=gemini with GEMINI_API_KEY or AI_MODE=openclaw with OPENCLAW_BASE_URL.',
+        'AI_NOT_CONFIGURED',
       );
     }
 
@@ -176,7 +183,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
     const activeRules = rules.filter((rule) => rule.enabled);
     if (activeRules.length === 0) {
       if (ctx.config.jsonOutput) {
-        printJson({ ok: true, matches: 0, actions: 0, events: [] });
+        printJson({ ok: true, dryRun, matches: 0, actions: 0, events: [] });
         return;
       }
       console.log('No enabled rules.');
