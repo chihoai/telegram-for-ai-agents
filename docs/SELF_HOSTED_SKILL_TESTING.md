@@ -103,7 +103,7 @@ Current local blockers and gaps from the same run:
 - Use `AI_MODE=gemini` locally until the OpenClaw endpoint is healthy; Gemini smoke passed for `tags suggest` and `nudge`.
 - `rules run --dry-run` still needs follow-up for runtime/latency with Gemini because the smoke command timed out after 180 seconds.
 - Approved high-risk Telegram writes were executed only against the user-provided smoke targets listed above.
-- Rejoining `-5183468656` was not attempted after `groups leave-approved`; the group leave was the intended approved side effect for this smoke run.
+- Rejoining `<approved-test-group-id>` was not attempted after `groups leave-approved`; the group leave was the intended approved side effect for this smoke run.
 - `folders create --title <title>` without `--peer` reaches Telegram with an empty `include_peers` vector and is rejected by Telegram.
 - `folders remove` cannot remove the last included peer from a folder; Telegram rejects the resulting empty `include_peers` vector.
 - Long folder titles such as `Codex Smoke Test <timestamp>` can fail with Telegram `400` / "message too long"; use a short folder name for smoke tests.
