@@ -15,9 +15,9 @@ Do not print Telegram API hashes, session files, session strings, database URLs 
 
 ## Current Local Baseline
 
-Verified on 2026-06-10:
+Verified on 2026-06-10 and refreshed on 2026-06-11:
 
-- `npm test` passed: 16 files / 73 tests.
+- `npm test` passed: 17 files / 80 tests.
 - `npm run validate:skills` passed: 17 skill directories.
 - `npm run check:local-install` passed.
 - `npm run check:local-install` rebuilt the project, exported `docs/tool-contracts.json`, and reported 42 local MCP tools.
@@ -122,6 +122,7 @@ Implementation fixes made during the same run:
 - Added bounded `rules run --dialogs <n>` support and exposed it through local MCP `rules.run` / `rules.dryRun` contracts.
 - Added stable JSON error codes for missing AI config, invalid Telegram peers, invalid export paths, and bad Telegram session storage paths.
 - Added local folder preflight errors for empty folder creation and removing the last included peer.
+- Added local MCP `accountId` validation against `TELEGRAM_ACCOUNT_LABEL` and advertised `accountId` across local MCP tool contracts.
 - Added bounded Telegram rate-limit backoff for `sync backfill`; JSON output now includes `rateLimitBackoffs` and `skippedDialogs` when a large backfill has to continue after a flood-wait.
 
 Current local blockers and gaps from the same run:
