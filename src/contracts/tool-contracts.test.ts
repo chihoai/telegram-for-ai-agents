@@ -50,4 +50,14 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
       ]),
     });
   });
+
+  it("advertises accountId on every local MCP tool", () => {
+    for (const tool of TOOL_CONTRACT_DEFINITIONS) {
+      expect(tool.inputSchema).toMatchObject({
+        properties: {
+          accountId: { type: "string" },
+        },
+      });
+    }
+  });
 });

@@ -296,7 +296,7 @@ If testing through an MCP client, call:
 Expected:
 
 - Local MCP tool calls mirror CLI JSON behavior.
-- `accountId` is not supported by local tool dispatch yet; use `TELEGRAM_ACCOUNT_LABEL` for account selection.
+- Local MCP tools accept `accountId` when it matches the configured `TELEGRAM_ACCOUNT_LABEL` for the running process. Set `TELEGRAM_ACCOUNT_LABEL` before starting `tgchats-mcp` to select a different local account.
 
 ## Sync And CRM Store
 
@@ -562,6 +562,6 @@ Expected:
 
 - Rule cleanup/disable/delete path is now covered for local CRM rules; keep retesting cleanup when rule actions expand.
 - Large backfills may need better Telegram rate-limit backoff.
-- Local MCP account selection currently depends on `TELEGRAM_ACCOUNT_LABEL`; `accountId` is not supported by local dispatch.
+- Local MCP `accountId` now validates against `TELEGRAM_ACCOUNT_LABEL`; true multi-session switching still requires starting `tgchats-mcp` with the matching session/account environment.
 - High-risk preview/run audit behavior is documented above; keep it current when write tool payloads change.
 - Export/import should be tested against a disposable DB to avoid polluting real CRM state.
