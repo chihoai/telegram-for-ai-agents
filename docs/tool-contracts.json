@@ -927,7 +927,13 @@
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
-      "properties": {}
+      "properties": {
+        "dialogs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
     }
   },
   {
@@ -937,7 +943,13 @@
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
-      "properties": {}
+      "properties": {
+        "dialogs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
     }
   },
   {

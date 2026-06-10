@@ -67,8 +67,11 @@ export function hasFlag(parsed: ParsedArgs, names: string[]): boolean {
 }
 
 export function parsePositiveInt(value: string, optionName: string): number {
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isInteger(parsed) || parsed <= 0) {
+  if (!/^[1-9]\d*$/.test(value)) {
+    throw new Error(`${optionName} must be a positive integer.`);
+  }
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed) || parsed <= 0) {
     throw new Error(`${optionName} must be a positive integer.`);
   }
   return parsed;

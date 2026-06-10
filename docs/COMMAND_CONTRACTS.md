@@ -7,6 +7,10 @@ General:
 
 - Success: JSON object with `"ok": true`
 - Failure: JSON object with `"ok": false` and `"error"` (non-zero exit code)
+- Stable failure codes are included as `"code"` when available, including
+  `TELEGRAM_NOT_CONFIGURED`, `DATABASE_NOT_CONFIGURED`, `AI_NOT_CONFIGURED`,
+  `TELEGRAM_PEER_INVALID`, `EXPORT_PATH_INVALID`, and
+  `TELEGRAM_SESSION_STORAGE_OPEN_FAILED`.
 - Dates are ISO-8601 strings
 
 ## `tgchats whoami --json`
@@ -222,9 +226,15 @@ If absent: `"summary": null`.
 
 ## `tgchats rules run --json`
 
+Optional:
+
+- `--dry-run` evaluates without writing actions or events.
+- `--dialogs <n>` limits the number of recent dialogs evaluated. Defaults to `200`.
+
 ```json
 {
   "ok": true,
+  "dryRun": false,
   "matches": 3,
   "actions": 5,
   "events": [
@@ -238,7 +248,8 @@ If absent: `"summary": null`.
       "tagApplied": "string|null",
       "taskCreated": true,
       "taskDueAt": "2026-03-03T12:00:00.000Z|null",
-      "priority": "low|med|high"
+      "priority": "low|med|high",
+      "dryRun": false
     }
   ]
 }

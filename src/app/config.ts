@@ -101,11 +101,18 @@ function parseAiMode(
   if (lowered === 'gemini' || lowered === 'openclaw') {
     return lowered;
   }
-  throw new Error('AI_MODE must be one of: gemini, openclaw.');
+  throw new CliError('AI_MODE must be one of: gemini, openclaw.', 'AI_MODE_INVALID');
 }
 
 export function ensureSessionDir(sessionPath: string): void {
-  mkdirSync(dirname(sessionPath), { recursive: true });
+  try {
+    mkdirSync(dirname(sessionPath), { recursive: true });
+  } catch {
+    throw new CliError(
+      'Telegram session storage directory could not be created. Check TELEGRAM_SESSION_PATH and local filesystem permissions.',
+      'TELEGRAM_SESSION_STORAGE_OPEN_FAILED',
+    );
+  }
 }
 
 function assertSupportedNodeVersion() {
@@ -138,10 +145,10 @@ export function loadConfig(args: string[]): AppConfig {
   const aiMode = parseAiMode(optionalEnv('AI_MODE'), geminiApiKey, openclawBaseUrl);
 
   if (aiMode === 'gemini' && !geminiApiKey) {
-    throw new Error('AI_MODE=gemini requires GEMINI_API_KEY.');
+    throw new CliError('AI_MODE=gemini requires GEMINI_API_KEY.', 'AI_NOT_CONFIGURED');
   }
   if (aiMode === 'openclaw' && !openclawBaseUrl) {
-    throw new Error('AI_MODE=openclaw requires OPENCLAW_BASE_URL.');
+    throw new CliError('AI_MODE=openclaw requires OPENCLAW_BASE_URL.', 'AI_NOT_CONFIGURED');
   }
 
   return {

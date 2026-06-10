@@ -20,7 +20,10 @@ import {
   setPeerTags,
 } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
+import { CliError } from '../app/errors.js';
 import { printJson } from '../output.js';
+
+const MAX_RULE_RUN_DIALOGS = 1000;
 
 export function parseRuleId(raw: string | undefined): number {
   if (!raw || !/^[1-9]\d*$/.test(raw)) {
@@ -33,6 +36,23 @@ export function parseRuleId(raw: string | undefined): number {
   }
 
   return parsed;
+}
+
+export function parseRulesRunArgs(args: string[]): {
+  dryRun: boolean;
+  dialogsLimit: number;
+} {
+  const parsed = parseCommandArgs(args, ['--dialogs']);
+  const dialogsLimit = optionValue(parsed, ['--dialogs'])
+    ? parsePositiveInt(optionValue(parsed, ['--dialogs'])!, '--dialogs')
+    : 200;
+  if (dialogsLimit > MAX_RULE_RUN_DIALOGS) {
+    throw new Error(`--dialogs must be at most ${MAX_RULE_RUN_DIALOGS}.`);
+  }
+  return {
+    dryRun: hasFlag(parsed, ['--dry-run']),
+    dialogsLimit,
+  };
 }
 
 export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
@@ -149,12 +169,12 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
   }
 
   if (sub === 'run') {
-    const parsed = parseCommandArgs(args.slice(1));
-    const dryRun = hasFlag(parsed, ['--dry-run']);
+    const { dryRun, dialogsLimit } = parseRulesRunArgs(args.slice(1));
 
     if (!ctx.ai) {
-      throw new Error(
+      throw new CliError(
         'AI mode is not configured. Set AI_MODE=gemini with GEMINI_API_KEY or AI_MODE=openclaw with OPENCLAW_BASE_URL.',
+        'AI_NOT_CONFIGURED',
       );
     }
 
@@ -163,14 +183,14 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
     const activeRules = rules.filter((rule) => rule.enabled);
     if (activeRules.length === 0) {
       if (ctx.config.jsonOutput) {
-        printJson({ ok: true, matches: 0, actions: 0, events: [] });
+        printJson({ ok: true, dryRun, matches: 0, actions: 0, events: [] });
         return;
       }
       console.log('No enabled rules.');
       return;
     }
 
-    const dialogs = await listDialogs(ctx.telegram, { all: false, limit: 200 });
+    const dialogs = await listDialogs(ctx.telegram, { all: false, limit: dialogsLimit });
     let matchedCount = 0;
     let actionCount = 0;
     const events: Array<{
@@ -187,6 +207,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
       dryRun: boolean;
     }> = [];
     for (const dialog of dialogs) {
+      let peerUpserted = false;
       const history = await fetchChatHistory(ctx.telegram, {
         chatId: String(dialog.peer.id),
         limit: 25,
@@ -194,7 +215,6 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
       if (history.length === 0) continue;
       const latestMessageId = Math.max(...history.map((message) => message.id));
 
-      await upsertPeer(db, { accountId, peer: dialog.peer });
       for (const rule of activeRules) {
         const evaluation = await ctx.ai.evaluateRule({
           context: {
@@ -217,6 +237,11 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
           continue;
         }
         matchedCount += 1;
+
+        if (!dryRun && !peerUpserted) {
+          await upsertPeer(db, { accountId, peer: dialog.peer });
+          peerUpserted = true;
+        }
 
         const resolvedTag = evaluation.setTag ?? rule.setTag;
         if (resolvedTag) {

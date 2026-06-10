@@ -17,7 +17,7 @@ Do not print Telegram API hashes, session files, session strings, database URLs 
 
 Verified on 2026-06-10:
 
-- `npm test` passed: 15 files / 55 tests.
+- `npm test` passed: 16 files / 67 tests.
 - `npm run validate:skills` passed: 17 skill directories.
 - `npm run check:local-install` passed.
 - `npm run check:local-install` rebuilt the project, exported `docs/tool-contracts.json`, and reported 42 local MCP tools.
@@ -50,6 +50,13 @@ Verified on 2026-06-10:
   - `sync once --dialogs 5 --json`
   - `search "test" --local --limit 5 --json`
   - `tags ls --json`
+- Deeper read-only and sync smoke passed on a redacted synced peer:
+  - `open <peer> --json`
+  - `chat <peer> --limit 10 --json`
+  - `search "test" --chat <peer> --limit 15 --json`
+  - MCP `chat.read { "peer": "<peer>", "limit": 10 }`
+  - `sync backfill --dialogs 20 --per-chat-limit 50 --json`
+  - `sync tail --interval-seconds 60 --dialogs 20` started, completed one loop, and was stopped cleanly.
 - Reversible CRM metadata smoke passed and cleaned up on a synced numeric peer:
   - `tags set`
   - `company link`
@@ -62,8 +69,12 @@ Verified on 2026-06-10:
   - `rules run --dry-run` failed at AI preflight because OpenClaw was unreachable.
 - Gemini local AI smoke passed with `AI_MODE=gemini` process override:
   - `tags suggest <peer> --json` returned `ok: true` without applying tags.
+  - `company suggest <peer> --json`, `tasks suggest <peer> --json`, and `summary refresh <peer> --json` returned `ok: true`.
   - `nudge <peer> --style concise --json` returned `ok: true` with draft text.
+  - `tags suggest --apply`, `company suggest --apply`, and `tasks suggest --apply` were tested on a harmless peer; tag/company metadata was cleaned up and the created task was marked done.
   - `rules run --dry-run --json` with Gemini did not finish within the 180-second smoke timeout, but the temporary smoke rule was disabled and deleted.
+  - Follow-up implementation added `rules run --dialogs <n>` / MCP `rules.run { "dialogs": n }` so smoke tests can bound AI rule evaluation.
+  - Bounded Gemini rule smoke passed with `rules run --dry-run --dialogs 3 --json`; the disposable rule was disabled and deleted.
 - Export/import smoke passed:
   - JSON, CSV, and Markdown exports were written under `/tmp/tgchats-selfhosted-smoke`.
   - JSON import passed against a disposable `tgchats_import_smoke` database.
@@ -87,6 +98,12 @@ Verified on 2026-06-10:
 - Failure-mode checks passed:
   - Missing Telegram credentials return `TELEGRAM_NOT_CONFIGURED`.
   - Missing `DATABASE_URL` returns `DATABASE_NOT_CONFIGURED` for CRM commands.
+  - Missing Gemini config returns `AI_NOT_CONFIGURED`.
+  - Invalid peers for `chat`, `open`, `tags`, and `tasks` return `TELEGRAM_PEER_INVALID`.
+  - Bad export output directories return `EXPORT_PATH_INVALID`.
+  - Bad session storage paths return `TELEGRAM_SESSION_STORAGE_OPEN_FAILED`.
+  - Invalid folder references and invalid task-id syntax return non-zero JSON errors.
+  - A syntactically valid but absent task id returns `ok: true` with `updated: false`.
 
 Implementation fixes made during the same run:
 
@@ -95,18 +112,21 @@ Implementation fixes made during the same run:
 - Fixed `folders create --peer` stale replay by only using folder-create idempotency replay when an explicit `--idempotency-key` is provided.
 - Fixed `db migrate --json` so it returns machine-readable JSON instead of plain text.
 - Fixed `archive` and `unarchive` so trailing flags are ignored, numeric peer IDs are normalized, and `--json` returns machine-readable JSON.
+- Added bounded `rules run --dialogs <n>` support and exposed it through local MCP `rules.run` / `rules.dryRun` contracts.
+- Added stable JSON error codes for missing AI config, invalid Telegram peers, invalid export paths, and bad Telegram session storage paths.
 
 Current local blockers and gaps from the same run:
 
 - AI-backed commands are blocked only when using the configured OpenClaw endpoint: `OpenClaw health preflight failed after 4 attempts: fetch failed`.
 - OpenClaw diagnosis on 2026-06-10: `OPENCLAW_BASE_URL` was set and `OPENCLAW_API_KEY` was present, but the configured OpenClaw host failed TLS/network handshakes with `ECONNRESET` / `SSL_ERROR_SYSCALL`.
 - Use `AI_MODE=gemini` locally until the OpenClaw endpoint is healthy; Gemini smoke passed for `tags suggest` and `nudge`.
-- `rules run --dry-run` still needs follow-up for runtime/latency with Gemini because the smoke command timed out after 180 seconds.
+- Use `rules run --dry-run --dialogs <small-n> --json` for smoke testing; unbounded rule runs still default to recent 200 dialogs and can be slow with AI.
 - Approved high-risk Telegram writes were executed only against the user-provided smoke targets listed above.
 - Rejoining `<approved-test-group-id>` was not attempted after `groups leave-approved`; the group leave was the intended approved side effect for this smoke run.
 - `folders create --title <title>` without `--peer` reaches Telegram with an empty `include_peers` vector and is rejected by Telegram.
 - `folders remove` cannot remove the last included peer from a folder; Telegram rejects the resulting empty `include_peers` vector.
 - Long folder titles such as `Codex Smoke Test <timestamp>` can fail with Telegram `400` / "message too long"; use a short folder name for smoke tests.
+- Workflow skill coverage remains to be exercised skill-by-skill against the self-hosted local runtime.
 
 Harness note:
 
@@ -364,7 +384,7 @@ tags or tasks behind.
 ```bash
 npm run dev -- rules add --name "Codex smoke test - safe to delete" --instruction "Smoke-test rule listing and dry-run only; do not create tags or tasks." --json
 npm run dev -- rules list --json
-npm run dev -- rules run --dry-run --json
+npm run dev -- rules run --dry-run --dialogs 3 --json
 npm run dev -- rules log --limit 20 --json
 npm run dev -- rules disable <ruleId> --json
 npm run dev -- rules delete <ruleId> --json
@@ -373,7 +393,7 @@ npm run dev -- rules delete <ruleId> --json
 Expected:
 
 - `rules.list` shows the rule.
-- `rules run --dry-run` evaluates without writing.
+- `rules run --dry-run --dialogs 3` evaluates a bounded recent-dialog sample without writing.
 - `rules.log` remains readable.
 - `rules.disable` and `rules.delete` clean up the smoke rule by stable `ruleId`.
 

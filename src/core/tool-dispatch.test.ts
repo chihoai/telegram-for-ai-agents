@@ -61,11 +61,28 @@ describe("buildToolCommandArgs", () => {
   });
 
   it("maps rules.dryRun to rules run dry-run", () => {
-    expect(buildToolCommandArgs("rules.dryRun", {})).toEqual([
+    expect(buildToolCommandArgs("rules.dryRun", { dialogs: 3 })).toEqual([
       "rules",
       "run",
       "--dry-run",
+      "--dialogs",
+      "3",
     ]);
+  });
+
+  it("rejects malformed or over-limit rule dialog bounds", () => {
+    for (const dialogs of [0, "3abc", "3.7", "3.0", "1e2", "01", true, [3], 1001]) {
+      expect(() => buildToolCommandArgs("rules.run", { dialogs })).toThrow(
+        dialogs === 1001
+          ? "--dialogs must be at most 1000"
+          : "--dialogs must be a positive integer"
+      );
+      expect(() => buildToolCommandArgs("rules.dryRun", { dialogs })).toThrow(
+        dialogs === 1001
+          ? "--dialogs must be at most 1000"
+          : "--dialogs must be a positive integer"
+      );
+    }
   });
 
   it("maps cleanup tools to cleanup commands", () => {

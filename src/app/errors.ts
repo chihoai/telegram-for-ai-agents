@@ -79,6 +79,18 @@ export function normalizeCliError(
     };
   }
 
+  if (
+    error instanceof Error &&
+    /(invalid marked peer id|PEER_ID_INVALID|USERNAME_NOT_OCCUPIED|could not find peer|peer .*not found)/i.test(
+      error.message
+    )
+  ) {
+    return {
+      code: "TELEGRAM_PEER_INVALID",
+      message: "Telegram peer could not be resolved. Check the peer id or username.",
+    };
+  }
+
   const message =
     error instanceof Error && error.message.trim()
       ? error.message

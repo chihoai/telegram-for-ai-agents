@@ -609,7 +609,9 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
     inputSchema: {
       type: "object",
       additionalProperties: false,
-      properties: {},
+      properties: {
+        dialogs: { type: "integer", minimum: 1, maximum: 1000 },
+      },
     },
   },
   {
@@ -619,7 +621,9 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
     inputSchema: {
       type: "object",
       additionalProperties: false,
-      properties: {},
+      properties: {
+        dialogs: { type: "integer", minimum: 1, maximum: 1000 },
+      },
     },
   },
   {

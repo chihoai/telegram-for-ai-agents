@@ -27,4 +27,15 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
       });
     }
   });
+
+  it("allows bounded dialog limits for rule execution tools", () => {
+    for (const name of ["rules.run", "rules.dryRun"]) {
+      const tool = TOOL_CONTRACT_DEFINITIONS.find((candidate) => candidate.name === name);
+      expect(tool?.inputSchema).toMatchObject({
+        properties: {
+          dialogs: { type: "integer", minimum: 1, maximum: 1000 },
+        },
+      });
+    }
+  });
 });
