@@ -13,6 +13,122 @@ Use this runbook in a fresh Codex thread to test the self-hosted `tgchats` setup
 
 Do not print Telegram API hashes, session files, session strings, database URLs with passwords, or AI API keys.
 
+## Current Local Baseline
+
+Verified on 2026-06-10:
+
+- `npm test` passed: 12 files / 47 tests.
+- `npm run validate:skills` passed: 17 skill directories.
+- `npm run check:local-install` passed.
+- `npm run check:local-install` rebuilt the project, exported `docs/tool-contracts.json`, and reported 42 local MCP tools.
+- Docker initially could not reach the OrbStack socket, but starting OrbStack made Docker available.
+- `docker compose up -d` started the bundled Postgres 16 service.
+- `npm run dev -- db migrate --json` applied migrations and returns `{ "ok": true, "action": "migrate" }`.
+- Local MCP initialize passed for:
+  - built server: `dist/mcp/stdio.js`
+  - Codex plugin launcher
+  - Claude plugin launcher
+- Local MCP `tools/list` reports 42 tools.
+- CLI read-only Telegram smoke passed:
+  - `auth status --json`
+  - `whoami --json`
+  - `inbox --limit 10 --json`
+  - `folders list --json`
+- Local MCP read-only Telegram smoke passed:
+  - `auth.status {}`
+  - `account.whoami {}`
+  - `dialogs.list { "limit": 5 }`
+  - `folders.list {}`
+- Local CRM read smoke passed after Postgres startup:
+  - `tasks today --json`
+  - `rules list --json`
+  - MCP `tasks.today {}`
+  - MCP `rules.list {}`
+  - MCP `tags.get {}`
+  - MCP `search.messages { "query": "test", "local": true, "limit": 5 }`
+- Small sync and local reads passed:
+  - `sync once --dialogs 5 --json`
+  - `search "test" --local --limit 5 --json`
+  - `tags ls --json`
+- Reversible CRM metadata smoke passed and cleaned up on a synced numeric peer:
+  - `tags set`
+  - `company link`
+  - `tasks add`
+  - `tasks done`
+  - `tags clear`
+  - `company unlink`
+- Rules cleanup smoke partly passed:
+  - `rules add`, `rules list`, `rules log`, `rules disable`, and `rules delete` passed.
+  - `rules run --dry-run` failed at AI preflight because OpenClaw was unreachable.
+- Gemini local AI smoke passed with `AI_MODE=gemini` process override:
+  - `tags suggest <peer> --json` returned `ok: true` without applying tags.
+  - `nudge <peer> --style concise --json` returned `ok: true` with draft text.
+  - `rules run --dry-run --json` with Gemini did not finish within the 180-second smoke timeout, but the temporary smoke rule was disabled and deleted.
+- Export/import smoke passed:
+  - JSON, CSV, and Markdown exports were written under `/tmp/tgchats-selfhosted-smoke`.
+  - JSON import passed against a disposable `tgchats_import_smoke` database.
+- Folder write cleanup smoke passed with a short test folder and two synced peers:
+  - `folders create --title CodexTest --peer <peerA>`
+  - `folders add CodexTest <peerB>`
+  - `folders remove CodexTest <peerB>`
+  - `folders delete CodexTest`
+- Preview-only write smoke passed without executing approved writes:
+  - `outbox preview`
+  - `members invite-preview`
+  - `groups leave-preview`
+- Approved high-risk write smoke ran on 2026-06-10 with explicit user-provided targets:
+  - DM/user target: `444617363`.
+  - Group target: `-5183468656`.
+  - `outbox preview` followed by `outbox send-approved` succeeded and sent one test DM, message id `240083`.
+  - `message send-draft` succeeded and sent one test DM, message id `240084`.
+  - `members invite-preview` succeeded; `members invite-approved` returned a clear Telegram result: the user was already in the group.
+  - `groups leave-preview` followed by `groups leave-approved` succeeded; the local Telegram account left group `-5183468656`.
+  - `archive 444617363 --json` followed by `unarchive 444617363 --json` succeeded and restored the DM.
+- Failure-mode checks passed:
+  - Missing Telegram credentials return `TELEGRAM_NOT_CONFIGURED`.
+  - Missing `DATABASE_URL` returns `DATABASE_NOT_CONFIGURED` for CRM commands.
+
+Implementation fixes made during the same run:
+
+- Fixed `folders add/remove ... --json` parsing so trailing flags are not treated as peers.
+- Added a parser regression for negative numeric peer IDs followed by `--json`.
+- Fixed `folders create --peer` stale replay by only using folder-create idempotency replay when an explicit `--idempotency-key` is provided.
+- Fixed `db migrate --json` so it returns machine-readable JSON instead of plain text.
+- Fixed `archive` and `unarchive` so trailing flags are ignored, numeric peer IDs are normalized, and `--json` returns machine-readable JSON.
+
+Current local blockers and gaps from the same run:
+
+- AI-backed commands are blocked only when using the configured OpenClaw endpoint: `OpenClaw health preflight failed after 4 attempts: fetch failed`.
+- OpenClaw diagnosis on 2026-06-10: `OPENCLAW_BASE_URL` was set and `OPENCLAW_API_KEY` was present, but `https://clawd2.8o.vc` failed TLS/network handshakes with `ECONNRESET` / `SSL_ERROR_SYSCALL`.
+- Use `AI_MODE=gemini` locally until the OpenClaw endpoint is healthy; Gemini smoke passed for `tags suggest` and `nudge`.
+- `rules run --dry-run` still needs follow-up for runtime/latency with Gemini because the smoke command timed out after 180 seconds.
+- Approved high-risk Telegram writes were executed only against the user-provided smoke targets listed above.
+- Rejoining `-5183468656` was not attempted after `groups leave-approved`; the group leave was the intended approved side effect for this smoke run.
+- `folders create --title <title>` without `--peer` reaches Telegram with an empty `include_peers` vector and is rejected by Telegram.
+- `folders remove` cannot remove the last included peer from a folder; Telegram rejects the resulting empty `include_peers` vector.
+- Long folder titles such as `Codex Smoke Test <timestamp>` can fail with Telegram `400` / "message too long"; use a short folder name for smoke tests.
+
+Harness note:
+
+- MCP stdio frames use byte-based `Content-Length`. Any custom smoke script must parse frames with `Buffer` byte offsets, not JavaScript string length, because Telegram payloads can contain non-ASCII chat content.
+
+## Recommended Self-Hosted Test Loop
+
+Use this order for each fresh local verification pass:
+
+1. Validate the repository and local install.
+2. Confirm auth/session state without printing session paths.
+3. Run read-only CLI smoke.
+4. Run read-only local MCP smoke.
+5. Start or verify Postgres, run migrations, then repeat CRM reads.
+6. Run small sync jobs first, then local search/export checks.
+7. Run non-mutating AI suggestions.
+8. Run reversible CRM mutations and clean them up.
+9. Run folder write cleanup.
+10. Run preview-only high-risk tools.
+11. Execute sends, invites, leaves, or archive/unarchive only after explicit user approval and with safe targets.
+12. Record the dated baseline, failures, cleanup status, and remaining gaps in this file.
+
 ## Preconditions
 
 Required:
@@ -220,7 +336,7 @@ Use a test peer or harmless bot/group.
 ```bash
 npm run dev -- tags set <peer> "Codex Smoke Test" --json
 npm run dev -- company link <peer> --company "Codex Smoke Test" --json
-npm run dev -- tasks add <peer> --due 2026-06-08 --priority low --why "Codex self-hosted smoke test" --json
+npm run dev -- tasks add <peer> --due <YYYY-MM-DD> --priority low --why "Codex self-hosted smoke test" --json
 npm run dev -- tasks today --json
 ```
 
@@ -272,10 +388,10 @@ npm run dev -- folders list --json
 Controlled folder writes:
 
 ```bash
-npm run dev -- folders create --title "Codex Smoke Test" --json
-npm run dev -- folders add "Codex Smoke Test" <peer> --json
-npm run dev -- folders remove "Codex Smoke Test" <peer> --json
-npm run dev -- folders delete "Codex Smoke Test" --json
+npm run dev -- folders create --title "CodexTest" --peer <peer-a> --json
+npm run dev -- folders add "CodexTest" <peer-b> --json
+npm run dev -- folders remove "CodexTest" <peer-b> --json
+npm run dev -- folders delete "CodexTest" --json
 ```
 
 Archive/unarchive only on a safe peer:
@@ -288,6 +404,9 @@ npm run dev -- unarchive <peer>
 Expected:
 
 - Folder create/add/remove/delete works and can clean up.
+- Folder create should include at least one peer; Telegram rejects empty folder filters.
+- Folder remove should not remove the last included peer; delete the folder instead when cleaning up a one-peer smoke folder.
+- Keep smoke folder titles short.
 - Archive/unarchive returns success and does not affect unintended peers.
 
 ## Preview, Send, Invite, And Leave Boundaries

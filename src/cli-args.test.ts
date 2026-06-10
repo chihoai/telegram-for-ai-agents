@@ -22,4 +22,11 @@ describe('parseCommandArgs', () => {
     expect(parsed.positionals).toEqual(['-1001234567890', '--json']);
     expect(parsed.flags.size).toBe(0);
   });
+
+  it('keeps negative peer ids positional while excluding trailing flags', () => {
+    const parsed = parseCommandArgs(['CodexTest', '-260498577', '--json']);
+
+    expect(parsed.positionals).toEqual(['CodexTest', '-260498577']);
+    expect(parsed.flags.has('--json')).toBe(true);
+  });
 });
