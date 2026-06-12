@@ -1,7 +1,7 @@
 {
   "id": "telegram-full-access",
   "name": "Telegram Full Access",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Connect OpenClaw to Telegram through an explicit user-owned account login, with Chiho.ai CRM and local tgchats runtime paths.",
   "publisher": "seichris",
   "homepage": "https://github.com/chihoai/telegram-for-ai-agents",

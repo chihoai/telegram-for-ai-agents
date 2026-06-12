@@ -15,6 +15,6 @@ clawhub package publish docs/telegram-full-access-plugin \
   --family code-plugin \
   --name @seichris/telegram-full-access \
   --display-name "Telegram Full Access" \
-  --version 0.1.0 \
-  --changelog "Initial Telegram full access OpenClaw plugin package"
+  --version 0.2.0 \
+  --changelog "Refresh Chiho.ai Cloud and self-hosted tgchats setup guidance"
 ```
