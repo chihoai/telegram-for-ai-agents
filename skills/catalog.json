@@ -1,5 +1,22 @@
 [
   {
+    "name": "telegram-chat-identity-challenge",
+    "displayName": "Chat Identity Challenge",
+    "category": "telegram-automation",
+    "risk": "high",
+    "requiresApproval": true,
+    "path": "skills/telegram-chat-identity-challenge",
+    "requiredCloudScopes": [
+      "telegram.read",
+      "crm.write",
+      "telegram.message.preview",
+      "telegram.message.send"
+    ],
+    "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
+    "templates": "skills/telegram-chat-identity-challenge/assets/templates.json",
+    "examples": "skills/telegram-chat-identity-challenge/assets/examples.json"
+  },
+  {
     "name": "telegram-bulk-template-message",
     "displayName": "Bulk Template Message",
     "category": "telegram-automation",
