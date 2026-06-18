@@ -14,6 +14,7 @@ The plugin entry skill is `telegram-for-agents`; it selects Chiho.ai Cloud or se
 | Skill | Purpose | Risk | Cloud requirements | Local requirements |
 | --- | --- | --- | --- | --- |
 | `telegram-chat-identity-challenge` | Ask untrusted new chats for a Kim Jong Un criticism challenge before sensitive conversation continues | High | `telegram.read`, `telegram.message.preview`, `telegram.message.send`, `crm.write` | Dialog, preview/draft, tag, and task tools |
+| `telegram-human-verification-challenge` | Send CAPTCHA-like reasoning challenges to new or suspicious chats and classify the reply | High | `telegram.read`, `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write`, `crm.write` | Dialog, preview/draft, tag, and task tools |
 | `telegram-bulk-template-message` | Send approved templates to selected chats | High | `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Matching `outbox.*` tools |
 | `telegram-conditional-replies` | Draft or run conditional reply rules | High | `rules.*`, message write scopes for execution | `rules.*`, matching message write tools |
 | `telegram-add-colleagues-to-group` | Add or invite colleagues to groups | High | `telegram.members.invite` | Matching `members.*` tools |

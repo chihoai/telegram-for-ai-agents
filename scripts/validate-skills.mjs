@@ -99,7 +99,18 @@ function validateAssetJson(skillDir) {
   }
 }
 
-function validateCatalog(skillNames) {
+function parseCloudScopes(rawScopes) {
+  if (typeof rawScopes !== "string" || rawScopes.trim().length === 0) {
+    return [];
+  }
+  return rawScopes
+    .split(",")
+    .map((scope) => scope.trim())
+    .filter(Boolean)
+    .sort();
+}
+
+function validateCatalog(skillNames, frontmatterByName) {
   const catalog = readJson(catalogPath);
   if (!Array.isArray(catalog)) {
     fail(`${catalogPath}: expected an array`);
@@ -119,6 +130,17 @@ function validateCatalog(skillNames) {
       fail(`${catalogPath}: duplicate skill ${entry.name}`);
     }
     catalogNames.add(entry.name);
+
+    const frontmatter = frontmatterByName.get(entry.name);
+    if (frontmatter) {
+      const catalogScopes = Array.isArray(entry.requiredCloudScopes)
+        ? [...entry.requiredCloudScopes].sort()
+        : [];
+      const frontmatterScopes = parseCloudScopes(frontmatter["chiho.cloudScopes"]);
+      if (JSON.stringify(catalogScopes) !== JSON.stringify(frontmatterScopes)) {
+        fail(`${catalogPath}: ${entry.name}.requiredCloudScopes must match SKILL.md chiho.cloudScopes`);
+      }
+    }
 
     for (const field of ["path", "templates", "examples"]) {
       if (typeof entry[field] !== "string") {
@@ -145,6 +167,7 @@ function main() {
     .map((entry) => entry.name)
     .sort();
   const skillNames = new Set(entries);
+  const frontmatterByName = new Map();
 
   for (const entry of entries) {
     const skillPath = path.join(skillsDir, entry, "SKILL.md");
@@ -164,11 +187,14 @@ function main() {
     if (frontmatter.name && frontmatter.name !== entry) {
       fail(`${skillPath}: frontmatter name must match directory name`);
     }
+    if (frontmatter.name) {
+      frontmatterByName.set(frontmatter.name, frontmatter);
+    }
     validateLinks(skillPath, body);
     validateAllowedTools(skillPath, frontmatter, knownTools);
     validateAssetJson(path.join(skillsDir, entry));
   }
-  validateCatalog(skillNames);
+  validateCatalog(skillNames, frontmatterByName);
 
   if (!process.exitCode) {
     console.log(`Validated ${entries.length} skill directories.`);

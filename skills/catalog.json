@@ -17,6 +17,24 @@
     "examples": "skills/telegram-chat-identity-challenge/assets/examples.json"
   },
   {
+    "name": "telegram-human-verification-challenge",
+    "displayName": "Human Verification Challenge",
+    "category": "telegram-automation",
+    "risk": "high",
+    "requiresApproval": true,
+    "path": "skills/telegram-human-verification-challenge",
+    "requiredCloudScopes": [
+      "telegram.read",
+      "crm.write",
+      "telegram.message.preview",
+      "telegram.message.send",
+      "telegram.batch.write"
+    ],
+    "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
+    "templates": "skills/telegram-human-verification-challenge/assets/templates.json",
+    "examples": "skills/telegram-human-verification-challenge/assets/examples.json"
+  },
+  {
     "name": "telegram-bulk-template-message",
     "displayName": "Bulk Template Message",
     "category": "telegram-automation",
