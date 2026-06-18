@@ -2,7 +2,7 @@
 
 Prefer simple, varied text challenges that work in ordinary Telegram messages:
 
-- Arithmetic plus instruction: ask for `left + right` and one requested word.
+- Arithmetic plus instruction: ask for `left + right` and one explicit requested word.
 - Token transformation: ask the contact to reverse a short random code.
 - Position extraction: ask for the third word in a short sentence plus a small sum.
 
@@ -11,10 +11,10 @@ Keep numbers small enough to avoid legitimate mistakes. Avoid trick questions, c
 Examples:
 
 ```text
-Quick verification: please reply with only the number you get from 14 + 8, followed by the last word in this message.
+Quick verification: please reply with only the number you get from 14 + 8, followed by the word check
 ```
 
-Expected answer: `22 message`
+Expected answer: `22 check`
 
 ```text
 Quick verification: please reply with the word blue and the result of 9 + 5, separated by one space.

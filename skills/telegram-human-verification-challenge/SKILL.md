@@ -7,8 +7,8 @@ metadata:
   chiho.category: telegram-automation
   chiho.risk: high
   chiho.requiresApproval: "true"
-  chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(tags.set) mcp(tasks.add) mcp(outbox.preview) mcp(message.sendDraft)
+  chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, telegram.batch.write
+allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(tags.set) mcp(tasks.add) mcp(outbox.preview) mcp(outbox.sendApproved) mcp(message.sendDraft)
 ---
 
 # telegram-human-verification-challenge
@@ -22,7 +22,7 @@ Use this skill to send a short reasoning challenge to a new, reopened, or suspic
 - Keep challenges simple, deterministic, and answerable in one short reply.
 - Do not ask for private information, account access, payment details, ID documents, or biometric proof.
 - Prefer `outbox.preview` so the user can approve or edit the message before it is sent.
-- Use `message.sendDraft` only when the user explicitly requests immediate sending to one specific chat.
+- Use `outbox.sendApproved` only after approval of the preview, or `message.sendDraft` only when the user explicitly requests immediate sending to one specific chat.
 - If the contact fails, ignores, or evades the challenge, tag or task the chat for manual verification instead of accusing them of being a bot.
 - Do not repeatedly challenge a contact who already passed unless the user asks or the risk context changed.
 
@@ -33,7 +33,7 @@ Use this skill to send a short reasoning challenge to a new, reopened, or suspic
 3. Generate one short challenge from the templates or challenge design reference.
 4. Keep the expected answer in the agent's working notes; do not include it in the outgoing message.
 5. Preview the challenge with `outbox.preview`.
-6. After approval or explicit direct-send instruction, send the challenge.
+6. After approval, send the preview with `outbox.sendApproved`; use `message.sendDraft` only for an explicit direct-send instruction.
 7. Read the next reply with `chat.read` and compare it to the expected answer.
 8. Record the outcome with `tags.set` or `tasks.add` when the user wants persistent CRM tracking.
 9. Report the result as passed, failed, no reply, skipped, or needs manual review.
@@ -43,10 +43,10 @@ Use this skill to send a short reasoning challenge to a new, reopened, or suspic
 Use concise instruction-following prompts:
 
 ```text
-Quick verification: please reply with only the number you get from 17 + 6, followed by the last word in this message.
+Quick verification: please reply with only the number you get from 17 + 6, followed by the word check
 ```
 
-For that example, the expected answer is `23 message`.
+For that example, the expected answer is `23 check`.
 
 ## First-Time Setup
 

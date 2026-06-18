@@ -7,7 +7,7 @@
   {
     "client": "Claude Desktop",
     "prompt": "Send a CAPTCHA-like text challenge to this new Telegram chat, then check whether their next reply passes.",
-    "tools": ["chat.read", "outbox.preview"]
+    "tools": ["chat.read", "outbox.preview", "outbox.sendApproved", "chat.read"]
   },
   {
     "client": "OpenClaw",
