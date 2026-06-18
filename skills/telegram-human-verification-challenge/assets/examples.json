@@ -1,0 +1,17 @@
+[
+  {
+    "client": "OpenClaw",
+    "prompt": "This new Telegram chat is asking for account access. Preview a simple reasoning challenge before we continue.",
+    "tools": ["chat.read", "outbox.preview"]
+  },
+  {
+    "client": "Claude Desktop",
+    "prompt": "Send a CAPTCHA-like text challenge to this new Telegram chat, then check whether their next reply passes.",
+    "tools": ["chat.read", "outbox.preview"]
+  },
+  {
+    "client": "OpenClaw",
+    "prompt": "They failed the reasoning challenge. Tag the chat as Needs Manual Verification and create a task for tomorrow.",
+    "tools": ["tags.set", "tasks.add"]
+  }
+]
