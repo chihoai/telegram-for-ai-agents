@@ -38,7 +38,7 @@ function sendError(
   id: JsonRpcRequest["id"],
   code: number,
   message: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
 ) {
   sendMessage({
     jsonrpc: "2.0",
@@ -84,8 +84,11 @@ async function handleRequest(message: JsonRpcRequest) {
     sendResult(message.id, {
       tools: getToolContractDefinitions().map((tool) => ({
         name: tool.name,
+        title: tool.title,
         description: tool.description,
         inputSchema: tool.inputSchema,
+        outputSchema: tool.outputSchema,
+        annotations: tool.annotations,
       })),
     });
     return;
@@ -96,7 +99,7 @@ async function handleRequest(message: JsonRpcRequest) {
       const toolName = String(message.params?.name || "");
       const payload = await executeLocalToolCall(
         toolName,
-        message.params?.arguments || {}
+        message.params?.arguments || {},
       );
       sendResult(message.id, {
         content: [
@@ -108,7 +111,8 @@ async function handleRequest(message: JsonRpcRequest) {
         structuredContent: payload,
       });
     } catch (error) {
-      const messageText = error instanceof Error ? error.message : String(error);
+      const messageText =
+        error instanceof Error ? error.message : String(error);
       sendError(message.id, -32000, messageText);
     }
     return;
@@ -124,7 +128,11 @@ function enqueueRequest(message: JsonRpcRequest) {
   requestQueue = requestQueue
     .then(() => handleRequest(message))
     .catch((error) => {
-      sendError(message.id, -32000, error instanceof Error ? error.message : String(error));
+      sendError(
+        message.id,
+        -32000,
+        error instanceof Error ? error.message : String(error),
+      );
     });
 }
 
@@ -147,7 +155,7 @@ function processBuffer() {
 
     const contentLength = Number.parseInt(
       contentLengthHeader.split(":")[1]?.trim() || "",
-      10
+      10,
     );
 
     if (!Number.isFinite(contentLength)) {

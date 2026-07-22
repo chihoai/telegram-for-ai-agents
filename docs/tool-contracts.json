@@ -11,6 +11,25 @@
           "type": "string"
         }
       }
+    },
+    "title": "Check local Telegram connection",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -23,6 +42,25 @@
       "properties": {
         "accountId": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Show the local Telegram account",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -44,6 +82,25 @@
           "maximum": 200
         },
         "all": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "List Telegram chats",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
           "type": "boolean"
         }
       }
@@ -100,6 +157,25 @@
           }
         }
       }
+    },
+    "title": "Read a Telegram chat",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -137,6 +213,25 @@
           "type": "boolean"
         }
       }
+    },
+    "title": "Search Telegram messages",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -149,6 +244,25 @@
       "properties": {
         "accountId": {
           "type": "string"
+        }
+      }
+    },
+    "title": "List Telegram folders",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -271,6 +385,25 @@
           }
         }
       }
+    },
+    "title": "Update Telegram folders",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -296,6 +429,25 @@
         },
         "idempotencyKey": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Create a Telegram folder",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -325,6 +477,25 @@
           "type": "string"
         }
       }
+    },
+    "title": "Add a chat to a Telegram folder",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -350,6 +521,25 @@
         },
         "idempotencyKey": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Remove a chat from a Telegram folder",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -404,6 +594,25 @@
           ]
         }
       }
+    },
+    "title": "Prepare Telegram messages",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -425,6 +634,25 @@
         },
         "idempotencyKey": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Send approved Telegram messages",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -462,6 +690,25 @@
         },
         "clientProvidedDraftId": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Send a Telegram message",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -514,6 +761,25 @@
           }
         }
       }
+    },
+    "title": "Prepare Telegram member invites",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -535,6 +801,25 @@
         },
         "idempotencyKey": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Invite approved Telegram members",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -583,6 +868,25 @@
           "type": "boolean"
         }
       }
+    },
+    "title": "Prepare leaving Telegram groups",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -606,6 +910,25 @@
           "type": "string"
         }
       }
+    },
+    "title": "Leave approved Telegram groups",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -621,6 +944,25 @@
         },
         "peer": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Show CRM tags",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -650,6 +992,25 @@
           }
         }
       }
+    },
+    "title": "Set CRM tags",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -668,6 +1029,25 @@
         },
         "peer": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Clear CRM tags",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -698,6 +1078,25 @@
           "type": "boolean"
         }
       }
+    },
+    "title": "Suggest or apply CRM tags",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -716,6 +1115,25 @@
         },
         "peer": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Show a linked company",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -745,6 +1163,25 @@
           "type": "string"
         }
       }
+    },
+    "title": "Link a company",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -763,6 +1200,25 @@
         },
         "peer": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Unlink a company",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -793,6 +1249,25 @@
           "type": "boolean"
         }
       }
+    },
+    "title": "Suggest or apply a company",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -805,6 +1280,25 @@
       "properties": {
         "accountId": {
           "type": "string"
+        }
+      }
+    },
+    "title": "List tasks due today",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -843,6 +1337,25 @@
           ]
         }
       }
+    },
+    "title": "Add a follow-up task",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -862,6 +1375,25 @@
         "taskId": {
           "type": "integer",
           "minimum": 1
+        }
+      }
+    },
+    "title": "Complete a follow-up task",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -892,6 +1424,25 @@
           "type": "boolean"
         }
       }
+    },
+    "title": "Suggest or apply follow-up tasks",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -919,6 +1470,25 @@
           ]
         }
       }
+    },
+    "title": "Show a chat summary",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -941,6 +1511,25 @@
           "maximum": 200
         },
         "all": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "Refresh chat summaries",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
           "type": "boolean"
         }
       }
@@ -971,6 +1560,25 @@
           ]
         }
       }
+    },
+    "title": "Generate a follow-up message",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -983,6 +1591,25 @@
       "properties": {
         "accountId": {
           "type": "string"
+        }
+      }
+    },
+    "title": "List automation rules",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -1016,6 +1643,25 @@
           "minimum": 1
         }
       }
+    },
+    "title": "Add an automation rule",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -1043,6 +1689,25 @@
               "pattern": "^[1-9]\\d*$"
             }
           ]
+        }
+      }
+    },
+    "title": "Disable an automation rule",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -1074,6 +1739,25 @@
           ]
         }
       }
+    },
+    "title": "Delete an automation rule",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -1091,6 +1775,25 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 1000
+        }
+      }
+    },
+    "title": "Run automation rules",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -1112,6 +1815,25 @@
           "maximum": 1000
         }
       }
+    },
+    "title": "Preview automation rule results",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -1129,6 +1851,25 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 200
+        }
+      }
+    },
+    "title": "List automation activity",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }
@@ -1155,6 +1896,25 @@
           "maximum": 1000
         }
       }
+    },
+    "title": "Backfill the local Telegram database",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -1174,6 +1934,25 @@
           "maximum": 1000
         }
       }
+    },
+    "title": "Sync recent Telegram chats",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
     }
   },
   {
@@ -1186,6 +1965,25 @@
       "properties": {
         "accountId": {
           "type": "string"
+        }
+      }
+    },
+    "title": "Disconnect the local Telegram account",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }

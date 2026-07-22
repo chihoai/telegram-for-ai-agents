@@ -3,7 +3,8 @@
     "tgchats-local": {
       "command": "node",
       "args": ["./scripts/run-tgchats-mcp.mjs"],
-      "cwd": "."
+      "cwd": ".",
+      "default_tools_approval_mode": "writes"
     }
   }
 }

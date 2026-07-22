@@ -1,14 +1,15 @@
 # Chiho Cloud Skill Testing Runbook
 
-Use this runbook in a fresh Codex thread to continue testing Chiho.ai Cloud MCP and the Telegram workflow skills.
+Use this runbook for advanced headless service-token smoke tests of Chiho.ai Cloud MCP and the Telegram workflow skills. Interactive Claude and Codex onboarding uses browser OAuth instead of this flow.
 
 ## Context
 
 - Repo: `telegram-for-agents`
 - Cloud MCP URL: `https://api.chiho.ai/mcp`
-- Expected env vars in `.env`:
+- Advanced headless test env vars in `.env`:
   - `CHIHO_API_KEY`
   - `CHIHO_MCP_URL=https://api.chiho.ai/mcp`
+- Do not use this service-token script to onboard an interactive Claude or Codex user.
 - Do not print API keys or Telegram session data.
 - Prefer non-mutating checks first. For CRM mutations, use a harmless bot/test peer.
 - Do not send Telegram messages unless the user explicitly approves a preview/send workflow.

@@ -1,6 +1,9 @@
 # telegram-for-agents
 
-`telegram-for-agents` lets you log into Telegram once and give your agent account-level read/write access through an explicit user-owned Telegram login.
+`telegram-for-agents` provides two deliberately separate ways to give an agent account-level Telegram access:
+
+- **Chiho Telegram**: hosted MCP at `https://api.chiho.ai/mcp` with browser OAuth.
+- **tgchats local**: a self-hosted stdio MCP runtime using your own Telegram credentials and storage.
 
 This is not the limited-access Bot API flow where you add a bot to chats manually.
 Your agent works with your real Telegram account, with the same account-level surface you get in Telegram Web or the Telegram apps.
@@ -133,37 +136,64 @@ After build:
 ./dist/mcp/stdio.js
 ```
 
-Codex plugin:
+## Agent packages
 
-- This repository can also be installed as the `chiho-telegram` Codex plugin.
-- The plugin manifest lives at [`.codex-plugin/plugin.json`](./.codex-plugin/plugin.json).
-- The plugin bundles the repo's `skills/` directory and registers the local MCP server from [`.mcp.json`](./.mcp.json).
-- The MCP launcher prefers `dist/mcp/stdio.js`, falls back to the dev `tsx` entrypoint when dependencies are installed, and finally falls back to a `tgchats-mcp` binary in `PATH`.
+The repository marketplace exposes two packages. Installing one never configures the other server.
 
-Claude Code / Cowork plugin:
+| Package | Runtime | Authentication | MCP configuration |
+| --- | --- | --- | --- |
+| **Chiho Telegram** (`chiho-telegram`) | Hosted by Chiho | Browser OAuth | `https://api.chiho.ai/mcp` |
+| **tgchats local** (`tgchats-local`) | Local stdio process | Local Telegram login | `tgchats-mcp` |
 
-- This repository can also be installed as the `chiho-telegram` Claude plugin.
-- The Claude plugin manifest lives at [`.claude-plugin/plugin.json`](./.claude-plugin/plugin.json).
-- Claude automatically discovers the repo's `skills/` directory as namespaced plugin skills, including `/chiho-telegram:telegram-for-agents`.
-- The Claude plugin registers the same local MCP server through [`claude-mcp.json`](./claude-mcp.json), using `${CLAUDE_PLUGIN_ROOT}` so installed plugin cache paths resolve correctly.
-- The plugin MCP configuration is for the self-hosted `tgchats-local` runtime. It does not add the hosted Chiho.ai Cloud connector.
-- For local development, run `claude --plugin-dir .` from the repository root.
+### Codex
 
-Hosted Chiho.ai Cloud in Claude Code:
-
-1. Connect Telegram and mint an Agent Access token at `https://chiho.ai/profile/agent-access`.
-2. Copy the MCP endpoint displayed on that page.
-3. Add it to Claude Code with the bearer header:
+Add this GitHub repository as a marketplace, then install exactly one package:
 
 ```bash
-claude mcp add --scope user --transport http chiho '<CHIHO_MCP_URL>' --header 'Authorization: Bearer <CHIHO_AGENT_TOKEN>'
+codex plugin marketplace add chihoai/telegram-for-ai-agents
+codex plugin add chiho-telegram@chiho
 ```
 
-4. Ask Claude Code to call `auth.status` to verify the token.
+For local self-hosting, build and link the binary first, then install the local package:
 
-When substituting the real token, keep it out of shared terminal history and logs. Claude Code will store the header in its MCP configuration, so only configure it on a trusted device and revoke the token from Agent Access if it is exposed.
+```bash
+npm install
+npm run build
+npm link
+codex plugin add tgchats-local@chiho
+```
 
-Claude web, Claude Desktop, and Cowork remote custom connectors cannot use Chiho Agent Access tokens yet because their setup flow does not accept a custom bearer header. Do not put the token in the connector URL or OAuth Client ID/Secret fields. Use Claude Code for hosted access until Chiho exposes OAuth; the local plugin/self-hosted path remains separate.
+Codex shares MCP configuration across the desktop app, CLI, and IDE extension. For the hosted package, select **Authenticate** in MCP settings or run `/mcp` and complete Chiho OAuth in the browser. The package asks Codex to prompt for tools not marked read-only.
+
+### Claude Code
+
+```bash
+claude plugin marketplace add chihoai/telegram-for-ai-agents
+claude plugin install chiho-telegram@chiho
+```
+
+Open `/mcp`, select `chiho-cloud`, and complete browser OAuth. For the self-hosted package, run the same build and `npm link` steps above, then install `tgchats-local@chiho` instead.
+
+### Claude.ai, Claude Desktop, and Cowork
+
+Add a custom connector with this exact URL:
+
+```text
+https://api.chiho.ai/mcp
+```
+
+Select **Connect** and complete OAuth in the browser. Do not enter a personal access token, custom bearer header, or OAuth client secret. Team and Enterprise owners add the connector for the organization first; individual members then connect their own Chiho account.
+
+Advanced service tokens remain available only for explicitly requested headless automation and are not part of Claude or Codex onboarding.
+
+### Directory publication
+
+Direct custom-connector and marketplace testing does not require directory approval.
+
+- **Anthropic Connectors Directory:** submit from a Claude Team or Enterprise organization as an Owner or Primary Owner at `https://claude.ai/admin-settings/directory/submissions/new`. The Claude plugin is a separate submission from `https://claude.ai/settings/plugins/submit` or `https://platform.claude.com/plugins/submit`.
+- **OpenAI Plugins Directory:** complete business verification for the publishing OpenAI Platform organization, use an Owner or a role with Apps Management write access, then create a **With MCP** submission at `https://platform.openai.com/plugins` for `https://api.chiho.ai/mcp`.
+
+OpenAI does not require an existing ChatGPT app ID for a new MCP-backed submission. Both directories require production documentation, privacy and support details, accurate tool metadata, reviewer test instructions, and a production-ready OAuth flow.
 
 Machine-readable surfaces:
 
@@ -243,9 +273,7 @@ Self-hosted examples live here:
 
 Installable workflow skills live under [`skills/`](./skills/).
 
-Codex users can install the whole repository as a plugin when they want the mode selector, workflow skills, and local MCP configuration together. The plugin skill entry point is [`skills/telegram-for-agents/SKILL.md`](./skills/telegram-for-agents/SKILL.md).
-
-Claude Code and Cowork users can install the whole repository as the `chiho-telegram` plugin when they want the same mode selector and workflow skills. The bundled MCP configuration launches the local self-hosted runtime and may depend on the Claude surface, local execution mode, and organization policy. In Claude Code, the entry skill is `/chiho-telegram:telegram-for-agents`.
+The hosted package bundles the OAuth-specific `chiho-telegram` skill. The local package bundles the self-hosted `tgchats-local` skill. The broader workflow catalog remains under [`skills/`](./skills/) for individual publication and testing.
 
 Install one published workflow skill with the `skills` CLI:
 

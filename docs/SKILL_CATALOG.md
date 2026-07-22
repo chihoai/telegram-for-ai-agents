@@ -9,7 +9,7 @@ This catalog defines the first installable Telegram workflow skills for Chiho.ai
 
 ## Initial Skills
 
-The plugin entry skill is `telegram-for-agents`; it selects Chiho.ai Cloud or self-hosted `tgchats` and then routes to the workflow skills below. In Claude Code, the namespaced command is `/chiho-telegram:telegram-for-agents`.
+The public `telegram-for-agents` skill selects Chiho.ai Cloud or self-hosted `tgchats` and then routes to the workflow skills below. Installable plugin entry points are separate: `chiho-telegram` for hosted OAuth and `tgchats-local` for the local stdio runtime.
 
 | Skill | Purpose | Risk | Cloud requirements | Local requirements |
 | --- | --- | --- | --- | --- |
@@ -58,10 +58,11 @@ Use `npx skills add` when you want the skill installed into a supported agent wo
 Client notes:
 
 - OpenClaw: install the skill directory and configure the Chiho.ai Cloud MCP server or local `tgchats-mcp`.
-- Codex: place the skill directory in the configured skill location, or reference the repo-local `SKILL.md` directly during development.
-- Claude Code: install the whole repository as the `chiho-telegram` plugin for the self-hosted local MCP runtime, or configure hosted Chiho.ai Cloud separately with the Agent Access bearer header.
-- Claude web / Desktop / Cowork: plugin skills are available, but Chiho's hosted remote connector requires OAuth that Chiho does not expose yet. Agent Access tokens cannot be entered in the URL or OAuth credential fields.
-- Cowork / Claude Desktop local execution: the bundled plugin MCP configuration launches the self-hosted runtime when local plugin MCP servers are available and allowed by organization policy.
+- Codex: add the repository marketplace and install either `chiho-telegram@chiho` or `tgchats-local@chiho`.
+- Claude Code: add the same repository marketplace and install the matching hosted or local package.
+- Claude.ai / Desktop / Cowork: add `https://api.chiho.ai/mcp` as a custom connector and complete browser OAuth.
+- Interactive hosted setup never requires an Agent Access token, bearer header, client secret, or token in the URL.
+- Local execution requires the separately installed `tgchats-local` package and a built or installed `tgchats-mcp` binary.
 
 Every skill should remain portable: `SKILL.md` contains the routing rules, `references/` contains details, and `assets/` contains templates/examples.
 
