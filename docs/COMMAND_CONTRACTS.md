@@ -24,7 +24,6 @@ General:
     "id": 123,
     "username": "string|null"
   },
-  "sessionPath": "string",
   "accountLabel": "string"
 }
 ```
@@ -35,10 +34,13 @@ General:
 {
   "ok": true,
   "sessionPresent": true,
-  "sessionPath": "string",
   "note": "string"
 }
 ```
+
+Session file paths are intentionally omitted from machine-readable identity and
+status payloads so MCP clients do not disclose local credential locations to a
+remote model.
 
 ## `tgchats inbox --json`
 

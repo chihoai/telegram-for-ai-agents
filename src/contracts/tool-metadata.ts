@@ -16,7 +16,7 @@ const SUCCESS_OUTPUT_SCHEMA: Record<string, unknown> = {
   additionalProperties: true,
   required: ["ok"],
   properties: {
-    ok: { type: "boolean" },
+    ok: { type: "boolean", const: true },
   },
 };
 
@@ -136,7 +136,7 @@ const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
     ...WRITE_EXTERNAL,
     destructiveHint: true,
   }),
-  "nudge.generate": metadata("Generate a follow-up message", READ_EXTERNAL),
+  "nudge.generate": metadata("Generate a follow-up message", WRITE_EXTERNAL),
   "rules.list": metadata("List automation rules", READ_INTERNAL),
   "rules.add": metadata("Add an automation rule", WRITE_INTERNAL),
   "rules.disable": metadata("Disable an automation rule", {
@@ -151,13 +151,19 @@ const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
     ...WRITE_EXTERNAL,
     destructiveHint: true,
   }),
-  "rules.dryRun": metadata("Preview automation rule results", READ_EXTERNAL),
-  "rules.log": metadata("List automation activity", READ_INTERNAL),
-  "sync.backfill": metadata(
-    "Backfill the local Telegram database",
+  "rules.dryRun": metadata(
+    "Preview automation rule results",
     WRITE_EXTERNAL,
   ),
-  "sync.once": metadata("Sync recent Telegram chats", WRITE_EXTERNAL),
+  "rules.log": metadata("List automation activity", READ_INTERNAL),
+  "sync.backfill": metadata("Backfill the local Telegram database", {
+    ...WRITE_EXTERNAL,
+    destructiveHint: true,
+  }),
+  "sync.once": metadata("Sync recent Telegram chats", {
+    ...WRITE_EXTERNAL,
+    destructiveHint: true,
+  }),
   "session.logout": metadata("Disconnect the local Telegram account", {
     ...WRITE_EXTERNAL,
     destructiveHint: true,

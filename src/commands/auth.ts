@@ -14,7 +14,6 @@ export async function runAuth(ctx: AppContext, args: string[] = []): Promise<voi
       printJson({
         ok: true,
         sessionPresent,
-        sessionPath: ctx.config.sessionPath,
         note,
       });
       return;

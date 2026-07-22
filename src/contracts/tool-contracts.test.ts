@@ -80,7 +80,7 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
         type: "object",
         required: ["ok"],
         properties: {
-          ok: { type: "boolean" },
+          ok: { type: "boolean", const: true },
         },
       });
     }
@@ -119,16 +119,16 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
       "tasks.suggest": [false, false, false, true],
       "summary.show": [true, false, true, false],
       "summary.refresh": [false, true, false, true],
-      "nudge.generate": [true, false, true, true],
+      "nudge.generate": [false, false, false, true],
       "rules.list": [true, false, true, false],
       "rules.add": [false, false, false, false],
       "rules.disable": [false, true, false, false],
       "rules.delete": [false, true, false, false],
       "rules.run": [false, true, false, true],
-      "rules.dryRun": [true, false, true, true],
+      "rules.dryRun": [false, false, false, true],
       "rules.log": [true, false, true, false],
-      "sync.backfill": [false, false, false, true],
-      "sync.once": [false, false, false, true],
+      "sync.backfill": [false, true, false, true],
+      "sync.once": [false, true, false, true],
       "session.logout": [false, true, false, true],
     };
 

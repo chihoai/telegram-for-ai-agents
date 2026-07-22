@@ -21,10 +21,16 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "overrides": {
+    "@modelcontextprotocol/sdk": {
+      "@hono/node-server": "2.0.11"
+    }
+  },
   "engines": {
     "node": ">=22 <24"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@mtcute/node": "0.28.1",
     "dotenv": "17.3.1",
     "pg": "8.18.0",

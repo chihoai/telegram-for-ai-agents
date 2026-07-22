@@ -27,7 +27,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -60,7 +61,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -101,7 +103,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -173,7 +176,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -229,7 +233,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -262,7 +267,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -401,7 +407,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -447,7 +454,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -493,7 +501,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -539,7 +548,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -610,7 +620,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -652,7 +663,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -708,7 +720,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -777,7 +790,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -819,7 +833,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -884,7 +899,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -926,7 +942,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -962,7 +979,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1008,7 +1026,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1047,7 +1066,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1094,7 +1114,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1133,7 +1154,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1179,7 +1201,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1218,7 +1241,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1265,7 +1289,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1298,7 +1323,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1353,7 +1379,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1393,7 +1420,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1440,7 +1468,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1486,7 +1515,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1530,7 +1560,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1563,9 +1594,9 @@
     },
     "title": "Generate a follow-up message",
     "annotations": {
-      "readOnlyHint": true,
+      "readOnlyHint": false,
       "destructiveHint": false,
-      "idempotentHint": true,
+      "idempotentHint": false,
       "openWorldHint": true
     },
     "outputSchema": {
@@ -1576,7 +1607,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1609,7 +1641,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1659,7 +1692,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1707,7 +1741,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1755,7 +1790,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1793,7 +1829,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1818,9 +1855,9 @@
     },
     "title": "Preview automation rule results",
     "annotations": {
-      "readOnlyHint": true,
+      "readOnlyHint": false,
       "destructiveHint": false,
-      "idempotentHint": true,
+      "idempotentHint": false,
       "openWorldHint": true
     },
     "outputSchema": {
@@ -1831,7 +1868,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1869,7 +1907,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1900,7 +1939,7 @@
     "title": "Backfill the local Telegram database",
     "annotations": {
       "readOnlyHint": false,
-      "destructiveHint": false,
+      "destructiveHint": true,
       "idempotentHint": false,
       "openWorldHint": true
     },
@@ -1912,7 +1951,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1938,7 +1978,7 @@
     "title": "Sync recent Telegram chats",
     "annotations": {
       "readOnlyHint": false,
-      "destructiveHint": false,
+      "destructiveHint": true,
       "idempotentHint": false,
       "openWorldHint": true
     },
@@ -1950,7 +1990,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }
@@ -1983,7 +2024,8 @@
       ],
       "properties": {
         "ok": {
-          "type": "boolean"
+          "type": "boolean",
+          "const": true
         }
       }
     }

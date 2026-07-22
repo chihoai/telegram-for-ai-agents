@@ -2,188 +2,122 @@
 
 import "dotenv/config";
 
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  type CallToolResult,
+} from "@modelcontextprotocol/sdk/types.js";
 import { getToolContractDefinitions } from "../contracts/tool-contracts.js";
 import { executeLocalToolCall } from "../core/tool-dispatch.js";
 
-interface JsonRpcRequest {
-  id?: string | number | null;
-  jsonrpc?: string;
-  method?: string;
-  params?: any;
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-const MCP_PROTOCOL_VERSION = "2025-11-25";
-
-function encodeMessage(payload: Record<string, unknown>) {
-  const body = Buffer.from(JSON.stringify(payload), "utf8");
-  return Buffer.concat([
-    Buffer.from(`Content-Length: ${body.length}\r\n\r\n`, "utf8"),
-    body,
-  ]);
-}
-
-function sendMessage(payload: Record<string, unknown>) {
-  process.stdout.write(encodeMessage(payload));
-}
-
-function sendResult(id: JsonRpcRequest["id"], result: unknown) {
-  sendMessage({
-    jsonrpc: "2.0",
-    id: id ?? null,
-    result,
-  });
-}
-
-function sendError(
-  id: JsonRpcRequest["id"],
-  code: number,
-  message: string,
-  data?: Record<string, unknown>,
-) {
-  sendMessage({
-    jsonrpc: "2.0",
-    id: id ?? null,
-    error: {
-      code,
-      message,
-      ...(data ? { data } : {}),
-    },
-  });
-}
-
-async function handleRequest(message: JsonRpcRequest) {
-  if (!message.method) {
-    sendError(message.id, -32600, "Invalid Request");
-    return;
+function redactSensitiveFields(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(redactSensitiveFields);
+  }
+  if (!isRecord(value)) {
+    return value;
   }
 
-  if (message.method === "initialize") {
-    sendResult(message.id, {
-      protocolVersion: MCP_PROTOCOL_VERSION,
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => key !== "sessionPath")
+      .map(([key, child]) => [key, redactSensitiveFields(child)]),
+  );
+}
+
+function contentFor(payload: unknown) {
+  return [
+    {
+      type: "text" as const,
+      text: JSON.stringify(payload, null, 2) ?? "null",
+    },
+  ];
+}
+
+function toolError(payload: unknown): CallToolResult {
+  return {
+    content: contentFor(payload),
+    isError: true,
+  };
+}
+
+function isFailedPayload(payload: unknown) {
+  return isRecord(payload) && payload.ok === false;
+}
+
+function createServer() {
+  const server = new Server(
+    {
+      name: "tgchats-local",
+      title: "tgchats Local",
+      version: "1.0.0",
+    },
+    {
       capabilities: {
         tools: {
           listChanged: false,
         },
       },
-      serverInfo: {
-        name: "tgchats-local",
-        title: "tgchats Local",
-        version: "1.0.0",
-      },
       instructions:
         "Prefer read-first workflows. Use explicit mutation tools only when requested.",
-    });
-    return;
-  }
+    },
+  );
 
-  if (message.method === "notifications/initialized") {
-    return;
-  }
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: getToolContractDefinitions().map((tool) => ({
+      name: tool.name,
+      title: tool.title,
+      description: tool.description,
+      inputSchema: tool.inputSchema,
+      outputSchema: tool.outputSchema,
+      annotations: tool.annotations,
+    })),
+  }));
 
-  if (message.method === "tools/list") {
-    sendResult(message.id, {
-      tools: getToolContractDefinitions().map((tool) => ({
-        name: tool.name,
-        title: tool.title,
-        description: tool.description,
-        inputSchema: tool.inputSchema,
-        outputSchema: tool.outputSchema,
-        annotations: tool.annotations,
-      })),
-    });
-    return;
-  }
-
-  if (message.method === "tools/call") {
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
-      const toolName = String(message.params?.name || "");
-      const payload = await executeLocalToolCall(
-        toolName,
-        message.params?.arguments || {},
+      const payload = redactSensitiveFields(
+        await executeLocalToolCall(
+          request.params.name,
+          request.params.arguments || {},
+        ),
       );
-      sendResult(message.id, {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(payload, null, 2),
-          },
-        ],
-        structuredContent: payload,
-      });
+
+      if (isFailedPayload(payload)) {
+        return toolError(payload);
+      }
+
+      return {
+        content: contentFor(payload),
+        structuredContent: isRecord(payload) ? payload : { result: payload },
+      } satisfies CallToolResult;
     } catch (error) {
-      const messageText =
-        error instanceof Error ? error.message : String(error);
-      sendError(message.id, -32000, messageText);
-    }
-    return;
-  }
-
-  sendError(message.id, -32601, "Method not found");
-}
-
-let buffer = Buffer.alloc(0);
-let requestQueue = Promise.resolve();
-
-function enqueueRequest(message: JsonRpcRequest) {
-  requestQueue = requestQueue
-    .then(() => handleRequest(message))
-    .catch((error) => {
-      sendError(
-        message.id,
-        -32000,
-        error instanceof Error ? error.message : String(error),
-      );
-    });
-}
-
-function processBuffer() {
-  while (true) {
-    const headerEnd = buffer.indexOf("\r\n\r\n");
-    if (headerEnd === -1) {
-      return;
-    }
-
-    const headerText = buffer.subarray(0, headerEnd).toString("utf8");
-    const contentLengthHeader = headerText
-      .split("\r\n")
-      .find((line) => line.toLowerCase().startsWith("content-length:"));
-
-    if (!contentLengthHeader) {
-      buffer = buffer.subarray(headerEnd + 4);
-      continue;
-    }
-
-    const contentLength = Number.parseInt(
-      contentLengthHeader.split(":")[1]?.trim() || "",
-      10,
-    );
-
-    if (!Number.isFinite(contentLength)) {
-      buffer = buffer.subarray(headerEnd + 4);
-      continue;
-    }
-
-    const messageStart = headerEnd + 4;
-    const messageEnd = messageStart + contentLength;
-
-    if (buffer.length < messageEnd) {
-      return;
-    }
-
-    const body = buffer.subarray(messageStart, messageEnd).toString("utf8");
-    buffer = buffer.subarray(messageEnd);
-
-    try {
-      enqueueRequest(JSON.parse(body));
-    } catch (error) {
-      sendError(null, -32700, "Parse error", {
-        detail: error instanceof Error ? error.message : String(error),
+      return toolError({
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
       });
     }
-  }
+  });
+
+  return server;
 }
 
-process.stdin.on("data", (chunk: Buffer) => {
-  buffer = Buffer.concat([buffer, chunk]);
-  processBuffer();
+async function main() {
+  const server = createServer();
+  const transport = new StdioServerTransport();
+  transport.onerror = (error) => {
+    console.error("MCP transport error:", error);
+  };
+  await server.connect(transport);
+}
+
+main().catch((error) => {
+  console.error("Failed to start tgchats local MCP:", error);
+  process.exitCode = 1;
 });
