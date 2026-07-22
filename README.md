@@ -146,7 +146,24 @@ Claude Code / Cowork plugin:
 - The Claude plugin manifest lives at [`.claude-plugin/plugin.json`](./.claude-plugin/plugin.json).
 - Claude automatically discovers the repo's `skills/` directory as namespaced plugin skills, including `/chiho-telegram:telegram-for-agents`.
 - The Claude plugin registers the same local MCP server through [`claude-mcp.json`](./claude-mcp.json), using `${CLAUDE_PLUGIN_ROOT}` so installed plugin cache paths resolve correctly.
+- The plugin MCP configuration is for the self-hosted `tgchats-local` runtime. It does not add the hosted Chiho.ai Cloud connector.
 - For local development, run `claude --plugin-dir .` from the repository root.
+
+Hosted Chiho.ai Cloud in Claude Code:
+
+1. Connect Telegram and mint an Agent Access token at `https://chiho.ai/profile/agent-access`.
+2. Copy the MCP endpoint displayed on that page.
+3. Add it to Claude Code with the bearer header:
+
+```bash
+claude mcp add --scope user --transport http chiho '<CHIHO_MCP_URL>' --header 'Authorization: Bearer <CHIHO_AGENT_TOKEN>'
+```
+
+4. Ask Claude Code to call `auth.status` to verify the token.
+
+When substituting the real token, keep it out of shared terminal history and logs. Claude Code will store the header in its MCP configuration, so only configure it on a trusted device and revoke the token from Agent Access if it is exposed.
+
+Claude web, Claude Desktop, and Cowork remote custom connectors cannot use Chiho Agent Access tokens yet because their setup flow does not accept a custom bearer header. Do not put the token in the connector URL or OAuth Client ID/Secret fields. Use Claude Code for hosted access until Chiho exposes OAuth; the local plugin/self-hosted path remains separate.
 
 Machine-readable surfaces:
 
@@ -228,7 +245,7 @@ Installable workflow skills live under [`skills/`](./skills/).
 
 Codex users can install the whole repository as a plugin when they want the mode selector, workflow skills, and local MCP configuration together. The plugin skill entry point is [`skills/telegram-for-agents/SKILL.md`](./skills/telegram-for-agents/SKILL.md).
 
-Claude Code and Cowork users can install the whole repository as the `chiho-telegram` plugin when they want the same mode selector, workflow skills, and local MCP configuration in Claude-native plugin form. In Claude Code, the entry skill is `/chiho-telegram:telegram-for-agents`.
+Claude Code and Cowork users can install the whole repository as the `chiho-telegram` plugin when they want the same mode selector and workflow skills. The bundled MCP configuration launches the local self-hosted runtime and may depend on the Claude surface, local execution mode, and organization policy. In Claude Code, the entry skill is `/chiho-telegram:telegram-for-agents`.
 
 Install one published workflow skill with the `skills` CLI:
 

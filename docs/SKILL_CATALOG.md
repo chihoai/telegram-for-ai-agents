@@ -59,8 +59,9 @@ Client notes:
 
 - OpenClaw: install the skill directory and configure the Chiho.ai Cloud MCP server or local `tgchats-mcp`.
 - Codex: place the skill directory in the configured skill location, or reference the repo-local `SKILL.md` directly during development.
-- Claude Code / Cowork: install the whole repository as the `chiho-telegram` plugin, or install a single skill directory and configure MCP separately.
-- Claude Desktop: use the skill directory as the workflow artifact and configure MCP separately.
+- Claude Code: install the whole repository as the `chiho-telegram` plugin for the self-hosted local MCP runtime, or configure hosted Chiho.ai Cloud separately with the Agent Access bearer header.
+- Claude web / Desktop / Cowork: plugin skills are available, but Chiho's hosted remote connector requires OAuth that Chiho does not expose yet. Agent Access tokens cannot be entered in the URL or OAuth credential fields.
+- Cowork / Claude Desktop local execution: the bundled plugin MCP configuration launches the self-hosted runtime when local plugin MCP servers are available and allowed by organization policy.
 
 Every skill should remain portable: `SKILL.md` contains the routing rules, `references/` contains details, and `assets/` contains templates/examples.
 
