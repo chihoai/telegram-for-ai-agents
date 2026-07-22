@@ -1,34 +1,12 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveTgchatsMcpLaunch } from "./resolve-launch.mjs";
 
 const pluginRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
-const repositoryRoot = join(pluginRoot, "..", "..");
-const builtServer = join(repositoryRoot, "dist", "mcp", "stdio.js");
-const devServer = join(repositoryRoot, "src", "mcp", "stdio.ts");
-const localTsx = join(
-  repositoryRoot,
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "tsx.cmd" : "tsx",
-);
-
-let command = "tgchats-mcp";
-let args = [];
-let cwd = process.cwd();
-
-if (existsSync(builtServer)) {
-  command = process.execPath;
-  args = [builtServer];
-  cwd = repositoryRoot;
-} else if (existsSync(devServer) && existsSync(localTsx)) {
-  command = localTsx;
-  args = [devServer];
-  cwd = repositoryRoot;
-}
+const { command, args, cwd } = resolveTgchatsMcpLaunch({ pluginRoot });
 
 const child = spawn(command, args, {
   cwd,

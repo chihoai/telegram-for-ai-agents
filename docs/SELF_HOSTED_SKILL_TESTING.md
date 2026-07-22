@@ -140,7 +140,9 @@ Current local blockers and gaps from the same run:
 
 Harness note:
 
-- MCP stdio frames use byte-based `Content-Length`. Any custom smoke script must parse frames with `Buffer` byte offsets, not JavaScript string length, because Telegram payloads can contain non-ASCII chat content.
+- MCP stdio uses the official SDK's newline-delimited JSON transport. Smoke tests
+  should use `Client` with `StdioClientTransport` from
+  `@modelcontextprotocol/sdk` instead of implementing framing independently.
 
 ## Recommended Self-Hosted Test Loop
 

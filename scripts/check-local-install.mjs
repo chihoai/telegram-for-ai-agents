@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { resolveTgchatsMcpLaunch } from "../plugins/tgchats-local/scripts/resolve-launch.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -121,6 +122,11 @@ const pluginMcpLauncherPath = path.join(
   "scripts",
   "run-tgchats-mcp.mjs",
 );
+const pluginLaunchResolverPath = path.join(
+  localPluginRoot,
+  "scripts",
+  "resolve-launch.mjs",
+);
 
 assert(await fileExists(cliPath), `Missing CLI build output at ${cliPath}`);
 assert(await fileExists(mcpPath), `Missing MCP build output at ${mcpPath}`);
@@ -152,6 +158,7 @@ for (const requiredPath of [
   localClaudeMcpPath,
   hostedSkillPath,
   localSkillPath,
+  pluginLaunchResolverPath,
 ]) {
   assert(
     await fileExists(requiredPath),
@@ -161,6 +168,22 @@ for (const requiredPath of [
 assert(
   await fileExists(pluginMcpLauncherPath),
   `Missing local plugin MCP launcher at ${pluginMcpLauncherPath}`,
+);
+
+const windowsCacheLaunch = resolveTgchatsMcpLaunch({
+  pluginRoot: "C:\\codex-cache\\tgchats-local",
+  repositoryRoot: "C:\\codex-cache\\missing-repository",
+  currentWorkingDirectory: "C:\\codex-cache\\tgchats-local",
+  platform: "win32",
+  executablePath: "C:\\Program Files\\nodejs\\node.exe",
+  commandInterpreter: "C:\\Windows\\System32\\cmd.exe",
+  fileExists: () => false,
+});
+assert(
+  windowsCacheLaunch.command === "C:\\Windows\\System32\\cmd.exe" &&
+    JSON.stringify(windowsCacheLaunch.args) ===
+      JSON.stringify(["/d", "/s", "/c", "tgchats-mcp.cmd"]),
+  "Windows cache installs must launch the npm .cmd shim through cmd.exe",
 );
 
 const codexMarketplace = JSON.parse(
