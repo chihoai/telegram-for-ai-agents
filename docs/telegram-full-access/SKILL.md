@@ -1,7 +1,6 @@
 ---
 name: telegram-full-access
 description: "Give OpenClaw full access to your Telegram: Log into a local Telegram session, use a personal or dedicated account, let Claw automate your workflows, and manage chats through a CRM UI."
-version: 1.1.0
 metadata:
   openclaw:
     homepage: https://github.com/chihoai/telegram-for-ai-agents
