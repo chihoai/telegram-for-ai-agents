@@ -13,21 +13,21 @@ The public `telegram-for-agents` skill selects Chiho.ai Cloud or self-hosted `tg
 
 | Skill | Purpose | Risk | Cloud requirements | Local requirements |
 | --- | --- | --- | --- | --- |
-| `telegram-chat-identity-challenge` | Ask untrusted new chats for a Kim Jong Un criticism challenge before sensitive conversation continues | High | `telegram.read`, `telegram.message.preview`, `telegram.message.send`, `crm.write` | Dialog, preview/draft, tag, and task tools |
+| `telegram-chat-identity-challenge` | Ask untrusted new chats for a Kim Jong Un criticism challenge before sensitive conversation continues | High | `telegram.read`, `crm.write`, `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Dialog, preview/draft, tag, and task tools |
 | `telegram-human-verification-challenge` | Send CAPTCHA-like reasoning challenges to new or suspicious chats and classify the reply | High | `telegram.read`, `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write`, `crm.write` | Dialog, preview/draft, tag, and task tools |
-| `telegram-bulk-template-message` | Send approved templates to selected chats | High | `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Preview and approved-send outbox tools |
-| `telegram-conditional-replies` | Draft or run conditional reply rules | High | Rule-management and message-write scopes | Rule list/add/run/log tools plus preview and approved-send tools |
-| `telegram-add-colleagues-to-group` | Add or invite colleagues to groups | High | `telegram.members.invite` | Matching `members.*` tools |
+| `telegram-bulk-template-message` | Send approved templates to selected chats | High | `telegram.read`, `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Preview and approved-send outbox tools |
+| `telegram-conditional-replies` | Draft or run conditional reply rules | High | `telegram.read`, `crm.write`, `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write`, `automation.rules.write` | Rule list/add/run/log tools plus preview and approved-send tools |
+| `telegram-add-colleagues-to-group` | Add or invite colleagues to groups | High | `telegram.read`, `telegram.members.invite` | Matching `members.*` tools |
 | `telegram-followup-tasks` | Find follow-ups and create CRM tasks | Low | `telegram.read`, `crm.write`, `automation.rules.write` | Existing task and rule tools |
-| `telegram-group-cleanup` | Review stale groups and clean up safely | High | Folder write scopes, future group leave tools | Folder tools, future group leave tools |
+| `telegram-group-cleanup` | Review stale groups and clean up safely | High | `telegram.read`, `crm.write`, `telegram.folders.write`, `telegram.groups.leave` | Folder and group-leave tools |
 | `telegram-lead-qualification` | Qualify inbound Marketing and BD leads | Low | `telegram.read`, `crm.write` | Existing tag/company/task tools |
-| `telegram-intro-request-triage` | Detect intro asks and create follow-up tasks or previews | Medium | `telegram.read`, `crm.write`, preview scope | Search, task, and preview tools |
+| `telegram-intro-request-triage` | Detect intro asks and create follow-up tasks or previews | Medium | `telegram.read`, `crm.write`, `telegram.message.preview` | Search, task, and preview tools |
 | `telegram-deck-followup` | Follow up after decks, proposals, or docs were sent | Low | `telegram.read`, `crm.write`, `automation.rules.write` | Search, task, and rule tools |
 | `telegram-vip-inbox` | Surface important contacts before general inbox triage | Low | `telegram.read`, `crm.write` | Dialog, metadata, and task tools |
 | `telegram-meeting-recap` | Summarize long threads into recaps and action items | Low | `telegram.read`, `crm.write` | Summary and task tools |
 | `telegram-crm-export` | Prepare filtered CRM exports and local backups | Medium | `telegram.read` | Read tools plus local export CLI |
 | `telegram-partner-pipeline` | Track partner conversations by stage and next step | Low | `telegram.read`, `crm.write` | Tag/company/task tools |
-| `telegram-investor-updates` | Track investor update follow-ups and drafts | Medium | `telegram.read`, `crm.write`, preview scope | Summary, task, and preview tools |
+| `telegram-investor-updates` | Track investor update follow-ups and drafts | Medium | `telegram.read`, `crm.write`, `telegram.message.preview` | Summary, task, and preview tools |
 | `telegram-hiring-pipeline` | Track candidates and hiring follow-ups | Medium | `telegram.read`, `crm.write` | Search, tag, and task tools |
 | `telegram-support-escalation` | Detect urgent support issues and create escalation tasks | Medium | `telegram.read`, `crm.write`, `automation.rules.write` | Search, rules, tags, and task tools |
 

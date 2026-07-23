@@ -4,6 +4,7 @@ Required scopes:
 
 - `telegram.read`
 - `crm.write`
+- `automation.rules.write`
 
 Useful tools:
 

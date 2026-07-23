@@ -1,5 +1,14 @@
 # Cloud MCP
 
+Required scopes:
+
+- `telegram.read`
+- `crm.write`
+- `telegram.message.preview`
+- `telegram.message.send`
+- `telegram.batch.write`
+- `automation.rules.write`
+
 Read/CRM tools:
 
 - `rules_list`

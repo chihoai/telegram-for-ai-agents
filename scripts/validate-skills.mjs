@@ -5,6 +5,7 @@ import path from "node:path";
 const repoRoot = process.cwd();
 const skillsDir = path.join(repoRoot, "skills");
 const catalogPath = path.join(skillsDir, "catalog.json");
+const skillCatalogDocPath = path.join(repoRoot, "docs", "SKILL_CATALOG.md");
 const toolContractsPath = path.join(repoRoot, "docs", "tool-contracts.json");
 const publicToolContractsPath = path.join(
   repoRoot,
@@ -229,7 +230,7 @@ function validateAllowedTools(filePath, frontmatter, knownTools) {
 function validateCloudToolScopes(filePath, frontmatter, report = fail) {
   const allowedTools = frontmatter["allowed-tools"];
   const rawScopes = frontmatter["chiho.cloudScopes"];
-  if (!allowedTools || !rawScopes) {
+  if (!allowedTools) {
     return;
   }
 
@@ -260,6 +261,31 @@ function validateCloudToolScopes(filePath, frontmatter, report = fail) {
         `${filePath}: ${toolName} requires one of cloud scopes ${requiredAnyScopes.join(", ")}`,
       );
     }
+  }
+}
+
+function getDocumentedCloudScopes(body) {
+  return [
+    ...new Set(
+      [...body.matchAll(/`([^`]+)`/g)]
+        .map((match) => match[1])
+        .filter((value) => supportedCloudScopes.has(value)),
+    ),
+  ].sort();
+}
+
+function validateDocumentedCloudScopes(
+  filePath,
+  body,
+  rawScopes,
+  report = fail,
+) {
+  const documentedScopes = getDocumentedCloudScopes(body);
+  const requiredScopes = parseCloudScopes(rawScopes);
+  if (JSON.stringify(documentedScopes) !== JSON.stringify(requiredScopes)) {
+    report(
+      `${filePath}: documented cloud scopes must match ${requiredScopes.join(", ")}`,
+    );
   }
 }
 
@@ -459,6 +485,18 @@ function validateValidatorGuards(cloudTools, knownTools) {
     fail("cloud scope validator must reject a missing executor scope");
   }
 
+  const omittedScopeErrors = [];
+  validateCloudToolScopes(
+    "omitted-cloud-scope-negative-fixture.md",
+    {
+      "allowed-tools": "mcp(outbox_preview)",
+    },
+    (message) => omittedScopeErrors.push(message),
+  );
+  if (omittedScopeErrors.length === 0) {
+    fail("cloud scope validator must reject omitted required scopes");
+  }
+
   const approvalScopeErrors = [];
   validateCloudToolScopes(
     "cloud-approval-scope-negative-fixture.md",
@@ -497,6 +535,17 @@ function validateValidatorGuards(cloudTools, knownTools) {
   if (unknownScopeErrors.length === 0) {
     fail("cloud scope validator must reject an unsupported scope");
   }
+
+  const documentedScopeErrors = [];
+  validateDocumentedCloudScopes(
+    "cloud-scope-doc-negative-fixture.md",
+    "Required scopes:\n\n- `telegram.read`",
+    "telegram.read, crm.write",
+    (message) => documentedScopeErrors.push(message),
+  );
+  if (documentedScopeErrors.length === 0) {
+    fail("cloud scope documentation validator must reject missing scopes");
+  }
 }
 
 function validatePortableToolNotation(filePath, body) {
@@ -519,6 +568,7 @@ function parseCloudScopes(rawScopes) {
 
 function validateCatalog(skillNames, frontmatterByName) {
   const catalog = readJson(catalogPath);
+  const catalogDoc = fs.readFileSync(skillCatalogDocPath, "utf8");
   if (!Array.isArray(catalog)) {
     fail(`${catalogPath}: expected an array`);
     return;
@@ -546,6 +596,20 @@ function validateCatalog(skillNames, frontmatterByName) {
       const frontmatterScopes = parseCloudScopes(frontmatter["chiho.cloudScopes"]);
       if (JSON.stringify(catalogScopes) !== JSON.stringify(frontmatterScopes)) {
         fail(`${catalogPath}: ${entry.name}.requiredCloudScopes must match SKILL.md chiho.cloudScopes`);
+      }
+
+      const catalogDocRow = catalogDoc
+        .split("\n")
+        .find((line) => line.startsWith(`| \`${entry.name}\` |`));
+      if (!catalogDocRow) {
+        fail(`${skillCatalogDocPath}: missing catalog row for ${entry.name}`);
+      } else {
+        const cloudRequirementsCell = catalogDocRow.split("|")[4] || "";
+        validateDocumentedCloudScopes(
+          `${skillCatalogDocPath}: ${entry.name}`,
+          cloudRequirementsCell,
+          frontmatter["chiho.cloudScopes"],
+        );
       }
     }
 
@@ -649,6 +713,13 @@ function main() {
         surfaceTools,
         knownTools,
       );
+      if (referenceName === "cloud-mcp.md") {
+        validateDocumentedCloudScopes(
+          referencePath,
+          referenceBody,
+          frontmatter["chiho.cloudScopes"],
+        );
+      }
     }
   }
   validateCatalog(skillNames, frontmatterByName);

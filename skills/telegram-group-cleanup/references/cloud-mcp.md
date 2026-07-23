@@ -1,5 +1,12 @@
 # Cloud MCP
 
+Required scopes:
+
+- `telegram.read`
+- `crm.write`
+- `telegram.folders.write`
+- `telegram.groups.leave`
+
 Tools:
 
 - `dialogs_list`
