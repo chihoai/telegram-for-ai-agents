@@ -265,14 +265,38 @@ function validateCloudToolScopes(filePath, frontmatter, report = fail) {
 }
 
 function getDocumentedCloudScopes(body) {
+  const lines = body.split("\n");
+  const requiredScopesHeadingIndex = lines.findIndex((line) =>
+    /^(?:Required scopes|Recommended Chiho\.ai Cloud scopes):\s*$/.test(
+      line.trim(),
+    ),
+  );
+  let scopeText = body;
+  if (requiredScopesHeadingIndex >= 0) {
+    const scopeLines = [];
+    for (
+      let index = requiredScopesHeadingIndex + 1;
+      index < lines.length;
+      index += 1
+    ) {
+      const line = lines[index].trim();
+      if (!line) {
+        continue;
+      }
+      if (!line.startsWith("- ")) {
+        break;
+      }
+      scopeLines.push(line);
+    }
+    scopeText = scopeLines.join("\n");
+  }
+
   return [
     ...new Set(
-      [...body.matchAll(/`([^`]+)`/g)]
+      [...scopeText.matchAll(/`([^`]+)`/g)]
         .map((match) => match[1])
         .filter((value) =>
-          /^(?:telegram|crm|automation)\.[a-z0-9]+(?:\.[a-z0-9]+)*$/.test(
-            value,
-          ),
+          /^[a-z][a-z0-9]*(?:\.[a-z0-9]+)+$/.test(value),
         ),
     ),
   ].sort();
@@ -556,21 +580,23 @@ function validateValidatorGuards(cloudTools, knownTools) {
     fail("cloud scope documentation validator must reject missing scopes");
   }
 
-  for (const filePath of [
-    "cloud-scope-reference-negative-fixture.md",
-    "skill-catalog-row-negative-fixture.md",
-  ]) {
-    const unsupportedDocumentedScopeErrors = [];
-    validateDocumentedCloudScopes(
-      filePath,
-      "Required scopes:\n\n- `telegram.read`\n- `crm.read`",
-      "telegram.read",
-      (message) => unsupportedDocumentedScopeErrors.push(message),
-    );
-    if (unsupportedDocumentedScopeErrors.length === 0) {
-      fail(
-        `cloud scope documentation validator must reject unsupported scopes in ${filePath}`,
+  for (const unsupportedScope of ["crm.read", "telegran.read"]) {
+    for (const filePath of [
+      "cloud-scope-reference-negative-fixture.md",
+      "skill-catalog-row-negative-fixture.md",
+    ]) {
+      const unsupportedDocumentedScopeErrors = [];
+      validateDocumentedCloudScopes(
+        filePath,
+        `Required scopes:\n\n- \`telegram.read\`\n- \`${unsupportedScope}\``,
+        "telegram.read",
+        (message) => unsupportedDocumentedScopeErrors.push(message),
       );
+      if (unsupportedDocumentedScopeErrors.length === 0) {
+        fail(
+          `cloud scope documentation validator must reject ${unsupportedScope} in ${filePath}`,
+        );
+      }
     }
   }
 }
