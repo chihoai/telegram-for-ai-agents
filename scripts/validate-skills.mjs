@@ -269,7 +269,11 @@ function getDocumentedCloudScopes(body) {
     ...new Set(
       [...body.matchAll(/`([^`]+)`/g)]
         .map((match) => match[1])
-        .filter((value) => supportedCloudScopes.has(value)),
+        .filter((value) =>
+          /^(?:telegram|crm|automation)\.[a-z0-9]+(?:\.[a-z0-9]+)*$/.test(
+            value,
+          ),
+        ),
     ),
   ].sort();
 }
@@ -282,6 +286,11 @@ function validateDocumentedCloudScopes(
 ) {
   const documentedScopes = getDocumentedCloudScopes(body);
   const requiredScopes = parseCloudScopes(rawScopes);
+  for (const scope of documentedScopes) {
+    if (!supportedCloudScopes.has(scope)) {
+      report(`${filePath}: unsupported documented cloud scope ${scope}`);
+    }
+  }
   if (JSON.stringify(documentedScopes) !== JSON.stringify(requiredScopes)) {
     report(
       `${filePath}: documented cloud scopes must match ${requiredScopes.join(", ")}`,
@@ -545,6 +554,24 @@ function validateValidatorGuards(cloudTools, knownTools) {
   );
   if (documentedScopeErrors.length === 0) {
     fail("cloud scope documentation validator must reject missing scopes");
+  }
+
+  for (const filePath of [
+    "cloud-scope-reference-negative-fixture.md",
+    "skill-catalog-row-negative-fixture.md",
+  ]) {
+    const unsupportedDocumentedScopeErrors = [];
+    validateDocumentedCloudScopes(
+      filePath,
+      "Required scopes:\n\n- `telegram.read`\n- `crm.read`",
+      "telegram.read",
+      (message) => unsupportedDocumentedScopeErrors.push(message),
+    );
+    if (unsupportedDocumentedScopeErrors.length === 0) {
+      fail(
+        `cloud scope documentation validator must reject unsupported scopes in ${filePath}`,
+      );
+    }
   }
 }
 
