@@ -27,7 +27,33 @@ const directSendTools = new Set([
   "members_invite_approved",
   "message_send_draft",
   "outbox_send_approved",
-  "write_approve_preview",
+]);
+const hostedApprovalFlows = new Map([
+  [
+    "outbox_send_approved",
+    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+  ],
+  [
+    "members_invite_approved",
+    [
+      "members_invite_preview",
+      "write_approve_preview",
+      "members_invite_approved",
+    ],
+  ],
+  [
+    "groups_leave_approved",
+    ["groups_leave_preview", "write_approve_preview", "groups_leave_approved"],
+  ],
+]);
+const cloudToolRequiredScopes = new Map([
+  [
+    "outbox_send_approved",
+    ["telegram.message.send", "telegram.batch.write"],
+  ],
+  ["message_send_draft", ["telegram.message.send"]],
+  ["members_invite_approved", ["telegram.members.invite"]],
+  ["groups_leave_approved", ["telegram.groups.leave"]],
 ]);
 
 function fail(message) {
@@ -90,6 +116,28 @@ function validateAllowedTools(filePath, frontmatter, knownTools) {
   }
 }
 
+function validateCloudToolScopes(filePath, frontmatter, report = fail) {
+  const allowedTools = frontmatter["allowed-tools"];
+  const rawScopes = frontmatter["chiho.cloudScopes"];
+  if (!allowedTools || !rawScopes) {
+    return;
+  }
+
+  const scopes = new Set(parseCloudScopes(rawScopes));
+  for (const [toolName, requiredScopes] of cloudToolRequiredScopes) {
+    if (!allowedTools.includes(`mcp(${toolName})`)) {
+      continue;
+    }
+    for (const requiredScope of requiredScopes) {
+      if (!scopes.has(requiredScope)) {
+        report(
+          `${filePath}: ${toolName} requires cloud scope ${requiredScope}`,
+        );
+      }
+    }
+  }
+}
+
 function validateToolArrays(filePath, value, knownTools) {
   if (Array.isArray(value)) {
     for (const item of value) validateToolArrays(filePath, item, knownTools);
@@ -139,6 +187,43 @@ function validateNoSendExamples(filePath, value, report = fail) {
   }
 }
 
+function validateHostedApprovalExamples(filePath, value, report = fail) {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      validateHostedApprovalExamples(filePath, item, report);
+    }
+    return;
+  }
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  if (value.runtime === "chiho-cloud" && Array.isArray(value.tools)) {
+    for (const [executor, orderedTools] of hostedApprovalFlows) {
+      if (!value.tools.includes(executor)) {
+        continue;
+      }
+      const positions = orderedTools.map((toolName) =>
+        value.tools.indexOf(toolName),
+      );
+      if (
+        !positions.every(
+          (position, index) =>
+            position >= 0 && (index === 0 || position > positions[index - 1]),
+        )
+      ) {
+        report(
+          `${filePath}: hosted example must use ${orderedTools.join(" -> ")}`,
+        );
+      }
+    }
+  }
+
+  for (const child of Object.values(value)) {
+    validateHostedApprovalExamples(filePath, child, report);
+  }
+}
+
 function validateAssetJson(skillDir, knownTools) {
   const assetsDir = path.join(skillDir, "assets");
   if (!fs.existsSync(assetsDir)) {
@@ -154,6 +239,7 @@ function validateAssetJson(skillDir, knownTools) {
       const asset = readJson(assetPath);
       validateToolArrays(assetPath, asset, knownTools);
       validateNoSendExamples(assetPath, asset);
+      validateHostedApprovalExamples(assetPath, asset);
     } catch (error) {
       fail(`${assetPath}: invalid JSON (${error.message})`);
     }
@@ -204,6 +290,32 @@ function validateValidatorGuards(cloudTools, knownTools) {
     if (noSendErrors.length === 0) {
       fail(`no-send validator must reject direct-send tools for: ${prompt}`);
     }
+  }
+
+  const hostedApprovalErrors = [];
+  validateHostedApprovalExamples(
+    "hosted-approval-negative-fixture.json",
+    {
+      runtime: "chiho-cloud",
+      tools: ["outbox_preview", "outbox_send_approved"],
+    },
+    (message) => hostedApprovalErrors.push(message),
+  );
+  if (hostedApprovalErrors.length === 0) {
+    fail("hosted example validator must reject a missing approval step");
+  }
+
+  const cloudScopeErrors = [];
+  validateCloudToolScopes(
+    "cloud-scope-negative-fixture.md",
+    {
+      "allowed-tools": "mcp(outbox_send_approved)",
+      "chiho.cloudScopes": "telegram.message.send",
+    },
+    (message) => cloudScopeErrors.push(message),
+  );
+  if (cloudScopeErrors.length === 0) {
+    fail("cloud scope validator must reject a missing executor scope");
   }
 }
 
@@ -326,6 +438,7 @@ function main() {
     }
     validateLinks(skillPath, body);
     validateAllowedTools(skillPath, frontmatter, knownTools);
+    validateCloudToolScopes(skillPath, frontmatter);
     validatePortableToolNotation(skillPath, body);
     for (const internalName of internalNames) {
       if (body.includes(internalName)) {

@@ -7,7 +7,7 @@ metadata:
   chiho.category: telegram-automation
   chiho.risk: high
   chiho.requiresApproval: "true"
-  chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, automation.rules.write
+  chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, telegram.batch.write, automation.rules.write
 allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(rules_list) mcp(rules_add) mcp(rules_disable) mcp(rules_delete) mcp(rules_dry_run) mcp(rules_run) mcp(rules_log) mcp(message_send_draft) mcp(outbox_preview) mcp(write_approve_preview) mcp(outbox_send_approved)
 ---
 

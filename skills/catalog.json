@@ -64,6 +64,7 @@
       "crm.write",
       "telegram.message.preview",
       "telegram.message.send",
+      "telegram.batch.write",
       "automation.rules.write"
     ],
     "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],

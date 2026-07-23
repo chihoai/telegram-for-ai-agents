@@ -65,9 +65,11 @@ completed on 2026-07-23:
 3. Codex completed production OAuth and reused the grant from the current
    client to call `auth_status`; authenticated tool discovery exposed portable
    snake_case names.
-4. Claude created an `outbox_preview` record with one-time tool approval. The
-   self-recipient was correctly skipped as outside the token's dialog scope,
-   and no send or approval-execution tool ran.
+4. Claude created an `outbox_preview` record and then successfully called
+   `write_approve_preview` with separate one-time client approvals. The
+   non-human service peer was skipped as outside the token's dialog scope, the
+   preview received an `approvedAt` timestamp, and no executor or scheduling
+   tool ran; zero messages were sent.
 
 Codex CLI 0.144.6 currently fails a fresh OAuth callback with an upstream
 issuer-validation error even though the callback contains the correct

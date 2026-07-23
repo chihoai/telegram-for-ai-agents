@@ -6,8 +6,9 @@
   },
   {
     "client": "Claude Desktop",
+    "runtime": "chiho-cloud",
     "prompt": "Send a CAPTCHA-like text challenge to this new Telegram chat, then check whether their next reply passes.",
-    "tools": ["chat_read", "outbox_preview", "outbox_send_approved", "chat_read"]
+    "tools": ["chat_read", "outbox_preview", "write_approve_preview", "outbox_send_approved", "chat_read"]
   },
   {
     "client": "OpenClaw",
