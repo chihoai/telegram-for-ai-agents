@@ -198,7 +198,9 @@ function validateHostedApprovalExamples(filePath, value, report = fail) {
     return;
   }
 
-  if (value.runtime === "chiho-cloud" && Array.isArray(value.tools)) {
+  // Executor examples are treated as hosted unless they explicitly opt into
+  // the local runtime, where approval is handled by the client.
+  if (value.runtime !== "tgchats-local" && Array.isArray(value.tools)) {
     for (const [executor, orderedTools] of hostedApprovalFlows) {
       if (!value.tools.includes(executor)) {
         continue;
@@ -292,17 +294,21 @@ function validateValidatorGuards(cloudTools, knownTools) {
     }
   }
 
-  const hostedApprovalErrors = [];
-  validateHostedApprovalExamples(
-    "hosted-approval-negative-fixture.json",
-    {
-      runtime: "chiho-cloud",
-      tools: ["outbox_preview", "outbox_send_approved"],
-    },
-    (message) => hostedApprovalErrors.push(message),
-  );
-  if (hostedApprovalErrors.length === 0) {
-    fail("hosted example validator must reject a missing approval step");
+  for (const runtime of ["chiho-cloud", undefined]) {
+    const hostedApprovalErrors = [];
+    validateHostedApprovalExamples(
+      "hosted-approval-negative-fixture.json",
+      {
+        ...(runtime ? { runtime } : {}),
+        tools: ["outbox_preview", "outbox_send_approved"],
+      },
+      (message) => hostedApprovalErrors.push(message),
+    );
+    if (hostedApprovalErrors.length === 0) {
+      fail(
+        `hosted example validator must reject a missing approval step for runtime ${runtime || "unspecified"}`,
+      );
+    }
   }
 
   const cloudScopeErrors = [];

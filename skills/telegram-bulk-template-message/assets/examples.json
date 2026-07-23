@@ -1,8 +1,9 @@
 [
   {
     "client": "OpenClaw",
+    "runtime": "chiho-cloud",
     "prompt": "Send the short follow-up template to the selected investor chats after previewing it.",
-    "tools": ["dialogs_list", "outbox_preview", "outbox_send_approved"]
+    "tools": ["dialogs_list", "outbox_preview", "write_approve_preview", "outbox_send_approved"]
   },
   {
     "client": "Codex",
