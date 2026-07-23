@@ -27,4 +27,4 @@ If a precondition is missing, stop and request only that missing setup. Do not f
 - Assume one writer process per Telegram session.
 - Never print session strings, API hashes, or session paths unless the user explicitly asks.
 
-Start with `auth.status` only when connection state is relevant. Use `account.whoami` for identity checks and `dialogs.list` for recent chats.
+Start with `auth_status` only when connection state is relevant. Use `account_whoami` for identity checks and `dialogs_list` for recent chats.

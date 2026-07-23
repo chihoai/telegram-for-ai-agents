@@ -51,6 +51,12 @@ TELEGRAM_API_ID=123456
 TELEGRAM_API_HASH=your_api_hash_here
 ```
 
+The local runtime loads configuration from the current directory, the linked
+package root, or `~/.config/telegram-for-ai-agents/.env`. Set
+`TGCHATS_ENV_PATH` when you want an explicit location. This keeps the same
+credentials available when Claude or Codex launches the plugin from its own
+installed-plugin cache.
+
 Recommended env:
 
 ```bash
@@ -182,7 +188,7 @@ Add a custom connector with this exact URL:
 https://api.chiho.ai/mcp
 ```
 
-Select **Connect** and complete OAuth in the browser. Do not enter a personal access token, custom bearer header, or OAuth client secret. Team and Enterprise owners add the connector for the organization first; individual members then connect their own Chiho account.
+Select **Connect** and complete OAuth in the browser. Do not enter a personal access token, custom bearer header, or OAuth client secret. Free, Pro, and Max users can add Chiho directly as a custom connector; Claude Free currently permits one custom connector. Team and Enterprise owners are only required for organization-wide connector installation and directory submission.
 
 Advanced service tokens remain available only for explicitly requested headless automation and are not part of Claude or Codex onboarding.
 
@@ -199,7 +205,7 @@ Machine-readable surfaces:
 
 - Add `--json` to supported commands
 - Contracts: [`docs/COMMAND_CONTRACTS.md`](./docs/COMMAND_CONTRACTS.md)
-- MCP tool schemas: [`docs/tool-contracts.json`](./docs/tool-contracts.json)
+- Public MCP tool schemas: [`docs/public-mcp-tool-contracts.json`](./docs/public-mcp-tool-contracts.json)
 - Self-hosted install check: `npm run check:local-install`
   - optionally set `TGCHATS_SMOKE_PEER=<peerId>` to include one peer-scoped read when a session already exists
 
@@ -215,7 +221,7 @@ Auth and account:
 
 - `tgchats auth`: interactive login (QR first, then phone code/2FA fallback).
 - `tgchats auth status`: non-interactive local session check (agent-safe).
-- `tgchats whoami`: shows logged-in account identity and session path.
+- `tgchats whoami`: shows logged-in account identity and account label; credential and session paths are intentionally omitted.
 - `tgchats logout`: logs out current Telegram session.
 
 Reading and navigation:
@@ -225,6 +231,9 @@ Reading and navigation:
 - `tgchats open <peer>`: shows peer metadata plus local CRM metadata (tags/company/tasks/summary).
 - `tgchats search "<query>" [--chat <peer>] [--tag <tag>] [--company <name>] [--limit N] [--local]`:
   Telegram search by default; local Postgres search when `--local` or metadata filters are used.
+
+Inbox and chat reads do not persist Telegram data. Use the explicit `sync`
+commands when you want to populate or refresh the local Postgres database.
 
 Telegram state operations:
 

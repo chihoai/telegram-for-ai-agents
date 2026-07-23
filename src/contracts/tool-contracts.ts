@@ -18,6 +18,21 @@ type BaseToolContractDefinition = Omit<
   "title" | "outputSchema" | "annotations"
 >;
 
+export const PORTABLE_MCP_TOOL_NAME_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
+export function getPortableMcpToolName(internalName: string) {
+  const portableName = internalName
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replaceAll(".", "_")
+    .toLowerCase();
+  if (!PORTABLE_MCP_TOOL_NAME_PATTERN.test(portableName)) {
+    throw new Error(
+      `MCP tool name ${internalName} cannot be represented as a portable client name.`,
+    );
+  }
+  return portableName;
+}
+
 const ACCOUNT_ID_PROPERTY = {
   accountId: { type: "string" },
 } as const;
@@ -771,4 +786,18 @@ export function getToolContractDefinitions(
   return TOOL_CONTRACT_DEFINITIONS.filter(
     (tool) => tool.transport === transport,
   );
+}
+
+export function getPublicMcpToolContractDefinitions(
+  transport?: ToolContractDefinition["transport"],
+) {
+  const seenNames = new Set<string>();
+  return getToolContractDefinitions(transport).map((tool) => {
+    const name = getPortableMcpToolName(tool.name);
+    if (seenNames.has(name)) {
+      throw new Error(`Duplicate portable MCP tool name: ${name}.`);
+    }
+    seenNames.add(name);
+    return { ...tool, name };
+  });
 }

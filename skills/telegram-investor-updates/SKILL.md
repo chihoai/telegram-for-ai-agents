@@ -8,7 +8,7 @@ metadata:
   chiho.risk: medium
   chiho.requiresApproval: "true"
   chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(search.messages) mcp(tags.set) mcp(company.link) mcp(tasks.add) mcp(summary.refresh) mcp(summary.show) mcp(nudge.generate) mcp(outbox.preview)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(search_messages) mcp(tags_set) mcp(company_link) mcp(tasks_add) mcp(summary_refresh) mcp(summary_show) mcp(nudge_generate) mcp(outbox_preview)
 ---
 
 # telegram-investor-updates

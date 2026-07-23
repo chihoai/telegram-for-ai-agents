@@ -8,7 +8,7 @@ metadata:
   chiho.risk: low
   chiho.requiresApproval: "false"
   chiho.cloudScopes: telegram.read, crm.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(search.messages) mcp(tags.suggest) mcp(tags.set) mcp(company.suggest) mcp(company.link) mcp(tasks.suggest) mcp(tasks.add) mcp(summary.refresh)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(search_messages) mcp(tags_suggest) mcp(tags_set) mcp(company_suggest) mcp(company_link) mcp(tasks_suggest) mcp(tasks_add) mcp(summary_refresh)
 ---
 
 # telegram-partner-pipeline

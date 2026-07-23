@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import "dotenv/config";
-
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -9,8 +7,14 @@ import {
   ListToolsRequestSchema,
   type CallToolResult,
 } from "@modelcontextprotocol/sdk/types.js";
-import { getToolContractDefinitions } from "../contracts/tool-contracts.js";
+import { loadEnvironment } from "../app/environment.js";
+import {
+  getPublicMcpToolContractDefinitions,
+  getToolContractDefinitions,
+} from "../contracts/tool-contracts.js";
 import { executeLocalToolCall } from "../core/tool-dispatch.js";
+
+loadEnvironment();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -52,6 +56,8 @@ function isFailedPayload(payload: unknown) {
 }
 
 function createServer() {
+  const internalTools = getToolContractDefinitions();
+  const publicTools = getPublicMcpToolContractDefinitions();
   const server = new Server(
     {
       name: "tgchats-local",
@@ -70,7 +76,7 @@ function createServer() {
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: getToolContractDefinitions().map((tool) => ({
+    tools: publicTools.map((tool) => ({
       name: tool.name,
       title: tool.title,
       description: tool.description,
@@ -82,9 +88,15 @@ function createServer() {
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     try {
+      const toolIndex = publicTools.findIndex(
+        (tool) => tool.name === request.params.name,
+      );
+      if (toolIndex === -1) {
+        throw new Error(`Unknown tool: ${request.params.name}`);
+      }
       const payload = redactSensitiveFields(
         await executeLocalToolCall(
-          request.params.name,
+          internalTools[toolIndex].name,
           request.params.arguments || {},
         ),
       );

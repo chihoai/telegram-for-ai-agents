@@ -59,6 +59,20 @@ describe('parseProxyUrl', () => {
       'Invalid proxy URL',
     );
   });
+
+  it('does not include proxy credentials in malformed URL errors', () => {
+    const secret = 'proxy-password-sentinel';
+    let message = '';
+    try {
+      parseProxyUrl(`http://user:${secret}@`);
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+
+    expect(message).toContain('Invalid proxy URL');
+    expect(message).not.toContain(secret);
+    expect(message).not.toContain('user:');
+  });
 });
 
 describe('createProxyTransport', () => {

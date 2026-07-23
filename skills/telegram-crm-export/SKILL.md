@@ -8,7 +8,7 @@ metadata:
   chiho.risk: medium
   chiho.requiresApproval: "true"
   chiho.cloudScopes: telegram.read, crm.read
-allowed-tools: mcp(search.messages) mcp(dialogs.list) mcp(chat.read) mcp(tags.get) mcp(company.get) mcp(tasks.today) mcp(summary.show)
+allowed-tools: mcp(search_messages) mcp(dialogs_list) mcp(chat_read) mcp(tags_get) mcp(company_get) mcp(tasks_today) mcp(summary_show)
 ---
 
 # telegram-crm-export

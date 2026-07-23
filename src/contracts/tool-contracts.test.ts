@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { TOOL_CONTRACT_DEFINITIONS } from "./tool-contracts.js";
+import { ListToolsResultSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  getPortableMcpToolName,
+  getPublicMcpToolContractDefinitions,
+  PORTABLE_MCP_TOOL_NAME_PATTERN,
+  TOOL_CONTRACT_DEFINITIONS,
+} from "./tool-contracts.js";
 import exportedToolContracts from "../../docs/tool-contracts.json" with { type: "json" };
+import exportedPublicToolContracts from "../../docs/public-mcp-tool-contracts.json" with { type: "json" };
 
 describe("TOOL_CONTRACT_DEFINITIONS", () => {
   it("uses unique tool names", () => {
@@ -8,8 +15,33 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
     expect(new Set(names).size).toBe(names.length);
   });
 
+  it("publishes unique portable names accepted by Claude and Codex clients", () => {
+    const publicTools = getPublicMcpToolContractDefinitions();
+    const publicNames = publicTools.map((tool) => tool.name);
+
+    expect(publicTools).toHaveLength(TOOL_CONTRACT_DEFINITIONS.length);
+    expect(new Set(publicNames).size).toBe(publicNames.length);
+    expect(
+      publicNames.every((name) => PORTABLE_MCP_TOOL_NAME_PATTERN.test(name)),
+    ).toBe(true);
+    expect(publicNames.every((name) => name === name.toLowerCase())).toBe(true);
+    expect(publicNames).toContain("account_whoami");
+    expect(publicNames).toContain("message_send_draft");
+    expect(publicNames.some((name) => name.includes("."))).toBe(false);
+    expect(() => ListToolsResultSchema.parse({ tools: publicTools })).not.toThrow();
+  });
+
+  it("fails closed for invalid portable names", () => {
+    expect(() => getPortableMcpToolName("x".repeat(65))).toThrow(
+      /cannot be represented/,
+    );
+  });
+
   it("matches the exported machine-readable contract artifact", () => {
     expect(exportedToolContracts).toEqual(TOOL_CONTRACT_DEFINITIONS);
+    expect(exportedPublicToolContracts).toEqual(
+      getPublicMcpToolContractDefinitions(),
+    );
   });
 
   it("accepts numeric and canonical string rule ids for cleanup tools", () => {

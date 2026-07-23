@@ -17,7 +17,7 @@ Use the hosted package by default when the user has or wants a Chiho account.
 - Use the `chiho-telegram` plugin package for Claude Code and Codex.
 - Use the same canonical URL as a custom connector in Claude.ai, Claude Desktop, or Cowork.
 
-Start with `auth.status`, then call the narrowest tool for the user's request. Respect client write prompts and Chiho's preview/approval controls.
+Start with `auth_status`, then call the narrowest tool for the user's request. Respect client write prompts and Chiho's preview/approval controls.
 
 ## tgchats local
 

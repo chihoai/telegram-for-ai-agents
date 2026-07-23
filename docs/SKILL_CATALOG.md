@@ -15,8 +15,8 @@ The public `telegram-for-agents` skill selects Chiho.ai Cloud or self-hosted `tg
 | --- | --- | --- | --- | --- |
 | `telegram-chat-identity-challenge` | Ask untrusted new chats for a Kim Jong Un criticism challenge before sensitive conversation continues | High | `telegram.read`, `telegram.message.preview`, `telegram.message.send`, `crm.write` | Dialog, preview/draft, tag, and task tools |
 | `telegram-human-verification-challenge` | Send CAPTCHA-like reasoning challenges to new or suspicious chats and classify the reply | High | `telegram.read`, `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write`, `crm.write` | Dialog, preview/draft, tag, and task tools |
-| `telegram-bulk-template-message` | Send approved templates to selected chats | High | `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Matching `outbox.*` tools |
-| `telegram-conditional-replies` | Draft or run conditional reply rules | High | `rules.*`, message write scopes for execution | `rules.*`, matching message write tools |
+| `telegram-bulk-template-message` | Send approved templates to selected chats | High | `telegram.message.preview`, `telegram.message.send`, `telegram.batch.write` | Preview and approved-send outbox tools |
+| `telegram-conditional-replies` | Draft or run conditional reply rules | High | Rule-management and message-write scopes | Rule list/add/run/log tools plus preview and approved-send tools |
 | `telegram-add-colleagues-to-group` | Add or invite colleagues to groups | High | `telegram.members.invite` | Matching `members.*` tools |
 | `telegram-followup-tasks` | Find follow-ups and create CRM tasks | Low | `telegram.read`, `crm.write` | Existing task tools |
 | `telegram-group-cleanup` | Review stale groups and clean up safely | High | Folder write scopes, future group leave tools | Folder tools, future group leave tools |
@@ -70,20 +70,20 @@ Every skill should remain portable: `SKILL.md` contains the routing rules, `refe
 
 Cloud write tools are the hosted MCP baseline for skills that preview, send, invite, or organize Telegram state.
 
-Cloud Telegram reads and cloud CRM metadata are separate surfaces. A dialog can be visible to `dialogs.list` or `chat.read` before it has been synced into CRM metadata. When CRM tools such as `tags.get`, `company.get`, `summary.show`, or suggestion tools report that chat metadata is unavailable, keep using Telegram read tools for context and ask for sync/import before persisting CRM changes. Cloud `chat.read` may also return a minimum page size even when a smaller `limit` is requested.
+Cloud Telegram reads and cloud CRM metadata are separate surfaces. A dialog can be visible to `dialogs_list` or `chat_read` before it has been synced into CRM metadata. When CRM tools such as `tags_get`, `company_get`, `summary_show`, or suggestion tools report that chat metadata is unavailable, keep using Telegram read tools for context and ask for sync/import before persisting CRM changes. Cloud `chat_read` may also return a minimum page size even when a smaller `limit` is requested.
 
 | Tool | Status | Required scopes | Notes |
 | --- | --- | --- | --- |
-| `outbox.preview` | Cloud baseline | `telegram.message.preview` | Creates a preview record without sending. |
-| `outbox.sendApproved` | Cloud baseline | `telegram.message.send`, `telegram.batch.write` | Executes an approved preview. |
-| `message.sendDraft` | Cloud baseline | `telegram.message.send` | Sends one message to one resolved peer. |
-| `members.invitePreview` | Cloud baseline | `telegram.members.invite` | Previews adding/inviting a user to groups. |
-| `members.inviteApproved` | Cloud baseline | `telegram.members.invite` | Executes an approved member invite preview. |
-| `folders.create` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
-| `folders.addDialog` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
-| `folders.removeDialog` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
-| `groups.leavePreview` | Planned | `telegram.groups.leave` | Needed for `telegram-group-cleanup`. |
-| `groups.leaveApproved` | Planned | `telegram.groups.leave` | Needed for `telegram-group-cleanup`. |
+| `outbox_preview` | Cloud baseline | `telegram.message.preview` | Creates a preview record without sending. |
+| `outbox_send_approved` | Cloud baseline | `telegram.message.send`, `telegram.batch.write` | Executes an approved preview. |
+| `message_send_draft` | Cloud baseline | `telegram.message.send` | Sends one message to one resolved peer. |
+| `members_invite_preview` | Cloud baseline | `telegram.members.invite` | Previews adding/inviting a user to groups. |
+| `members_invite_approved` | Cloud baseline | `telegram.members.invite` | Executes an approved member invite preview. |
+| `folders_create` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
+| `folders_add_dialog` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
+| `folders_remove_dialog` | Cloud baseline | `telegram.folders.write` | Personal-scope tokens only. |
+| `groups_leave_preview` | Planned | `telegram.groups.leave` | Needed for `telegram-group-cleanup`. |
+| `groups_leave_approved` | Planned | `telegram.groups.leave` | Needed for `telegram-group-cleanup`. |
 
 ## Validation
 

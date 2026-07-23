@@ -7,11 +7,11 @@ Required scopes:
 
 Useful tools:
 
-- `dialogs.list`
-- `chat.read`
-- `tags.get`
-- `tags.set`
-- `tasks.today`
-- `summary.show`
+- `dialogs_list`
+- `chat_read`
+- `tags_get`
+- `tags_set`
+- `tasks_today`
+- `summary_show`
 
-Cloud Telegram reads and CRM metadata are separate. If `dialogs.list` or `chat.read` can see a peer but `tags.get`, `summary.show`, or other CRM tools report that chat metadata is unavailable, the peer likely has not been synced/imported into the CRM store yet. Continue with Telegram reads and ask for sync/import before persisting VIP metadata.
+Cloud Telegram reads and CRM metadata are separate. If `dialogs_list` or `chat_read` can see a peer but `tags_get`, `summary_show`, or other CRM tools report that chat metadata is unavailable, the peer likely has not been synced/imported into the CRM store yet. Continue with Telegram reads and ask for sync/import before persisting VIP metadata.

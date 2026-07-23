@@ -1,0 +1,2033 @@
+[
+  {
+    "name": "auth_status",
+    "description": "Check whether a local Telegram session file exists.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Check local Telegram connection",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "account_whoami",
+    "description": "Return the currently logged-in Telegram account.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Show the local Telegram account",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "dialogs_list",
+    "description": "List recent Telegram dialogs.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "all": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "List Telegram chats",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "chat_read",
+    "description": "Read recent history for a Telegram peer.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "sinceMessageId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offsetDate": {
+          "type": "integer"
+        },
+        "peerRef": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "user",
+                "chat",
+                "channel",
+                "self"
+              ]
+            },
+            "accessHash": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "title": "Read a Telegram chat",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "search_messages",
+    "description": "Search Telegram or local CRM messages.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "query"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "chat": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "local": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "Search Telegram messages",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "folders_list",
+    "description": "List editable Telegram folders.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "List Telegram folders",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "folders_update",
+    "description": "Mutate Telegram folders using one explicit action at a time.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "action",
+            "title",
+            "peer"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "required": [
+            "action",
+            "folder",
+            "title"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "rename"
+              ]
+            }
+          }
+        },
+        {
+          "required": [
+            "action",
+            "folder"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "delete"
+              ]
+            }
+          }
+        },
+        {
+          "required": [
+            "action",
+            "folderIds"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "order"
+              ]
+            }
+          }
+        },
+        {
+          "required": [
+            "action",
+            "folder",
+            "peers"
+          ],
+          "properties": {
+            "action": {
+              "enum": [
+                "add",
+                "remove"
+              ]
+            }
+          }
+        }
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string",
+          "enum": [
+            "create",
+            "rename",
+            "delete",
+            "order",
+            "add",
+            "remove"
+          ]
+        },
+        "folder": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "folderIds": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "peers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "title": "Update Telegram folders",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "folders_create",
+    "description": "Create a Telegram folder containing one peer.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title",
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Create a Telegram folder",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "folders_add_dialog",
+    "description": "Add one dialog to a Telegram folder.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "folderId",
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "folderId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Add a chat to a Telegram folder",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "folders_remove_dialog",
+    "description": "Remove one dialog from a Telegram folder.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "folderId",
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "folderId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Remove a chat from a Telegram folder",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "outbox_preview",
+    "description": "Preview a Telegram outbox batch without sending.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peers": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "string"
+          }
+        },
+        "text": {
+          "type": "string"
+        },
+        "template": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            },
+            "text": {
+              "type": "string"
+            }
+          }
+        },
+        "templateId": {
+          "type": "string"
+        },
+        "schedule": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        }
+      }
+    },
+    "title": "Prepare Telegram messages",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "outbox_send_approved",
+    "description": "Execute an approved Telegram outbox preview.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "previewId"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "previewId": {
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Send approved Telegram messages",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "message_send_draft",
+    "description": "Send one Telegram message draft to one peer.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer",
+        "text"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "schedule": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "clientProvidedDraftId": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Send a Telegram message",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "members_invite_preview",
+    "description": "Preview adding or inviting a Telegram user to group chats.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "userId",
+        "groups"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "userAccessHash": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "peerId": {
+                    "type": "string"
+                  },
+                  "groupId": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "title": "Prepare Telegram member invites",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "members_invite_approved",
+    "description": "Execute an approved Telegram member invite preview.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "previewId"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "previewId": {
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Invite approved Telegram members",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "groups_leave_preview",
+    "description": "Preview leaving Telegram groups.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "groups"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "groups": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "additionalProperties": true,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "peerId": {
+                    "type": "string"
+                  },
+                  "groupId": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "clear": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "Prepare leaving Telegram groups",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "groups_leave_approved",
+    "description": "Execute an approved Telegram group leave preview.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "previewId"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "previewId": {
+          "type": "string"
+        },
+        "idempotencyKey": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Leave approved Telegram groups",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "tags_get",
+    "description": "List tags, optionally filtered to a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Show CRM tags",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "tags_set",
+    "description": "Set manual tags for a Telegram peer. An empty tags array clears tags for the peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer",
+        "tags"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "title": "Set CRM tags",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "tags_clear",
+    "description": "Clear CRM tags for a Telegram peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Clear CRM tags",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "tags_suggest",
+    "description": "Generate or apply AI tag suggestions for a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "apply": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "Suggest or apply CRM tags",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "company_get",
+    "description": "Show linked company metadata for a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Show a linked company",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "company_link",
+    "description": "Link a peer to a company record.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer",
+        "company"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Link a company",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "company_unlink",
+    "description": "Remove linked company metadata for a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Unlink a company",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "company_suggest",
+    "description": "Generate or apply an AI company suggestion for a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "apply": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "Suggest or apply a company",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "tasks_today",
+    "description": "List follow-up tasks due today.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "List tasks due today",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "tasks_add",
+    "description": "Add a follow-up task for a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer",
+        "due",
+        "why"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "due": {
+          "type": "string"
+        },
+        "why": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "low",
+            "med",
+            "high"
+          ]
+        }
+      }
+    },
+    "title": "Add a follow-up task",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "tasks_done",
+    "description": "Mark a task as completed.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "taskId"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "taskId": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "title": "Complete a follow-up task",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "tasks_suggest",
+    "description": "Generate or apply AI task suggestions for a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "apply": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "Suggest or apply follow-up tasks",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "summary_show",
+    "description": "Show the stored summary for a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "rolling",
+            "since_last_seen"
+          ]
+        }
+      }
+    },
+    "title": "Show a chat summary",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "summary_refresh",
+    "description": "Generate or refresh summaries.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        },
+        "all": {
+          "type": "boolean"
+        }
+      }
+    },
+    "title": "Refresh chat summaries",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "nudge_generate",
+    "description": "Generate a suggested follow-up nudge for a peer.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string"
+        },
+        "style": {
+          "type": "string",
+          "enum": [
+            "concise",
+            "friendly"
+          ]
+        }
+      }
+    },
+    "title": "Generate a follow-up message",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "rules_list",
+    "description": "List CRM automation rules.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "List automation rules",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "rules_add",
+    "description": "Add a CRM automation rule.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "instruction"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "instruction": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "followupDays": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "title": "Add an automation rule",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "rules_disable",
+    "description": "Disable a CRM automation rule by rule ID.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "ruleId": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            }
+          ]
+        }
+      }
+    },
+    "title": "Disable an automation rule",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "rules_delete",
+    "description": "Delete a CRM automation rule by rule ID.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ruleId"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "ruleId": {
+          "oneOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string",
+              "pattern": "^[1-9]\\d*$"
+            }
+          ]
+        }
+      }
+    },
+    "title": "Delete an automation rule",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "rules_run",
+    "description": "Execute enabled CRM automation rules.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "dialogs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
+    },
+    "title": "Run automation rules",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "rules_dry_run",
+    "description": "Evaluate enabled CRM automation rules without writing actions or events.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "dialogs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
+    },
+    "title": "Preview automation rule results",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "rules_log",
+    "description": "List recent rule events.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200
+        }
+      }
+    },
+    "title": "List automation activity",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "sync_backfill",
+    "description": "Backfill Telegram dialogs and history into the local CRM database.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "dialogs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "perChatLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
+    },
+    "title": "Backfill the local Telegram database",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "sync_once",
+    "description": "Perform a one-shot sync of latest dialog state.",
+    "transport": "local",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "dialogs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      }
+    },
+    "title": "Sync recent Telegram chats",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  },
+  {
+    "name": "session_logout",
+    "description": "Log out the current Telegram session.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Disconnect the local Telegram account",
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    }
+  }
+]

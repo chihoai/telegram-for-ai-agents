@@ -8,7 +8,7 @@ metadata:
   chiho.risk: medium
   chiho.requiresApproval: "false"
   chiho.cloudScopes: telegram.read, crm.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(search.messages) mcp(tags.set) mcp(company.get) mcp(tasks.add) mcp(tasks.suggest) mcp(summary.refresh) mcp(rules.add) mcp(rules.run) mcp(rules.log)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(search_messages) mcp(tags_set) mcp(company_get) mcp(tasks_add) mcp(tasks_suggest) mcp(summary_refresh) mcp(rules_add) mcp(rules_run) mcp(rules_log)
 ---
 
 # telegram-support-escalation

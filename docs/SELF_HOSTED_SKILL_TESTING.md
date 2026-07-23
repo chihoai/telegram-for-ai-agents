@@ -9,7 +9,7 @@ Use this runbook in a fresh Codex thread to test the self-hosted `tgchats` setup
 - Public entry skill: `SKILL.md`
 - Local runtime skill: `skills/tgchats-local/SKILL.md`
 - Command contracts: `docs/COMMAND_CONTRACTS.md`
-- MCP tool contracts: `docs/tool-contracts.json`
+- Public MCP tool contracts: `docs/public-mcp-tool-contracts.json`
 
 Do not print Telegram API hashes, session files, session strings, database URLs with passwords, or AI API keys.
 
@@ -20,7 +20,7 @@ Verified on 2026-06-10 and refreshed on 2026-06-11:
 - `npm test` passed: 17 files / 80 tests.
 - `npm run validate:skills` passed: 17 skill directories.
 - `npm run check:local-install` passed.
-- `npm run check:local-install` rebuilt the project, exported `docs/tool-contracts.json`, and reported 42 local MCP tools.
+- `npm run check:local-install` rebuilt the project, exported both internal and public MCP contracts, and reported 42 local MCP tools.
 - Docker initially could not reach the OrbStack socket, but starting OrbStack made Docker available.
 - `docker compose up -d` started the bundled Postgres 16 service.
 - `npm run dev -- db migrate --json` applied migrations and returns `{ "ok": true, "action": "migrate" }`.
@@ -35,17 +35,17 @@ Verified on 2026-06-10 and refreshed on 2026-06-11:
   - `inbox --limit 10 --json`
   - `folders list --json`
 - Local MCP read-only Telegram smoke passed:
-  - `auth.status {}`
-  - `account.whoami {}`
-  - `dialogs.list { "limit": 5 }`
-  - `folders.list {}`
+  - `auth_status {}`
+  - `account_whoami {}`
+  - `dialogs_list { "limit": 5 }`
+  - `folders_list {}`
 - Local CRM read smoke passed after Postgres startup:
   - `tasks today --json`
   - `rules list --json`
-  - MCP `tasks.today {}`
-  - MCP `rules.list {}`
-  - MCP `tags.get {}`
-  - MCP `search.messages { "query": "test", "local": true, "limit": 5 }`
+  - MCP `tasks_today {}`
+  - MCP `rules_list {}`
+  - MCP `tags_get {}`
+  - MCP `search_messages { "query": "test", "local": true, "limit": 5 }`
 - Small sync and local reads passed:
   - `sync once --dialogs 5 --json`
   - `search "test" --local --limit 5 --json`
@@ -54,7 +54,7 @@ Verified on 2026-06-10 and refreshed on 2026-06-11:
   - `open <peer> --json`
   - `chat <peer> --limit 10 --json`
   - `search "test" --chat <peer> --limit 15 --json`
-  - MCP `chat.read { "peer": "<peer>", "limit": 10 }`
+  - MCP `chat_read { "peer": "<peer>", "limit": 10 }`
   - `sync backfill --dialogs 20 --per-chat-limit 50 --json`
   - `sync tail --interval-seconds 60 --dialogs 20` started, completed one loop, and was stopped cleanly.
 - Reversible CRM metadata smoke passed and cleaned up on a synced numeric peer:
@@ -73,7 +73,7 @@ Verified on 2026-06-10 and refreshed on 2026-06-11:
   - `nudge <peer> --style concise --json` returned `ok: true` with draft text.
   - `tags suggest --apply`, `company suggest --apply`, and `tasks suggest --apply` were tested on a harmless peer; tag/company metadata was cleaned up and the created task was marked done.
   - `rules run --dry-run --json` with Gemini did not finish within the 180-second smoke timeout, but the temporary smoke rule was disabled and deleted.
-  - Follow-up implementation added `rules run --dialogs <n>` / MCP `rules.run { "dialogs": n }` so smoke tests can bound AI rule evaluation.
+  - Follow-up implementation added `rules run --dialogs <n>` / MCP `rules_run { "dialogs": n }` so smoke tests can bound AI rule evaluation.
   - Bounded Gemini rule smoke passed with `rules run --dry-run --dialogs 3 --json`; the disposable rule was disabled and deleted.
 - Export/import smoke passed:
   - JSON, CSV, and Markdown exports were written under `/tmp/tgchats-selfhosted-smoke`.
@@ -106,11 +106,11 @@ Verified on 2026-06-10 and refreshed on 2026-06-11:
   - A syntactically valid but absent task id returns `ok: true` with `updated: false`.
 - Workflow skill coverage completed for all 15 workflow skills listed below, using local MCP where supported and the previously verified CLI export/import path for full local exports, with one retried AI-output failure:
   - Low/medium-risk workflows used read tools, local search, AI suggestions, summaries, nudges, and dry-run rules.
-  - High-risk workflows used preview-only tools: `outbox.preview`, `members.invitePreview`, and `groups.leavePreview`.
+  - High-risk workflows used preview-only tools: `outbox_preview`, `members_invite_preview`, and `groups_leave_preview`.
   - No approved send, invite, or leave tools were executed in this workflow pass.
   - Five preview records were created as audit artifacts.
   - One disposable conditional-reply rule was created, dry-run, logged, disabled, and deleted.
-  - One full-matrix `summary.refresh` call returned `ok: false`; an isolated local MCP retry of the meeting-recap sequence (`chat.read`, `summary.refresh`, `nudge.generate`) passed. Treat this as a transient AI-output smoke hiccup unless it recurs.
+  - One full-matrix `summary_refresh` call returned `ok: false`; an isolated local MCP retry of the meeting-recap sequence (`chat_read`, `summary_refresh`, `nudge_generate`) passed. Treat this as a transient AI-output smoke hiccup unless it recurs.
 
 Implementation fixes made during the same run:
 
@@ -119,7 +119,7 @@ Implementation fixes made during the same run:
 - Fixed `folders create --peer` stale replay by only using folder-create idempotency replay when an explicit `--idempotency-key` is provided.
 - Fixed `db migrate --json` so it returns machine-readable JSON instead of plain text.
 - Fixed `archive` and `unarchive` so trailing flags are ignored, numeric peer IDs are normalized, and `--json` returns machine-readable JSON.
-- Added bounded `rules run --dialogs <n>` support and exposed it through local MCP `rules.run` / `rules.dryRun` contracts.
+- Added bounded `rules run --dialogs <n>` support and exposed it through local MCP `rules_run` / `rules_dry_run` contracts.
 - Added stable JSON error codes for missing AI config, invalid Telegram peers, invalid export paths, and bad Telegram session storage paths.
 - Added local folder preflight errors for empty folder creation and removing the last included peer.
 - Added local MCP `accountId` validation against `TELEGRAM_ACCOUNT_LABEL` and advertised `accountId` across local MCP tool contracts.
@@ -214,7 +214,7 @@ Expected:
 
 - Tests pass.
 - Build passes.
-- `docs/tool-contracts.json` is current.
+- `docs/tool-contracts.json` and `docs/public-mcp-tool-contracts.json` are current.
 - Local install check passes, or reports only missing runtime credentials/session.
 
 ## Auth And Session
@@ -246,7 +246,7 @@ npm run dev -- whoami --json
 Expected:
 
 - `auth status --json` returns `ok: true`.
-- `whoami --json` returns account identity and session path.
+- `whoami --json` returns account identity and account label without disclosing the session path.
 
 ## Read-Only CLI Smoke
 
@@ -289,13 +289,13 @@ After build:
 
 If testing through an MCP client, call:
 
-- `auth.status {}`
-- `account.whoami {}`
-- `dialogs.list { "limit": 10 }`
-- `chat.read { "peer": "<peer>", "limit": 10 }`
-- `folders.list {}`
-- `tasks.today {}`
-- `rules.list {}`
+- `auth_status {}`
+- `account_whoami {}`
+- `dialogs_list { "limit": 10 }`
+- `chat_read { "peer": "<peer>", "limit": 10 }`
+- `folders_list {}`
+- `tasks_today {}`
+- `rules_list {}`
 
 Expected:
 
@@ -404,10 +404,10 @@ npm run dev -- rules delete <ruleId> --json
 
 Expected:
 
-- `rules.list` shows the rule.
+- `rules_list` shows the rule.
 - `rules run --dry-run --dialogs 3` evaluates a bounded recent-dialog sample without writing.
-- `rules.log` remains readable.
-- `rules.disable` and `rules.delete` clean up the smoke rule by stable `ruleId`.
+- `rules_log` remains readable.
+- `rules_disable` and `rules_delete` clean up the smoke rule by stable `ruleId`.
 
 ## Folder And Telegram State Smoke
 
@@ -453,13 +453,13 @@ Test order:
 
 Tool families to test when safe:
 
-- `outbox.preview`
-- `outbox.sendApproved`
-- `message.sendDraft`
-- `members.invitePreview`
-- `members.inviteApproved`
-- `groups.leavePreview`
-- `groups.leaveApproved`
+- `outbox_preview`
+- `outbox_send_approved`
+- `message_send_draft`
+- `members_invite_preview`
+- `members_invite_approved`
+- `groups_leave_preview`
+- `groups_leave_approved`
 
 Expected:
 
@@ -471,7 +471,7 @@ Audit behavior:
 
 - Preview tools write JSON records next to the Telegram session under `agent-write-previews/`.
 - Approved execution tools write idempotency/audit JSON records under `agent-write-runs/`.
-- `message.sendDraft` is a direct send path, not a preview-first path. It writes only an `agent-write-runs/` record keyed by `clientProvidedDraftId` when present, otherwise by a payload hash.
+- `message_send_draft` is a direct send path, not a preview-first path. It writes only an `agent-write-runs/` record keyed by `clientProvidedDraftId` when present, otherwise by a payload hash.
 - Preview records include `previewId`, `kind`, `createdAt`, `expiresAt`, `payloadHash`, `payload`, and `summary`.
 - Preview records expire after 30 minutes; first-time approved execution fails if the referenced preview is missing, expired, or has the wrong kind.
 - Run records for preview-approved tools are keyed by tool name, preview id, and optional idempotency key. Reusing the same idempotency key returns an `idempotentReplay`, even if the original preview later expires or is removed.

@@ -4,7 +4,7 @@ If `auth` or any Telegram command prints a QR login code, show the full QR code 
 
 Use local `tgchats-mcp` with:
 
-- `members.invitePreview`
-- `members.inviteApproved`
+- `members_invite_preview`
+- `members_invite_approved`
 
-The preview is persisted next to the local Telegram session so a later `members.inviteApproved` call can execute by `previewId`.
+The preview is persisted next to the local Telegram session so a later `members_invite_approved` call can execute by `previewId`.

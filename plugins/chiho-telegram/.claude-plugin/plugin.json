@@ -6,7 +6,7 @@
     "name": "Chiho",
     "url": "https://chiho.ai/"
   },
-  "homepage": "https://chiho.ai/telegram-mcp",
+  "homepage": "https://chiho.ai/",
   "repository": "https://github.com/chihoai/telegram-for-ai-agents",
   "license": "MIT",
   "keywords": ["telegram", "crm", "mcp", "oauth", "follow-up"],

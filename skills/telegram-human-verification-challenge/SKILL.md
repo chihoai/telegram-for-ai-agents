@@ -8,7 +8,7 @@ metadata:
   chiho.risk: high
   chiho.requiresApproval: "true"
   chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, telegram.batch.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(tags.set) mcp(tasks.add) mcp(outbox.preview) mcp(outbox.sendApproved) mcp(message.sendDraft)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(tags_set) mcp(tasks_add) mcp(outbox_preview) mcp(outbox_send_approved) mcp(message_send_draft)
 ---
 
 # telegram-human-verification-challenge
@@ -21,21 +21,21 @@ Use this skill to send a short reasoning challenge to a new, reopened, or suspic
 - Use text-message challenges for one-to-one chats; do not rely on Telegram bot inline buttons or polls for normal user-account private messages.
 - Keep challenges simple, deterministic, and answerable in one short reply.
 - Do not ask for private information, account access, payment details, ID documents, or biometric proof.
-- Prefer `outbox.preview` so the user can approve or edit the message before it is sent.
-- Use `outbox.sendApproved` only after approval of the preview, or `message.sendDraft` only when the user explicitly requests immediate sending to one specific chat.
+- Prefer `outbox_preview` so the user can approve or edit the message before it is sent.
+- Use `outbox_send_approved` only after approval of the preview, or `message_send_draft` only when the user explicitly requests immediate sending to one specific chat.
 - If the contact fails, ignores, or evades the challenge, tag or task the chat for manual verification instead of accusing them of being a bot.
 - Do not repeatedly challenge a contact who already passed unless the user asks or the risk context changed.
 
 ## Flow
 
-1. Use `dialogs.list` to find candidate new chats, or `chat.read` for the user-specified chat.
+1. Use `dialogs_list` to find candidate new chats, or `chat_read` for the user-specified chat.
 2. Decide whether a challenge is appropriate from recent context and risk level.
 3. Generate one short challenge from the templates or challenge design reference.
 4. Keep the expected answer in the agent's working notes; do not include it in the outgoing message.
-5. Preview the challenge with `outbox.preview`.
-6. After approval, send the preview with `outbox.sendApproved`; use `message.sendDraft` only for an explicit direct-send instruction.
-7. Read the next reply with `chat.read` and compare it to the expected answer.
-8. Record the outcome with `tags.set` or `tasks.add` when the user wants persistent CRM tracking.
+5. Preview the challenge with `outbox_preview`.
+6. After approval, send the preview with `outbox_send_approved`; use `message_send_draft` only for an explicit direct-send instruction.
+7. Read the next reply with `chat_read` and compare it to the expected answer.
+8. Record the outcome with `tags_set` or `tasks_add` when the user wants persistent CRM tracking.
 9. Report the result as passed, failed, no reply, skipped, or needs manual review.
 
 ## Challenge Pattern

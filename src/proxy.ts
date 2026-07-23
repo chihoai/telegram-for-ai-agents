@@ -81,13 +81,13 @@ export function parseProxyUrl(proxyUrl: string): ParsedProxyConfig {
     parsedUrl = new URL(proxyUrl);
   } catch (error) {
     throw new Error(
-      `Invalid proxy URL "${proxyUrl}": ${error instanceof Error ? error.message : String(error)}`,
+      `Invalid proxy URL: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
   const scheme = parseScheme(parsedUrl);
   if (!parsedUrl.hostname) {
-    throw new Error(`Proxy URL is missing host: "${proxyUrl}"`);
+    throw new Error("Proxy URL is missing host.");
   }
 
   const port = parsePort(parsedUrl, scheme);

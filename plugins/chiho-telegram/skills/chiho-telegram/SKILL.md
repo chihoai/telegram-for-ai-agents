@@ -12,20 +12,20 @@ Use the hosted MCP server at `https://api.chiho.ai/mcp`. Let the client discover
 1. Ask the user to connect Telegram at `https://chiho.ai` if they have not already.
 2. Authenticate the `chiho-cloud` MCP connection in the browser.
 3. Let the user review the client identity, redirect host, Chiho account or team, and complete permission set before consenting.
-4. Call `auth.status`, then `account.whoami`, then the narrowest relevant tool.
+4. Call `auth_status`, then `account_whoami`, then the narrowest relevant tool.
 5. If the user revokes the connection at `https://chiho.ai/profile/agent-access`, stop and ask them to reconnect through OAuth.
 
 OAuth grants all currently supported Chiho capabilities. Continue to respect the client's write prompts and Chiho's server-side approval requirements.
 
 ## Operating rules
 
-- Use the `peer` or `peerRef` returned by `dialogs.list` for chat operations.
-- For a personal connection with missing chat metadata, call `sync.peer` for only the required peer before CRM, summary, or nudge tools.
-- `sync.peer` is unavailable to team-scoped connections. Ask the user to refresh the team's selected chats in Chiho when team metadata is missing.
+- Use the `peer` or `peerRef` returned by `dialogs_list` for chat operations.
+- For a personal connection with missing chat metadata, call `sync_peer` for only the required peer before CRM, summary, or nudge tools.
+- `sync_peer` is unavailable to team-scoped connections. Ask the user to refresh the team's selected chats in Chiho when team metadata is missing.
 - Treat tools that can apply AI suggestions as writes even when they can also preview.
 - Preview tools prepare approval state but do not execute the represented Telegram action.
 - Review recipients and content before sends, users and groups before invites, and groups plus history-clearing choices before leaving.
-- Use `write.approvePreview` only after the user reviews the matching preview.
+- Use `write_approve_preview` only after the user reviews the matching preview.
 - Treat logout, group leave, deletes, clears, unlinks, and replacements as destructive.
 - If Telegram authentication is stale, direct the user to Chiho's Telegram connection UI.
 

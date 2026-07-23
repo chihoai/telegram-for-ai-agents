@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { isDeepStrictEqual } from "node:util";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -18,11 +19,15 @@ function assert(condition, message) {
   }
 }
 
-function runNode(args) {
-  const result = spawnSync(process.execPath, args, {
+function runNodeCommand(args) {
+  return spawnSync(process.execPath, args, {
     cwd: projectRoot,
     encoding: "utf8",
   });
+}
+
+function runNode(args) {
+  const result = runNodeCommand(args);
 
   if (result.status !== 0) {
     throw new Error(
@@ -33,9 +38,15 @@ function runNode(args) {
   return result.stdout;
 }
 
-async function createMcpClient(command, args, { cwd = projectRoot } = {}) {
+async function createMcpClient(
+  command,
+  args,
+  { cwd = projectRoot, envOverrides = {} } = {},
+) {
   const env = Object.fromEntries(
-    Object.entries(process.env).filter((entry) => typeof entry[1] === "string"),
+    Object.entries({ ...process.env, ...envOverrides }).filter(
+      (entry) => typeof entry[1] === "string",
+    ),
   );
   const transport = new StdioClientTransport({
     command,
@@ -68,6 +79,11 @@ async function fileExists(filePath) {
 const cliPath = path.join(projectRoot, "dist", "cli.js");
 const mcpPath = path.join(projectRoot, "dist", "mcp", "stdio.js");
 const contractsPath = path.join(projectRoot, "docs", "tool-contracts.json");
+const publicContractsPath = path.join(
+  projectRoot,
+  "docs",
+  "public-mcp-tool-contracts.json",
+);
 const hostedPluginRoot = path.join(projectRoot, "plugins", "chiho-telegram");
 const localPluginRoot = path.join(projectRoot, "plugins", "tgchats-local");
 const codexMarketplacePath = path.join(
@@ -133,6 +149,10 @@ assert(await fileExists(mcpPath), `Missing MCP build output at ${mcpPath}`);
 assert(
   await fileExists(contractsPath),
   `Missing contract export at ${contractsPath}`,
+);
+assert(
+  await fileExists(publicContractsPath),
+  `Missing public contract export at ${publicContractsPath}`,
 );
 for (const removedLegacyPath of [
   path.join(projectRoot, ".codex-plugin", "plugin.json"),
@@ -350,19 +370,26 @@ assert(
 );
 
 if (authStatus.sessionPresent) {
-  const whoamiOutput = runNode([cliPath, "whoami", "--json"]).trim();
-  const whoami = JSON.parse(whoamiOutput);
-  assert(whoami.ok === true, "whoami JSON did not report ok: true");
-  assert(
-    typeof whoami.account?.id === "number",
-    "whoami JSON did not include account id",
-  );
-  assert(
-    whoami.sessionPath === undefined,
-    "whoami JSON must not disclose the Telegram session path",
-  );
+  const whoamiResult = runNodeCommand([cliPath, "whoami", "--json"]);
+  const whoami = JSON.parse(whoamiResult.stdout.trim());
+  const credentialsUnavailable =
+    whoamiResult.status !== 0 && whoami.code === "TELEGRAM_NOT_CONFIGURED";
+  if (!credentialsUnavailable) {
+    assert(whoamiResult.status === 0, "whoami command failed unexpectedly");
+    assert(whoami.ok === true, "whoami JSON did not report ok: true");
+    assert(
+      typeof whoami.account?.id === "number",
+      "whoami JSON did not include account id",
+    );
+    assert(
+      whoami.sessionPath === undefined,
+      "whoami JSON must not disclose the Telegram session path",
+    );
+  }
 
-  const smokePeer = process.env.TGCHATS_SMOKE_PEER?.trim();
+  const smokePeer = credentialsUnavailable
+    ? undefined
+    : process.env.TGCHATS_SMOKE_PEER?.trim();
   if (smokePeer) {
     const openOutput = runNode([cliPath, "open", smokePeer, "--json"]).trim();
     const openPayload = JSON.parse(openOutput);
@@ -373,7 +400,7 @@ if (authStatus.sessionPresent) {
     );
   }
 
-  if (process.env.DATABASE_URL) {
+  if (!credentialsUnavailable && process.env.DATABASE_URL) {
     const tasksOutput = runNode([cliPath, "tasks", "today", "--json"]).trim();
     const tasksPayload = JSON.parse(tasksOutput);
     assert(
@@ -388,6 +415,57 @@ if (authStatus.sessionPresent) {
 }
 
 const contracts = JSON.parse(await fs.readFile(contractsPath, "utf8"));
+const publicContracts = JSON.parse(
+  await fs.readFile(publicContractsPath, "utf8"),
+);
+const portableToolNamePattern = /^[A-Za-z0-9_-]{1,64}$/;
+assert(
+  publicContracts.length === contracts.length,
+  "Public and internal MCP contract counts must match",
+);
+for (const contract of publicContracts) {
+  assert(
+    typeof contract.name === "string" &&
+      portableToolNamePattern.test(contract.name) &&
+      !contract.name.includes("."),
+    `Public contract ${contract.name} must use a portable name`,
+  );
+}
+const publicInstructionPaths = [
+  path.join(projectRoot, "SKILL.md"),
+  path.join(projectRoot, "skills", "telegram-for-agents", "SKILL.md"),
+  hostedSkillPath,
+  localSkillPath,
+];
+for (const instructionPath of publicInstructionPaths) {
+  const instructions = await fs.readFile(instructionPath, "utf8");
+  for (const contract of contracts) {
+    assert(
+      !instructions.includes(contract.name),
+      `${instructionPath} must not expose internal tool name ${contract.name}`,
+    );
+  }
+}
+const hostedSkill = await fs.readFile(hostedSkillPath, "utf8");
+for (const requiredTool of [
+  "auth_status",
+  "account_whoami",
+  "dialogs_list",
+  "sync_peer",
+  "write_approve_preview",
+]) {
+  assert(
+    hostedSkill.includes(requiredTool),
+    `Hosted skill must document ${requiredTool}`,
+  );
+}
+const localSkill = await fs.readFile(localSkillPath, "utf8");
+for (const requiredTool of ["auth_status", "account_whoami", "dialogs_list"]) {
+  assert(
+    localSkill.includes(requiredTool),
+    `Local skill must document ${requiredTool}`,
+  );
+}
 const claudeMcpArgs = localClaudeServer.args.map((arg) =>
   arg.replaceAll("${CLAUDE_PLUGIN_ROOT}", localPluginRoot),
 );
@@ -396,6 +474,7 @@ const claudeMcpCwd = localClaudeServer.cwd.replaceAll(
   localPluginRoot,
 );
 const connections = [];
+const temporaryDirectories = [];
 
 try {
   const mcpConnection = await createMcpClient(process.execPath, [mcpPath]);
@@ -410,7 +489,7 @@ try {
     { timeout: 5_000 },
   );
   const toolNames = toolsList.tools.map((tool) => tool.name);
-  const contractNames = contracts.map((tool) => tool.name);
+  const contractNames = publicContracts.map((tool) => tool.name);
 
   assert(
     toolNames.length === contractNames.length,
@@ -418,10 +497,10 @@ try {
   );
   assert(
     JSON.stringify(toolNames) === JSON.stringify(contractNames),
-    "MCP tool order or names did not match docs/tool-contracts.json",
+    "MCP tool order or names did not match docs/public-mcp-tool-contracts.json",
   );
   for (const [index, listedTool] of toolsList.tools.entries()) {
-    const contract = contracts[index];
+    const contract = publicContracts[index];
     for (const field of [
       "name",
       "title",
@@ -438,18 +517,36 @@ try {
   }
 
   const authResult = await mcpConnection.client.callTool(
-    { name: "auth.status", arguments: {} },
+    { name: "auth_status", arguments: {} },
     undefined,
     { timeout: 5_000 },
   );
-  assert(authResult.isError !== true, "auth.status returned an MCP error");
+  assert(authResult.isError !== true, "auth_status returned an MCP error");
   assert(
     authResult.structuredContent?.sessionPath === undefined,
-    "auth.status disclosed the Telegram session path",
+    "auth_status disclosed the Telegram session path",
+  );
+
+  const parallelAuthResults = await Promise.all(
+    Array.from({ length: 8 }, () =>
+      mcpConnection.client.callTool(
+        { name: "auth_status", arguments: {} },
+        undefined,
+        { timeout: 5_000 },
+      ),
+    ),
+  );
+  assert(
+    parallelAuthResults.every(
+      (result) =>
+        result.isError !== true &&
+        result.structuredContent?.sessionPath === undefined,
+    ),
+    "parallel MCP tool calls must stay serialized and redact session paths",
   );
 
   const invalidCall = await mcpConnection.client.callTool(
-    { name: "chat.read", arguments: {} },
+    { name: "chat_read", arguments: {} },
     undefined,
     { timeout: 5_000 },
   );
@@ -460,6 +557,41 @@ try {
   assert(
     invalidCall.structuredContent === undefined,
     "MCP tool errors must not claim success-schema structured content",
+  );
+
+  const proxySecret = "proxy-password-sentinel";
+  const proxyErrorConnection = await createMcpClient(
+    process.execPath,
+    [mcpPath],
+    {
+      envOverrides: {
+        TELEGRAM_PROXY_URL: `http://user:${proxySecret}@`,
+      },
+    },
+  );
+  connections.push(proxyErrorConnection);
+  const proxyErrorResult = await proxyErrorConnection.client.callTool(
+    { name: "account_whoami", arguments: {} },
+    undefined,
+    { timeout: 5_000 },
+  );
+  assert(
+    proxyErrorResult.isError === true,
+    "malformed proxy configuration must return an MCP tool error",
+  );
+  assert(
+    !JSON.stringify(proxyErrorResult).includes(proxySecret),
+    "MCP tool errors must not disclose proxy credentials",
+  );
+
+  const dottedAliasCall = await mcpConnection.client.callTool(
+    { name: "auth.status", arguments: {} },
+    undefined,
+    { timeout: 5_000 },
+  );
+  assert(
+    dottedAliasCall.isError === true,
+    "legacy dotted MCP names must be rejected after the portable-name cutover",
   );
 
   const pluginConnection = await createMcpClient(process.execPath, [
@@ -477,8 +609,78 @@ try {
   const pluginToolNames = pluginToolsList.tools.map((tool) => tool.name);
   assert(
     JSON.stringify(pluginToolNames) === JSON.stringify(contractNames),
-    "plugin MCP launcher tool order or names did not match docs/tool-contracts.json",
+    "plugin MCP launcher tool order or names did not match docs/public-mcp-tool-contracts.json",
   );
+
+  let installedCacheLaunch = false;
+  let cachedPluginConnection;
+  if (process.platform !== "win32") {
+    const fixtureRoot = await fs.mkdtemp(
+      path.join(tmpdir(), "tgchats-installed-plugin-"),
+    );
+    temporaryDirectories.push(fixtureRoot);
+    const cachedPluginRoot = path.join(
+      fixtureRoot,
+      "client-cache",
+      "tgchats-local",
+    );
+    const linkedPackageRoot = path.join(fixtureRoot, "linked-package");
+    const linkedDistRoot = path.join(linkedPackageRoot, "dist");
+    const fixtureBinRoot = path.join(fixtureRoot, "bin");
+    const fixtureSessionPath = path.join(fixtureRoot, "linked.session");
+
+    await Promise.all([
+      fs.cp(localPluginRoot, cachedPluginRoot, { recursive: true }),
+      fs.cp(path.join(projectRoot, "dist"), linkedDistRoot, {
+        recursive: true,
+      }),
+      fs.mkdir(fixtureBinRoot, { recursive: true }),
+      fs.writeFile(fixtureSessionPath, ""),
+    ]);
+    await fs.symlink(
+      path.join(projectRoot, "node_modules"),
+      path.join(linkedPackageRoot, "node_modules"),
+      "dir",
+    );
+    await fs.writeFile(
+      path.join(linkedPackageRoot, ".env"),
+      `TELEGRAM_SESSION_PATH=${fixtureSessionPath}\n`,
+    );
+    const linkedMcpPath = path.join(linkedDistRoot, "mcp", "stdio.js");
+    const linkedBinaryPath = path.join(fixtureBinRoot, "tgchats-mcp");
+    await fs.symlink(linkedMcpPath, linkedBinaryPath);
+    await fs.chmod(linkedMcpPath, 0o755);
+
+    const cachedPluginLauncherPath = path.join(
+      cachedPluginRoot,
+      "scripts",
+      "run-tgchats-mcp.mjs",
+    );
+    cachedPluginConnection = await createMcpClient(
+      process.execPath,
+      [cachedPluginLauncherPath],
+      {
+        cwd: cachedPluginRoot,
+        envOverrides: {
+          PATH: `${fixtureBinRoot}${path.delimiter}${process.env.PATH || ""}`,
+          TELEGRAM_SESSION_PATH: undefined,
+          TGCHATS_ENV_PATH: undefined,
+        },
+      },
+    );
+    connections.push(cachedPluginConnection);
+    const cachedPluginAuth = await cachedPluginConnection.client.callTool(
+      { name: "auth_status", arguments: {} },
+      undefined,
+      { timeout: 5_000 },
+    );
+    assert(
+      cachedPluginAuth.isError !== true &&
+        cachedPluginAuth.structuredContent?.sessionPresent === true,
+      "installed cache launcher must fall back to the linked binary and load its package-root .env",
+    );
+    installedCacheLaunch = true;
+  }
 
   const claudePluginConnection = await createMcpClient(
     localClaudeServer.command,
@@ -499,7 +701,7 @@ try {
   );
   assert(
     JSON.stringify(claudePluginToolNames) === JSON.stringify(contractNames),
-    "Claude plugin MCP config tool order or names did not match docs/tool-contracts.json",
+    "Claude plugin MCP config tool order or names did not match docs/public-mcp-tool-contracts.json",
   );
 
   console.log(
@@ -513,11 +715,16 @@ try {
           contracts: contractNames.length,
           mcpInitialize: mcpConnection.serverInfo,
           pluginMcpInitialize: pluginConnection.serverInfo,
+          cachedPluginMcpInitialize: cachedPluginConnection?.serverInfo,
           claudePluginMcpInitialize: claudePluginConnection.serverInfo,
           mcpTools: toolNames.length,
           pluginMcpTools: pluginToolNames.length,
           claudePluginMcpTools: claudePluginToolNames.length,
           mcpErrors: true,
+          proxyCredentialRedaction: true,
+          dottedAliasesRejected: true,
+          parallelToolCallsSerialized: true,
+          installedCacheLaunch,
           sessionPathRedaction: true,
         },
         ok: true,
@@ -529,5 +736,10 @@ try {
 } finally {
   await Promise.allSettled(
     connections.reverse().map((connection) => connection.close()),
+  );
+  await Promise.allSettled(
+    temporaryDirectories.map((directory) =>
+      fs.rm(directory, { recursive: true, force: true }),
+    ),
   );
 }

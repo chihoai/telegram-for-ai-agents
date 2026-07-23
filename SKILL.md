@@ -17,7 +17,7 @@ Prefer the hosted package unless the user explicitly wants to self-host.
 - Package: `plugins/chiho-telegram`
 - Interactive onboarding: never uses a personal access token
 
-Connect Telegram at `https://chiho.ai`, install or add the hosted connector, authenticate in the browser, and start with `auth.status`.
+Connect Telegram at `https://chiho.ai`, install or add the hosted connector, authenticate in the browser, and start with `auth_status`.
 
 Claude.ai, Claude Desktop, and Cowork users can add `https://api.chiho.ai/mcp` as a custom connector. Claude Code and Codex users can install the hosted package from this repository's `chiho` marketplace.
 

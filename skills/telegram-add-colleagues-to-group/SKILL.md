@@ -8,7 +8,7 @@ metadata:
   chiho.risk: high
   chiho.requiresApproval: "true"
   chiho.cloudScopes: telegram.read, telegram.members.invite
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(members.invitePreview) mcp(members.inviteApproved)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(members_invite_preview) mcp(members_invite_approved)
 ---
 
 # telegram-add-colleagues-to-group
@@ -25,11 +25,11 @@ Use this skill to add or invite one Telegram user to one or more group chats.
 
 ## Flow
 
-1. Use `dialogs.list` to resolve candidate groups.
-2. Use `chat.read` only when group context is needed for disambiguation.
-3. Call `members.invitePreview` with the target user and groups.
+1. Use `dialogs_list` to resolve candidate groups.
+2. Use `chat_read` only when group context is needed for disambiguation.
+3. Call `members_invite_preview` with the target user and groups.
 4. Show the preview summary and ask for approval when policy requires it.
-5. Call `members.inviteApproved` with the `previewId`.
+5. Call `members_invite_approved` with the `previewId`.
 6. Report added groups, invite-link fallbacks, skipped groups, and failures.
 
 ## First-Time Setup

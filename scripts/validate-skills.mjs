@@ -6,19 +6,29 @@ const repoRoot = process.cwd();
 const skillsDir = path.join(repoRoot, "skills");
 const catalogPath = path.join(skillsDir, "catalog.json");
 const toolContractsPath = path.join(repoRoot, "docs", "tool-contracts.json");
+const publicToolContractsPath = path.join(
+  repoRoot,
+  "docs",
+  "public-mcp-tool-contracts.json",
+);
 
-const cloudWriteTools = new Set([
-  "outbox.preview",
-  "outbox.sendApproved",
-  "message.sendDraft",
-  "members.invitePreview",
-  "members.inviteApproved",
-  "folders.create",
-  "folders.addDialog",
-  "folders.removeDialog",
+const cloudOnlyTools = new Set([
+  "folders_delete",
+  "sync_peer",
+  "write_approve_preview",
 ]);
-
-const plannedTools = new Set(["groups.leavePreview", "groups.leaveApproved"]);
+const localOnlyTools = new Set([
+  "folders_update",
+  "rules_dry_run",
+  "sync_backfill",
+]);
+const directSendTools = new Set([
+  "groups_leave_approved",
+  "members_invite_approved",
+  "message_send_draft",
+  "outbox_send_approved",
+  "write_approve_preview",
+]);
 
 function fail(message) {
   console.error(message);
@@ -80,7 +90,54 @@ function validateAllowedTools(filePath, frontmatter, knownTools) {
   }
 }
 
-function validateAssetJson(skillDir) {
+function validateToolArrays(filePath, value, knownTools) {
+  if (Array.isArray(value)) {
+    for (const item of value) validateToolArrays(filePath, item, knownTools);
+    return;
+  }
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  for (const [key, child] of Object.entries(value)) {
+    if (key === "tools" && Array.isArray(child)) {
+      for (const toolName of child) {
+        if (typeof toolName !== "string" || !knownTools.has(toolName)) {
+          fail(`${filePath}: unknown asset tool ${String(toolName)}`);
+        }
+      }
+    }
+    validateToolArrays(filePath, child, knownTools);
+  }
+}
+
+function validateNoSendExamples(filePath, value) {
+  if (Array.isArray(value)) {
+    for (const item of value) validateNoSendExamples(filePath, item);
+    return;
+  }
+  if (!value || typeof value !== "object") {
+    return;
+  }
+
+  const prompt = typeof value.prompt === "string" ? value.prompt : "";
+  if (/\b(?:do not|don't|without)\s+send(?:ing)?\b/i.test(prompt)) {
+    const tools = Array.isArray(value.tools) ? value.tools : [];
+    for (const toolName of tools) {
+      if (directSendTools.has(toolName)) {
+        fail(
+          `${filePath}: explicit no-send example must not use ${toolName}`,
+        );
+      }
+    }
+  }
+
+  for (const child of Object.values(value)) {
+    validateNoSendExamples(filePath, child);
+  }
+}
+
+function validateAssetJson(skillDir, knownTools) {
   const assetsDir = path.join(skillDir, "assets");
   if (!fs.existsSync(assetsDir)) {
     return;
@@ -92,10 +149,29 @@ function validateAssetJson(skillDir) {
     }
     const assetPath = path.join(assetsDir, entry.name);
     try {
-      readJson(assetPath);
+      const asset = readJson(assetPath);
+      validateToolArrays(assetPath, asset, knownTools);
+      validateNoSendExamples(assetPath, asset);
     } catch (error) {
       fail(`${assetPath}: invalid JSON (${error.message})`);
     }
+  }
+}
+
+function validateSurfaceToolReferences(filePath, body, surfaceTools, knownTools) {
+  const portableToolReference = /`([a-z][a-z0-9]*(?:_[a-z0-9]+)+)`/g;
+  for (const match of body.matchAll(portableToolReference)) {
+    const toolName = match[1];
+    if (knownTools.has(toolName) && !surfaceTools.has(toolName)) {
+      fail(`${filePath}: ${toolName} is unavailable on this MCP surface`);
+    }
+  }
+}
+
+function validatePortableToolNotation(filePath, body) {
+  const dottedWildcard = /\b(?:folders|outbox|rules)\.\*/g;
+  for (const match of body.matchAll(dottedWildcard)) {
+    fail(`${filePath}: dotted wildcard tool alias is not portable: ${match[0]}`);
   }
 }
 
@@ -157,9 +233,27 @@ function validateCatalog(skillNames, frontmatterByName) {
 
 function main() {
   const exportedContracts = readJson(toolContractsPath);
-  const knownTools = new Set(exportedContracts.map((tool) => tool.name));
-  for (const tool of cloudWriteTools) knownTools.add(tool);
-  for (const tool of plannedTools) knownTools.add(tool);
+  const publicContracts = readJson(publicToolContractsPath);
+  const localTools = new Set();
+  const internalNames = exportedContracts.map((tool) => tool.name);
+  for (const tool of publicContracts) {
+    if (
+      typeof tool.name !== "string" ||
+      !/^[A-Za-z0-9_-]{1,64}$/.test(tool.name)
+    ) {
+      fail(`${publicToolContractsPath}: invalid public MCP name contract`);
+      continue;
+    }
+    localTools.add(tool.name);
+  }
+  const cloudTools = new Set(
+    [...localTools].filter((toolName) => !localOnlyTools.has(toolName)),
+  );
+  for (const tool of cloudOnlyTools) cloudTools.add(tool);
+  const knownTools = new Set([...localTools, ...cloudTools]);
+  const commonTools = new Set(
+    [...localTools].filter((toolName) => cloudTools.has(toolName)),
+  );
 
   const entries = fs
     .readdirSync(skillsDir, { withFileTypes: true })
@@ -192,7 +286,37 @@ function main() {
     }
     validateLinks(skillPath, body);
     validateAllowedTools(skillPath, frontmatter, knownTools);
-    validateAssetJson(path.join(skillsDir, entry));
+    validatePortableToolNotation(skillPath, body);
+    for (const internalName of internalNames) {
+      if (body.includes(internalName)) {
+        fail(
+          `${skillPath}: public skill instructions must use the portable MCP name for ${internalName}`,
+        );
+      }
+    }
+    validateAssetJson(path.join(skillsDir, entry), knownTools);
+
+    for (const [referenceName, surfaceTools] of [
+      ["cloud-mcp.md", cloudTools],
+      ["tgchats-local.md", localTools],
+      ["flow.md", commonTools],
+    ]) {
+      const referencePath = path.join(
+        skillsDir,
+        entry,
+        "references",
+        referenceName,
+      );
+      if (!fs.existsSync(referencePath)) continue;
+      const referenceBody = fs.readFileSync(referencePath, "utf8");
+      validatePortableToolNotation(referencePath, referenceBody);
+      validateSurfaceToolReferences(
+        referencePath,
+        referenceBody,
+        surfaceTools,
+        knownTools,
+      );
+    }
   }
   validateCatalog(skillNames, frontmatterByName);
 

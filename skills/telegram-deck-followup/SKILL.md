@@ -8,7 +8,7 @@ metadata:
   chiho.risk: low
   chiho.requiresApproval: "false"
   chiho.cloudScopes: telegram.read, crm.write
-allowed-tools: mcp(search.messages) mcp(chat.read) mcp(tasks.add) mcp(tasks.suggest) mcp(tags.set) mcp(nudge.generate) mcp(rules.add) mcp(rules.list)
+allowed-tools: mcp(search_messages) mcp(chat_read) mcp(tasks_add) mcp(tasks_suggest) mcp(tags_set) mcp(nudge_generate) mcp(rules_add) mcp(rules_list)
 ---
 
 # telegram-deck-followup
