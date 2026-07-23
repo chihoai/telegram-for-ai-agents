@@ -8,7 +8,7 @@ metadata:
   chiho.risk: low
   chiho.requiresApproval: "false"
   chiho.cloudScopes: telegram.read, crm.write
-allowed-tools: mcp(chat.read) mcp(summary.refresh) mcp(summary.show) mcp(tasks.suggest) mcp(tasks.add) mcp(nudge.generate)
+allowed-tools: mcp(chat_read) mcp(summary_refresh) mcp(summary_show) mcp(tasks_suggest) mcp(tasks_add) mcp(nudge_generate)
 ---
 
 # telegram-meeting-recap
@@ -24,10 +24,10 @@ Use this skill to turn a long Telegram thread into a recap with decisions and ac
 
 ## Flow
 
-1. Use `chat.read` for the target conversation.
-2. Use `summary.refresh` to update the rolling summary when needed.
+1. Use `chat_read` for the target conversation.
+2. Use `summary_refresh` to update the rolling summary when needed.
 3. Extract decisions, open questions, owners, and deadlines.
-4. Use `tasks.suggest` and `tasks.add` for action items when requested.
+4. Use `tasks_suggest` and `tasks_add` for action items when requested.
 5. Optionally generate a concise follow-up nudge draft.
 
 ## First-Time Setup

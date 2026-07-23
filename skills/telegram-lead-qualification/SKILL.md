@@ -8,7 +8,7 @@ metadata:
   chiho.risk: low
   chiho.requiresApproval: "false"
   chiho.cloudScopes: telegram.read, crm.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(tags.suggest) mcp(tags.set) mcp(company.suggest) mcp(company.link) mcp(tasks.suggest) mcp(tasks.add) mcp(summary.refresh) mcp(summary.show)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(tags_suggest) mcp(tags_set) mcp(company_suggest) mcp(company_link) mcp(tasks_suggest) mcp(tasks_add) mcp(summary_refresh) mcp(summary_show)
 ---
 
 # telegram-lead-qualification
@@ -25,10 +25,10 @@ Use this skill to turn Telegram conversation context into a qualified CRM lead r
 
 ## Flow
 
-1. Use `dialogs.list` to find candidate chats when no peer is specified.
-2. Use `chat.read` to inspect recent context.
-3. Use `tags.suggest`, `company.suggest`, and `tasks.suggest`.
-4. Use `summary.refresh` when the chat lacks current context.
+1. Use `dialogs_list` to find candidate chats when no peer is specified.
+2. Use `chat_read` to inspect recent context.
+3. Use `tags_suggest`, `company_suggest`, and `tasks_suggest`.
+4. Use `summary_refresh` when the chat lacks current context.
 5. Apply tags, company links, and tasks only when requested or when policy allows automatic CRM writes.
 6. Return the qualification, evidence, next action, and any persisted changes.
 

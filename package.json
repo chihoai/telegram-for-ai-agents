@@ -14,6 +14,7 @@
     "dev": "tsx src/cli.ts",
     "export:contracts": "tsx src/contracts/export-tool-contracts.ts",
     "mcp": "tsx src/mcp/stdio.ts",
+    "prepare": "npm run build",
     "start": "tsx src/cli.ts",
     "validate:skills": "node scripts/validate-skills.mjs",
     "test": "vitest run"
@@ -21,10 +22,16 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "overrides": {
+    "@modelcontextprotocol/sdk": {
+      "@hono/node-server": "2.0.11"
+    }
+  },
   "engines": {
     "node": ">=22 <24"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@mtcute/node": "0.28.1",
     "dotenv": "17.3.1",
     "pg": "8.18.0",

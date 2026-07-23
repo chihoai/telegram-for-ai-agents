@@ -3,10 +3,9 @@ name: Local MCP
 on:
   pull_request:
     paths:
-      - ".codex-plugin/**"
+      - ".agents/**"
       - ".claude-plugin/**"
-      - ".mcp.json"
-      - "claude-mcp.json"
+      - "plugins/**"
       - ".github/workflows/local-mcp.yml"
       - "package.json"
       - "package-lock.json"
@@ -19,10 +18,9 @@ on:
     branches:
       - main
     paths:
-      - ".codex-plugin/**"
+      - ".agents/**"
       - ".claude-plugin/**"
-      - ".mcp.json"
-      - "claude-mcp.json"
+      - "plugins/**"
       - ".github/workflows/local-mcp.yml"
       - "package.json"
       - "package-lock.json"

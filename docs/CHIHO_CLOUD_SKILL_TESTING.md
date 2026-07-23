@@ -1,19 +1,23 @@
 # Chiho Cloud Skill Testing Runbook
 
-Use this runbook in a fresh Codex thread to continue testing Chiho.ai Cloud MCP and the Telegram workflow skills.
+Use this runbook for advanced headless service-token smoke tests of Chiho.ai Cloud MCP and the Telegram workflow skills. Interactive Claude and Codex onboarding uses browser OAuth instead of this flow.
 
 ## Context
 
 - Repo: `telegram-for-agents`
 - Cloud MCP URL: `https://api.chiho.ai/mcp`
-- Expected env vars in `.env`:
+- Advanced headless test env vars in `.env`:
   - `CHIHO_API_KEY`
   - `CHIHO_MCP_URL=https://api.chiho.ai/mcp`
+- Do not use this service-token script to onboard an interactive Claude or Codex user.
 - Do not print API keys or Telegram session data.
 - Prefer non-mutating checks first. For CRM mutations, use a harmless bot/test peer.
 - Do not send Telegram messages unless the user explicitly approves a preview/send workflow.
 
 ## Current Live Baseline
+
+This section is a historical production record and intentionally preserves the
+dotted tool names that were on the wire when the checks ran.
 
 Already verified on 2026-06-08:
 
@@ -48,6 +52,34 @@ Open issue:
 
 - `sync.once { dialogs: 100 }` can hit Telegram `FLOOD_WAIT`; see `chihoai/chiho#57`.
 
+## Hosted Package Production Validation
+
+The OAuth and portable-name backend is live at
+`https://api.chiho.ai/mcp`. The hosted `chiho-telegram` package release gate
+completed on 2026-07-23:
+
+1. OAuth discovery, protected-resource metadata, JWKS, dynamic client
+   registration, and the unauthenticated `WWW-Authenticate` challenge passed.
+2. Claude Free completed browser OAuth, `auth_status`, and `account_whoami`
+   through the production custom connector.
+3. Codex completed production OAuth and reused the grant from the current
+   client to call `auth_status`; authenticated tool discovery exposed portable
+   snake_case names.
+4. Claude created an `outbox_preview` record and then successfully called
+   `write_approve_preview` with separate one-time client approvals. The
+   non-human service peer was skipped as outside the token's dialog scope, the
+   preview received an `approvedAt` timestamp, and no executor or scheduling
+   tool ran; zero messages were sent.
+
+Codex CLI 0.144.6 currently fails a fresh OAuth callback with an upstream
+issuer-validation error even though the callback contains the correct
+`iss=https://api.chiho.ai`. Codex CLI 0.142.5 completes the same login, after
+which 0.144.6 can reuse the stored grant and call the hosted tools. Keep this
+workaround documented until the current client regression is fixed.
+
+Playwright was intentionally skipped at the project owner's request. The
+production Claude flow above was verified directly in the browser.
+
 Implementation follow-up on 2026-06-09:
 
 - Local PR: `chihoai/telegram-for-ai-agents#18`, branch `codex/crm-cleanup-tools`, latest checked head `82fba96`.
@@ -68,7 +100,10 @@ Implementation follow-up on 2026-06-09:
   - Local: `npm test`, `npm run build`, `npm run validate:skills`, `npm run check:local-install`, `git diff --check`; local install check reported 42 local MCP tools.
   - Cloud: `npm test --workspace @chiho/backend`, targeted MCP tests, `npm run typecheck --workspace @chiho/backend`, `npm run sync:agent-contracts:check --workspace @chiho/backend`, `node --check backend/scripts/smoke-agent-mcp.mjs`, `git diff --check`.
 - Final subagent review passes reported no active P0/P1/P2 findings on both PR heads.
-- Hosted Chiho.ai Cloud still needs merge/deployment and live retest before treating these as production behavior.
+- Hosted Chiho.ai Cloud OAuth, portable tool discovery, authenticated reads,
+  and the guarded preview boundary are now deployed and live-tested in
+  production. The mutation-specific cases below remain explicitly marked for
+  separate testing.
 
 ## Quick MCP Smoke Script
 
@@ -110,10 +145,10 @@ await rpc('initialize', {
 
 const tools = await rpc('tools/list');
 const names = tools.result.tools.map((tool) => tool.name);
-console.log({ toolCount: names.length, hasSyncOnce: names.includes('sync.once') });
+console.log({ toolCount: names.length, hasSyncOnce: names.includes('sync_once') });
 
 const auth = contentJson(await rpc('tools/call', {
-  name: 'auth.status',
+  name: 'auth_status',
   arguments: {},
 }));
 console.log({
@@ -128,34 +163,34 @@ NODE
 
 These have been exercised against Chiho.ai Cloud:
 
-- `auth.status`
-- `account.whoami`
+- `auth_status`
+- `account_whoami`
 - `tools/list`
-- `dialogs.list`
-- `chat.read`
-- `sync.once`
-- `tags.get`
-- `tags.suggest` with `apply:false`
-- `company.get`
-- `company.suggest` with `apply:false`
-- `tasks.today`
-- `tasks.add`
-- `tasks.done`
-- `tasks.suggest` with `apply:false`
-- `summary.show`
-- `summary.refresh`
-- `folders.list`
-- `rules.list`
+- `dialogs_list`
+- `chat_read`
+- `sync_once`
+- `tags_get`
+- `tags_suggest` with `apply:false`
+- `company_get`
+- `company_suggest` with `apply:false`
+- `tasks_today`
+- `tasks_add`
+- `tasks_done`
+- `tasks_suggest` with `apply:false`
+- `summary_show`
+- `summary_refresh`
+- `folders_list`
+- `rules_list`
 
 Implemented in PRs but not yet live-retested against `https://api.chiho.ai/mcp`:
 
-- `tags.clear`
-- `company.unlink`
-- `rules.disable`
-- `rules.delete`
-- `tags.set { tags: [] }`
-- `summary.refresh` personal account routing
-- `summary.refresh { all: true, accountId }`
+- `tags_clear`
+- `company_unlink`
+- `rules_disable`
+- `rules_delete`
+- `tags_set { tags: [] }`
+- `summary_refresh` personal account routing
+- `summary_refresh { all: true, accountId }`
 - Team-token rejection for forbidden `accountId`
 
 ## Untested Or Lightly Tested Tools
@@ -163,61 +198,61 @@ Implemented in PRs but not yet live-retested against `https://api.chiho.ai/mcp`:
 Test these next:
 
 1. Folder reads and writes
-   - [x] `folders.list` tested on 2026-06-08
-   - [x] `folders.create` unavailable for current token on 2026-06-08
-   - [x] `folders.addDialog` unavailable for current token on 2026-06-08
-   - [x] `folders.removeDialog` unavailable for current token on 2026-06-08
+   - [x] `folders_list` tested on 2026-06-08
+   - [x] `folders_create` unavailable for current token on 2026-06-08
+   - [x] `folders_add_dialog` unavailable for current token on 2026-06-08
+   - [x] `folders_remove_dialog` unavailable for current token on 2026-06-08
 
 2. Rules
-   - [x] `rules.list` tested on 2026-06-08
-   - [ ] `rules.add` live retest after Cloud PR deploy
-   - [ ] `rules.disable` live retest after Cloud PR deploy
-   - [ ] `rules.delete` live retest after Cloud PR deploy
-   - [ ] `rules.run`
-   - [ ] `rules.log`
+   - [x] `rules_list` tested on 2026-06-08
+   - [ ] `rules_add` live retest after Cloud PR deploy
+   - [ ] `rules_disable` live retest after Cloud PR deploy
+   - [ ] `rules_delete` live retest after Cloud PR deploy
+   - [ ] `rules_run`
+   - [ ] `rules_log`
 
 3. CRM mutations beyond tasks
-   - [x] `tags.set { tags: [] }` cleanup boundary tested on 2026-06-08; rejected as non-empty array required
-   - [ ] `tags.set` positive mutation live retest after Cloud PR deploy
-   - [ ] `tags.clear` live retest after Cloud PR deploy
-   - [ ] `company.link` positive mutation live retest after Cloud PR deploy
-   - [ ] `company.unlink` live retest after Cloud PR deploy
-   - [ ] `company.get` after linking not run
-   - [ ] `tags.get` after setting not run
+   - [x] `tags_set { tags: [] }` cleanup boundary tested on 2026-06-08; rejected as non-empty array required
+   - [ ] `tags_set` positive mutation live retest after Cloud PR deploy
+   - [ ] `tags_clear` live retest after Cloud PR deploy
+   - [ ] `company_link` positive mutation live retest after Cloud PR deploy
+   - [ ] `company_unlink` live retest after Cloud PR deploy
+   - [ ] `company_get` after linking not run
+   - [ ] `tags_get` after setting not run
 
 4. Account scope and summary routing
-   - [ ] Personal multi-account `tags.get`/`tags.set`/`tags.clear` with explicit `accountId`
-   - [ ] Personal multi-account `company.get`/`company.link`/`company.unlink` with explicit `accountId`
-   - [ ] Personal `summary.refresh { peer, accountId }`
-   - [ ] Personal `summary.refresh { all: true, accountId }`
+   - [ ] Personal multi-account `tags_get`/`tags_set`/`tags_clear` with explicit `accountId`
+   - [ ] Personal multi-account `company_get`/`company_link`/`company_unlink` with explicit `accountId`
+   - [ ] Personal `summary_refresh { peer, accountId }`
+   - [ ] Personal `summary_refresh { all: true, accountId }`
    - [ ] Team token valid `accountId` on a scoped peer
    - [ ] Team token forbidden `accountId` should return `403`
 
 5. Write/approval tools, if token scopes allow
-   - [x] `outbox.preview` unavailable for current token on 2026-06-08
-   - `outbox.sendApproved`
-   - [x] `message.sendDraft` unavailable for current token on 2026-06-08
+   - [x] `outbox_preview` unavailable for current token on 2026-06-08
+   - `outbox_send_approved`
+   - [x] `message_send_draft` unavailable for current token on 2026-06-08
 
 6. Member/group tools, if token scopes allow
-   - [x] `members.invitePreview` unavailable for current token on 2026-06-08
-   - `members.inviteApproved`
-   - [x] `groups.leavePreview` unavailable for current token on 2026-06-08
-   - `groups.leaveApproved`
+   - [x] `members_invite_preview` unavailable for current token on 2026-06-08
+   - `members_invite_approved`
+   - [x] `groups_leave_preview` unavailable for current token on 2026-06-08
+   - `groups_leave_approved`
 
 7. Skill-referenced but possibly unavailable hosted tools
-   - [x] `search.messages` unavailable for current token on 2026-06-08
-   - [x] `nudge.generate` unavailable for current token on 2026-06-08
+   - [x] `search_messages` unavailable for current token on 2026-06-08
+   - [x] `nudge_generate` unavailable for current token on 2026-06-08
 
 ## Suggested Next Test Order
 
 ### 1. Non-Mutating Inventory
 
 - Run `tools/list`.
-- Run `auth.status`.
-- Run `dialogs.list { limit: 20 }`.
-- Run `folders.list`.
-- Run `rules.list`.
-- Run `tasks.today`.
+- Run `auth_status`.
+- Run `dialogs_list { limit: 20 }`.
+- Run `folders_list`.
+- Run `rules_list`.
+- Run `tasks_today`.
 
 Expected:
 
@@ -231,12 +266,12 @@ Use a harmless peer such as a server notification bot or test group.
 
 Test:
 
-- `tags.set` with a clearly temporary tag, such as `Codex Smoke Test`.
-- `tags.get` to confirm the tag.
-- `tags.clear` to clean up the temporary tag.
-- `company.link` with a test company value, such as `Codex Smoke Test`.
-- `company.get` to confirm the link.
-- `company.unlink` to clean up the temporary company.
+- `tags_set` with a clearly temporary tag, such as `Codex Smoke Test`.
+- `tags_get` to confirm the tag.
+- `tags_clear` to clean up the temporary tag.
+- `company_link` with a test company value, such as `Codex Smoke Test`.
+- `company_get` to confirm the link.
+- `company_unlink` to clean up the temporary company.
 - Optionally restore prior state if needed.
 
 Avoid human contacts unless the user explicitly chooses one.
@@ -249,13 +284,13 @@ Create a rule that only touches CRM metadata and is clearly a test.
 
 Suggested behavior:
 
-- `rules.add` with a name like `Codex smoke test - safe to delete`.
+- `rules_add` with a name like `Codex smoke test - safe to delete`.
 - Rule instruction should be narrow and harmless.
-- `rules.list` should show it.
-- `rules.run` should execute without sending messages.
-- `rules.log` should show the run.
-- `rules.disable` should disable the smoke rule.
-- `rules.delete` should delete the smoke rule.
+- `rules_list` should show it.
+- `rules_run` should execute without sending messages.
+- `rules_log` should show the run.
+- `rules_disable` should disable the smoke rule.
+- `rules_delete` should delete the smoke rule.
 
 If any cleanup step is missing after deployment, record it as a regression against `chihoai/chiho#59`.
 
@@ -278,21 +313,21 @@ Only do this with explicit user approval and the right token scopes.
 
 Safe progression:
 
-- `outbox.preview` only.
+- `outbox_preview` only.
 - Verify preview/audit record.
-- Do not call `outbox.sendApproved` or `message.sendDraft` unless the user chooses a safe recipient and explicitly approves sending.
+- Do not call `outbox_send_approved` or `message_send_draft` unless the user chooses a safe recipient and explicitly approves sending.
 
 ### 6. Large Sync Boundary
 
 Known issue:
 
-- `sync.once { dialogs: 100 }` may hit `FLOOD_WAIT`.
+- `sync_once { dialogs: 100 }` may hit `FLOOD_WAIT`.
 
 Retest after issue `chihoai/chiho#57` is fixed:
 
-- Run `sync.once { dialogs: 100 }`.
+- Run `sync_once { dialogs: 100 }`.
 - Confirm the tool either backs off successfully or returns structured partial success with retry-after details.
-- Sample coverage for dialogs 80-99 using `tags.get`.
+- Sample coverage for dialogs 80-99 using `tags_get`.
 
 ## Skill Workflow Coverage
 
@@ -328,9 +363,9 @@ For each workflow skill:
 
 ## Product Gaps To Watch For
 
-- Large `sync.once` can fail with `FLOOD_WAIT` after doing partial work.
-- `sync.once` invalid `dialogs` rejection was implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
-- Some skill catalog tools may not be exposed by hosted Cloud MCP yet, especially `search.messages`, `nudge.generate`, and planned group leave tools.
+- Large `sync_once` can fail with `FLOOD_WAIT` after doing partial work.
+- `sync_once` invalid `dialogs` rejection was implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
+- Some skill catalog tools may not be exposed by hosted Cloud MCP yet, especially `search_messages`, `nudge_generate`, and planned group leave tools.
 - Rule cleanup/disable/delete was implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
 - CRM cleanup paths were implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
 - Folder write cleanup path should be confirmed.
@@ -340,10 +375,10 @@ For each workflow skill:
 
 - Merge/deploy Cloud PR `chihoai/chiho#59`.
 - Live retest `tools/list` after deploy; expected tool count should increase from the earlier 23-tool baseline if cleanup tools are exposed to the token.
-- Live retest `tags.clear`, `company.unlink`, `rules.disable`, `rules.delete`, and `tags.set { tags: [] }`.
+- Live retest `tags_clear`, `company_unlink`, `rules_disable`, `rules_delete`, and `tags_set { tags: [] }`.
 - Live retest account-scoped CRM behavior for personal multi-account tokens.
 - Live retest team-token forbidden-account behavior: switching `peer` or `accountId` outside team scope should return `403`.
 - Live retest Cloud smoke script with `--mutate` only, then separately with `--mutate --crm-metadata` on a safe test peer.
-- Resolve or retest `sync.once { dialogs: 100 }` / `FLOOD_WAIT` from `chihoai/chiho#57`.
+- Resolve or retest `sync_once { dialogs: 100 }` / `FLOOD_WAIT` from `chihoai/chiho#57`.
 - Confirm folder write tools and cleanup once a token with `telegram.folders.write` is available.
 - Confirm preview/send and member/group approval tools only with explicit user approval and appropriate token scopes.

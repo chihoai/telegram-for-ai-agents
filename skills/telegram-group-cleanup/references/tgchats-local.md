@@ -4,7 +4,7 @@ If `auth` or any Telegram command prints a QR login code, show the full QR code 
 
 Use local `tgchats-mcp` for reads, tags, tasks, folders, and group leave previews:
 
-- `groups.leavePreview`
-- `groups.leaveApproved`
+- `groups_leave_preview`
+- `groups_leave_approved`
 
-The preview is persisted next to the local Telegram session so a later `groups.leaveApproved` call can execute by `previewId`.
+The preview is persisted next to the local Telegram session so a later `groups_leave_approved` call can execute by `previewId`.

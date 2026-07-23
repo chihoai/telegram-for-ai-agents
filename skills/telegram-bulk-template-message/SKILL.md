@@ -8,7 +8,7 @@ metadata:
   chiho.risk: high
   chiho.requiresApproval: "true"
   chiho.cloudScopes: telegram.read, telegram.message.preview, telegram.message.send, telegram.batch.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(outbox.preview) mcp(outbox.sendApproved)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(outbox_preview) mcp(write_approve_preview) mcp(outbox_send_approved)
 ---
 
 # telegram-bulk-template-message
@@ -26,15 +26,16 @@ Use this skill to send one approved template to multiple Telegram chats.
 
 ## Cloud Flow
 
-1. Use `dialogs.list` and `chat.read` as needed to resolve recipients.
-2. Call `outbox.preview` with recipients and template/message text.
+1. Use `dialogs_list` and `chat_read` as needed to resolve recipients.
+2. Call `outbox_preview` with recipients and template/message text.
 3. Show the preview summary: recipients, skipped targets, scheduled time, and risk.
-4. If approved or policy allows automatic execution, call `outbox.sendApproved` with the `previewId`.
-5. Return the execution report and any failures.
+4. If approval is required, call `write_approve_preview` with the `previewId` after the user approves.
+5. Call `outbox_send_approved` with the approved `previewId`.
+6. Return the execution report and any failures.
 
 ## Local Flow
 
-Use the same MCP tool names as Cloud: `outbox.preview` followed by `outbox.sendApproved`.
+Use the same MCP tool names as Cloud: `outbox_preview` followed by `outbox_send_approved`.
 
 ## First-Time Setup
 

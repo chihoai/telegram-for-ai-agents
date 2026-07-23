@@ -8,7 +8,7 @@ metadata:
   chiho.risk: low
   chiho.requiresApproval: "false"
   chiho.cloudScopes: telegram.read, crm.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(search.messages) mcp(tags.get) mcp(tags.set) mcp(company.get) mcp(tasks.today) mcp(tasks.add) mcp(summary.show) mcp(summary.refresh)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(search_messages) mcp(tags_get) mcp(tags_set) mcp(company_get) mcp(tasks_today) mcp(tasks_add) mcp(summary_show) mcp(summary_refresh)
 ---
 
 # telegram-vip-inbox
@@ -24,7 +24,7 @@ Use this skill to surface high-priority Telegram conversations as a VIP queue.
 
 ## Flow
 
-1. Use `dialogs.list` and CRM metadata to identify VIP candidates.
+1. Use `dialogs_list` and CRM metadata to identify VIP candidates.
 2. Read recent context for each candidate.
 3. Show due tasks and stale conversations first.
 4. Refresh summaries for important chats with missing context.

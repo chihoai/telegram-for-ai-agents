@@ -40,18 +40,18 @@ If preconditions are missing, stop and request only the missing env/step.
 - Fall back to `tgchats --json` when MCP is unavailable.
 - When `auth` or any Telegram command prints a QR login code, show the full QR code block and expiry to the user so they can scan it; keep the process running until login completes, 2FA is needed, or the user asks to stop.
 - Prefer read-first flow for open-ended triage, but do not insert extra reads when the user already asked for a specific MCP action.
-- Use `account.whoami` only for account identity checks, not as a generic first step for dialog listing, logout, or other direct actions.
-- Requests to list recent chats, dialogs, or conversations map to `dialogs.list`.
-- Requests to log out, sign out, or end the Telegram session map to `session.logout`.
+- Use `account_whoami` only for account identity checks, not as a generic first step for dialog listing, logout, or other direct actions.
+- Requests to list recent chats, dialogs, or conversations map to `dialogs_list`.
+- Requests to log out, sign out, or end the Telegram session map to `session_logout`.
 - For AI suggestion requests, call the specific suggestion tool directly:
-  - `tags.suggest`
-  - `company.suggest`
-  - `tasks.suggest`
-- Only prepend `chat.read` when the user explicitly asks to read history, or when the workflow clearly requires a separate read before the write.
+  - `tags_suggest`
+  - `company_suggest`
+  - `tasks_suggest`
+- Only prepend `chat_read` when the user explicitly asks to read history, or when the workflow clearly requires a separate read before the write.
 - Multi-step requests should keep chaining tool calls until every explicit subgoal is satisfied. Do not stop after the first successful tool call when the user asked for additional steps.
 - Requests phrased as "X, then Y" or "first X, then Y, then Z" require every listed tool call in order.
 - If the user supplies a count like "5", "10", "15", or "50", pass that exact value as `limit` instead of falling back to a default.
-- For chat-scoped `search.messages` requests without an explicit count, use `limit: 15`.
+- For chat-scoped `search_messages` requests without an explicit count, use `limit: 15`.
 - For persisted text fields such as `why` and `instruction`, prefer concise canonical wording and avoid paraphrasing when the user's meaning is already clear.
 - Use `--apply` only when the user explicitly asks to persist AI suggestions.
 - Never print secrets/session paths unless explicitly requested.
@@ -62,47 +62,47 @@ If preconditions are missing, stop and request only the missing env/step.
 Use these mappings when the user's intent is already specific:
 
 - Account identity:
-  - "who am I", "which account is logged in" -> `account.whoami`
+  - "who am I", "which account is logged in" -> `account_whoami`
 - Session state:
-  - "is the local Telegram session available" -> `auth.status`
+  - "is the local Telegram session available" -> `auth_status`
 - Dialog browsing:
-  - "list dialogs", "recent chats", "recent conversations" -> `dialogs.list`
+  - "list dialogs", "recent chats", "recent conversations" -> `dialogs_list`
 - Read chat history:
-  - "read messages", "show chat history" -> `chat.read`
+  - "read messages", "show chat history" -> `chat_read`
 - Search:
-  - "search messages" -> `search.messages`
+  - "search messages" -> `search_messages`
 - Folders:
-  - "list folders" -> `folders.list`
-  - "create/rename/delete/reorder folder", "add/remove peers in folder" -> `folders.update`
+  - "list folders" -> `folders_list`
+  - "create/rename/delete/reorder folder", "add/remove peers in folder" -> `folders_update`
 - Tags:
-  - "show tags" -> `tags.get`
-  - "set tags" -> `tags.set`
-  - "suggest tags" -> `tags.suggest`
+  - "show tags" -> `tags_get`
+  - "set tags" -> `tags_set`
+  - "suggest tags" -> `tags_suggest`
 - Company:
-  - "show linked company" -> `company.get`
-  - "link company" -> `company.link`
-  - "suggest company" -> `company.suggest`
+  - "show linked company" -> `company_get`
+  - "link company" -> `company_link`
+  - "suggest company" -> `company_suggest`
 - Tasks:
-  - "tasks due today" -> `tasks.today`
-  - "add follow-up task" -> `tasks.add`
-  - "mark task done" -> `tasks.done`
-  - "suggest tasks" -> `tasks.suggest`
+  - "tasks due today" -> `tasks_today`
+  - "add follow-up task" -> `tasks_add`
+  - "mark task done" -> `tasks_done`
+  - "suggest tasks" -> `tasks_suggest`
 - Summaries:
-  - "show summary" -> `summary.show`
-  - "refresh summary" -> `summary.refresh`
+  - "show summary" -> `summary_show`
+  - "refresh summary" -> `summary_refresh`
 - Nudges:
-  - "generate follow-up nudge" -> `nudge.generate`
+  - "generate follow-up nudge" -> `nudge_generate`
 - Rules:
-  - "list rules" -> `rules.list`
-  - "add rule" -> `rules.add`
-  - "run rules" -> `rules.run`
-  - "show rule events/log" -> `rules.log`
-  - "run rules, then show events/log" -> `rules.run` followed by `rules.log`
+  - "list rules" -> `rules_list`
+  - "add rule" -> `rules_add`
+  - "run rules" -> `rules_run`
+  - "show rule events/log" -> `rules_log`
+  - "run rules, then show events/log" -> `rules_run` followed by `rules_log`
 - Sync:
-  - "backfill history" -> `sync.backfill`
-  - "one-shot sync" -> `sync.once`
+  - "backfill history" -> `sync_backfill`
+  - "one-shot sync" -> `sync_once`
 - Logout:
-  - "log out", "sign out", "end session" -> `session.logout`
+  - "log out", "sign out", "end session" -> `session_logout`
 
 ## Quick Command Map
 
@@ -136,34 +136,34 @@ Use these mappings when the user's intent is already specific:
 ## MCP Examples
 
 - Check whether the local Telegram session is available:
-  - `auth.status {}`
+  - `auth_status {}`
 - Show the currently logged-in Telegram account:
-  - `account.whoami {}`
+  - `account_whoami {}`
 - List my 10 most recent Telegram dialogs:
-  - `dialogs.list { "limit": 10 }`
+  - `dialogs_list { "limit": 10 }`
 - Search messages in chat `@carol` for onboarding:
-  - `search.messages { "query": "onboarding", "chat": "@carol", "limit": 15 }`
+  - `search_messages { "query": "onboarding", "chat": "@carol", "limit": 15 }`
 - Generate task suggestions for `@frank` using the last 50 messages:
-  - `tasks.suggest { "peer": "@frank", "limit": 50 }`
+  - `tasks_suggest { "peer": "@frank", "limit": 50 }`
 - Add a high-priority follow-up task for `@alice` due `2025-02-15`:
-  - `tasks.add { "peer": "@alice", "due": "2025-02-15", "priority": "high", "why": "Send the proposal" }`
+  - `tasks_add { "peer": "@alice", "due": "2025-02-15", "priority": "high", "why": "Send the proposal" }`
 - Add a CRM rule named `VIP follow-up`:
-  - `rules.add { "name": "VIP follow-up", "instruction": "Create a follow-up for VIP contacts after inactivity.", "tag": "vip", "followupDays": 3 }`
+  - `rules_add { "name": "VIP follow-up", "instruction": "Create a follow-up for VIP contacts after inactivity.", "tag": "vip", "followupDays": 3 }`
 - Run rules, then show the latest 20 rule events:
-  - `rules.run {}`
-  - `rules.log { "limit": 20 }`
+  - `rules_run {}`
+  - `rules_log { "limit": 20 }`
 - First check who I am, then list 5 dialogs, then read the last 10 messages with `@alice`:
-  - `account.whoami {}`
-  - `dialogs.list { "limit": 5 }`
-  - `chat.read { "peer": "@alice", "limit": 10 }`
+  - `account_whoami {}`
+  - `dialogs_list { "limit": 5 }`
+  - `chat_read { "peer": "@alice", "limit": 10 }`
 - Log out the current Telegram session:
-  - `session.logout {}`
+  - `session_logout {}`
 
 ## Multi-Step Discipline
 
 - When the prompt contains multiple explicit steps, complete all of them before stopping.
-- If the first step is `account.whoami`, continue to the next requested tool call instead of treating identity lookup as the whole answer.
-- If the user asks to run rules and inspect what happened, call both `rules.run` and `rules.log`.
+- If the first step is `account_whoami`, continue to the next requested tool call instead of treating identity lookup as the whole answer.
+- If the user asks to run rules and inspect what happened, call both `rules_run` and `rules_log`.
 - If the user asks for a specific read/search/list action and no count is provided, use the skill's documented default for that action instead of omitting `limit` when the example already standardizes one.
 
 ## References

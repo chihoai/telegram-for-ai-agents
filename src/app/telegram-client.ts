@@ -41,7 +41,7 @@ export function probeTelegramSessionStorage(
     }
 
     throw new CliError(
-      `Telegram session storage could not be opened at ${sessionPath}. Check TELEGRAM_SESSION_PATH and local filesystem permissions.`,
+      'Telegram session storage could not be opened. Check TELEGRAM_SESSION_PATH and local filesystem permissions.',
       'TELEGRAM_SESSION_STORAGE_OPEN_FAILED',
     );
   }
@@ -63,13 +63,8 @@ export function probeTelegramSessionStorage(
       };
     }
 
-    const message =
-      error instanceof Error && error.message.trim()
-        ? error.message
-        : String(error);
-
     throw new CliError(
-      `Telegram session storage could not initialize SQLite journaling: ${message}`,
+      'Telegram session storage could not initialize SQLite journaling. Check TELEGRAM_SESSION_PATH and local filesystem permissions.',
       'TELEGRAM_SESSION_STORAGE_INIT_FAILED',
     );
   } finally {

@@ -7,8 +7,8 @@ metadata:
   chiho.category: telegram-automation
   chiho.risk: high
   chiho.requiresApproval: "true"
-  chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, automation.rules.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(rules.list) mcp(rules.add) mcp(rules.disable) mcp(rules.delete) mcp(rules.dryRun) mcp(rules.run) mcp(rules.log) mcp(message.sendDraft) mcp(outbox.preview) mcp(outbox.sendApproved)
+  chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, telegram.batch.write, automation.rules.write
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(rules_list) mcp(rules_add) mcp(rules_disable) mcp(rules_delete) mcp(rules_dry_run) mcp(rules_run) mcp(rules_log) mcp(message_send_draft) mcp(outbox_preview) mcp(write_approve_preview) mcp(outbox_send_approved)
 ---
 
 # telegram-conditional-replies
@@ -25,17 +25,17 @@ Use this skill for rule-driven reply workflows.
 
 ## Flow
 
-1. Inspect existing rules with `rules.list`.
-2. Read target chats with `dialogs.list` and `chat.read` when needed.
-3. Add or adjust rule instructions with `rules.add` if the user requests persistence.
-4. Dry-run the rule with `rules.dryRun`.
-5. Inspect outcomes with `rules.log`.
-6. Run the rule with `rules.run` only after the dry-run is acceptable.
-7. For actual replies, prefer preview-first `outbox.*` or single-recipient `message.sendDraft` according to token/team policy.
+1. Inspect existing rules with `rules_list`.
+2. Read target chats with `dialogs_list` and `chat_read` when needed.
+3. Add or adjust rule instructions with `rules_add` if the user requests persistence.
+4. On local tgchats, dry-run the rule with `rules_dry_run`. Chiho Cloud does not expose that local-only tool, so inspect the proposed conditions and affected scope without running the rule.
+5. Inspect outcomes with `rules_log`.
+6. Run the rule with `rules_run` only after the local dry-run or hosted review is acceptable and the user explicitly approves execution.
+7. For actual replies, create a non-sending preview with `outbox_preview`. After explicit approval, Chiho Cloud must call `write_approve_preview` and then `outbox_send_approved`; local tgchats calls `outbox_send_approved` after the user approves. `message_send_draft` is a direct-send tool and must only be used when the user explicitly asks to send immediately.
 
 ## Execution Boundary
 
-Use `rules.disable` or `rules.delete` to stop or clean up persistent conditional reply rules. Until `rules.update` exists, replace a rule by creating a narrower new rule and deleting the old one after review.
+Use `rules_disable` or `rules_delete` to stop or clean up persistent conditional reply rules. Until `rules_update` exists, replace a rule by creating a narrower new rule and deleting the old one after review.
 
 ## First-Time Setup
 

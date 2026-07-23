@@ -56,6 +56,24 @@ describe('probeTelegramSessionStorage', () => {
       expect(error).toMatchObject({
         code: 'TELEGRAM_SESSION_STORAGE_OPEN_FAILED',
       });
+      expect(String(error)).not.toContain('/tmp/test.session');
     }
+  });
+
+  it('does not disclose the session path when SQLite journaling fails', () => {
+    expect(() =>
+      probeTelegramSessionStorage('/private/secret.session', () => ({
+        pragma: () => {
+          throw new Error('failed for /private/secret.session');
+        },
+        close: vi.fn(),
+      }) as any),
+    ).toThrowError(
+      expect.objectContaining({
+        code: 'TELEGRAM_SESSION_STORAGE_INIT_FAILED',
+        message:
+          'Telegram session storage could not initialize SQLite journaling. Check TELEGRAM_SESSION_PATH and local filesystem permissions.',
+      }),
+    );
   });
 });

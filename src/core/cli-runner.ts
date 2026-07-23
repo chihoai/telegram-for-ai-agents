@@ -121,7 +121,9 @@ function stringifyConsoleArgs(args: unknown[]) {
     .join(" ");
 }
 
-export async function executeCliJson(argv: string[]): Promise<unknown> {
+let cliJsonExecutionQueue: Promise<void> = Promise.resolve();
+
+async function executeCliJsonExclusive(argv: string[]): Promise<unknown> {
   const jsonArgv = argv.includes("--json") ? argv : [...argv, "--json"];
   const capturedLogs: string[] = [];
   const originalLog = console.log;
@@ -156,6 +158,15 @@ export async function executeCliJson(argv: string[]): Promise<unknown> {
       `Expected JSON output from command, received: ${payload}`
     );
   }
+}
+
+export function executeCliJson(argv: string[]): Promise<unknown> {
+  const result = cliJsonExecutionQueue.then(() => executeCliJsonExclusive(argv));
+  cliJsonExecutionQueue = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
 }
 
 export async function runCliMain(argv: string[]): Promise<void> {

@@ -1,15 +1,43 @@
+import {
+  getMcpToolClientMetadata,
+  type McpToolAnnotations,
+} from "./tool-metadata.js";
+
 export interface ToolContractDefinition {
   name: string;
+  title: string;
   description: string;
   inputSchema: Record<string, unknown>;
+  outputSchema: Record<string, unknown>;
+  annotations: McpToolAnnotations;
   transport: "shared" | "local";
+}
+
+type BaseToolContractDefinition = Omit<
+  ToolContractDefinition,
+  "title" | "outputSchema" | "annotations"
+>;
+
+export const PORTABLE_MCP_TOOL_NAME_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
+export function getPortableMcpToolName(internalName: string) {
+  const portableName = internalName
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replaceAll(".", "_")
+    .toLowerCase();
+  if (!PORTABLE_MCP_TOOL_NAME_PATTERN.test(portableName)) {
+    throw new Error(
+      `MCP tool name ${internalName} cannot be represented as a portable client name.`,
+    );
+  }
+  return portableName;
 }
 
 const ACCOUNT_ID_PROPERTY = {
   accountId: { type: "string" },
 } as const;
 
-export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
+const BASE_TOOL_CONTRACT_DEFINITIONS: BaseToolContractDefinition[] = [
   {
     name: "auth.status",
     description: "Check whether a local Telegram session file exists.",
@@ -373,7 +401,8 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
   },
   {
     name: "tags.set",
-    description: "Set manual tags for a Telegram peer. An empty tags array clears tags for the peer.",
+    description:
+      "Set manual tags for a Telegram peer. An empty tags array clears tags for the peer.",
     transport: "local",
     inputSchema: {
       type: "object",
@@ -674,7 +703,8 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
   },
   {
     name: "rules.dryRun",
-    description: "Evaluate enabled CRM automation rules without writing actions or events.",
+    description:
+      "Evaluate enabled CRM automation rules without writing actions or events.",
     transport: "local",
     inputSchema: {
       type: "object",
@@ -700,7 +730,8 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
   },
   {
     name: "sync.backfill",
-    description: "Backfill Telegram dialogs and history into the local CRM database.",
+    description:
+      "Backfill Telegram dialogs and history into the local CRM database.",
     transport: "local",
     inputSchema: {
       type: "object",
@@ -739,12 +770,34 @@ export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] = [
   },
 ];
 
+export const TOOL_CONTRACT_DEFINITIONS: ToolContractDefinition[] =
+  BASE_TOOL_CONTRACT_DEFINITIONS.map((tool) => ({
+    ...tool,
+    ...getMcpToolClientMetadata(tool.name),
+  }));
+
 export function getToolContractDefinitions(
-  transport?: ToolContractDefinition["transport"]
+  transport?: ToolContractDefinition["transport"],
 ) {
   if (!transport) {
     return TOOL_CONTRACT_DEFINITIONS;
   }
 
-  return TOOL_CONTRACT_DEFINITIONS.filter((tool) => tool.transport === transport);
+  return TOOL_CONTRACT_DEFINITIONS.filter(
+    (tool) => tool.transport === transport,
+  );
+}
+
+export function getPublicMcpToolContractDefinitions(
+  transport?: ToolContractDefinition["transport"],
+) {
+  const seenNames = new Set<string>();
+  return getToolContractDefinitions(transport).map((tool) => {
+    const name = getPortableMcpToolName(tool.name);
+    if (seenNames.has(name)) {
+      throw new Error(`Duplicate portable MCP tool name: ${name}.`);
+    }
+    seenNames.add(name);
+    return { ...tool, name };
+  });
 }

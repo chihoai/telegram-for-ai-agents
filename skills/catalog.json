@@ -10,7 +10,8 @@
       "telegram.read",
       "crm.write",
       "telegram.message.preview",
-      "telegram.message.send"
+      "telegram.message.send",
+      "telegram.batch.write"
     ],
     "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
     "templates": "skills/telegram-chat-identity-challenge/assets/templates.json",
@@ -63,6 +64,7 @@
       "crm.write",
       "telegram.message.preview",
       "telegram.message.send",
+      "telegram.batch.write",
       "automation.rules.write"
     ],
     "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
@@ -88,7 +90,7 @@
     "risk": "low",
     "requiresApproval": false,
     "path": "skills/telegram-followup-tasks",
-    "requiredCloudScopes": ["telegram.read", "crm.write"],
+    "requiredCloudScopes": ["telegram.read", "crm.write", "automation.rules.write"],
     "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp", "tgchats-cli"],
     "templates": "skills/telegram-followup-tasks/assets/templates.json",
     "examples": "skills/telegram-followup-tasks/assets/examples.json"
@@ -141,7 +143,7 @@
     "risk": "low",
     "requiresApproval": false,
     "path": "skills/telegram-deck-followup",
-    "requiredCloudScopes": ["telegram.read", "crm.write"],
+    "requiredCloudScopes": ["telegram.read", "crm.write", "automation.rules.write"],
     "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp", "tgchats-cli"],
     "templates": "skills/telegram-deck-followup/assets/templates.json",
     "examples": "skills/telegram-deck-followup/assets/examples.json"
@@ -177,7 +179,7 @@
     "risk": "medium",
     "requiresApproval": true,
     "path": "skills/telegram-crm-export",
-    "requiredCloudScopes": ["telegram.read", "crm.read"],
+    "requiredCloudScopes": ["telegram.read"],
     "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp", "tgchats-cli"],
     "templates": "skills/telegram-crm-export/assets/templates.json",
     "examples": "skills/telegram-crm-export/assets/examples.json"
@@ -225,7 +227,7 @@
     "risk": "medium",
     "requiresApproval": false,
     "path": "skills/telegram-support-escalation",
-    "requiredCloudScopes": ["telegram.read", "crm.write"],
+    "requiredCloudScopes": ["telegram.read", "crm.write", "automation.rules.write"],
     "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp", "tgchats-cli"],
     "templates": "skills/telegram-support-escalation/assets/templates.json",
     "examples": "skills/telegram-support-escalation/assets/examples.json"

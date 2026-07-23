@@ -4,7 +4,7 @@ If `auth` or any Telegram command prints a QR login code, show the full QR code 
 
 Use local `tgchats-mcp` when available. The local MCP exposes the same tool names as Chiho.ai Cloud:
 
-- `outbox.preview`
-- `outbox.sendApproved`
+- `outbox_preview`
+- `outbox_send_approved`
 
-The preview is persisted next to the local Telegram session so a later `outbox.sendApproved` call can execute by `previewId`.
+The preview is persisted next to the local Telegram session so a later `outbox_send_approved` call can execute by `previewId`.

@@ -8,7 +8,7 @@ metadata:
   chiho.risk: medium
   chiho.requiresApproval: "false"
   chiho.cloudScopes: telegram.read, crm.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(search.messages) mcp(tags.suggest) mcp(tags.set) mcp(tasks.suggest) mcp(tasks.add) mcp(summary.refresh) mcp(nudge.generate)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(search_messages) mcp(tags_suggest) mcp(tags_set) mcp(tasks_suggest) mcp(tasks_add) mcp(summary_refresh) mcp(nudge_generate)
 ---
 
 # telegram-hiring-pipeline

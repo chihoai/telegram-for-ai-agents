@@ -7,8 +7,8 @@ metadata:
   chiho.category: crm-automation
   chiho.risk: low
   chiho.requiresApproval: "false"
-  chiho.cloudScopes: telegram.read, crm.write
-allowed-tools: mcp(dialogs.list) mcp(chat.read) mcp(tasks.today) mcp(tasks.suggest) mcp(tasks.add) mcp(tasks.done) mcp(rules.list) mcp(rules.add) mcp(rules.run) mcp(rules.log)
+  chiho.cloudScopes: telegram.read, crm.write, automation.rules.write
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(tasks_today) mcp(tasks_suggest) mcp(tasks_add) mcp(tasks_done) mcp(rules_list) mcp(rules_add) mcp(rules_run) mcp(rules_log)
 ---
 
 # telegram-followup-tasks
@@ -24,12 +24,12 @@ Use this skill to turn Telegram conversation context into follow-up tasks.
 
 ## Flow
 
-1. Use `tasks.today` when the user asks for the current follow-up queue.
-2. Use `dialogs.list` to find candidate chats.
-3. Use `chat.read` for chats that need context.
-4. Use `tasks.suggest` for AI-generated follow-up candidates.
-5. Use `tasks.add` when the user approves suggestions or gives direct instructions.
-6. Use `rules.*` when the user wants recurring follow-up behavior.
+1. Use `tasks_today` when the user asks for the current follow-up queue.
+2. Use `dialogs_list` to find candidate chats.
+3. Use `chat_read` for chats that need context.
+4. Use `tasks_suggest` for AI-generated follow-up candidates.
+5. Use `tasks_add` when the user approves suggestions or gives direct instructions.
+6. Use `rules_list`, `rules_add`, and the explicitly approved rule-execution tools when the user wants recurring follow-up behavior.
 
 ## First-Time Setup
 

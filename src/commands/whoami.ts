@@ -13,7 +13,6 @@ export async function runWhoami(ctx: AppContext): Promise<void> {
         id: me.id,
         username: me.username ?? null,
       },
-      sessionPath: ctx.config.sessionPath,
       accountLabel: ctx.config.accountLabel,
     });
     return;
@@ -22,6 +21,5 @@ export async function runWhoami(ctx: AppContext): Promise<void> {
   console.log(`Name: ${me.displayName}`);
   console.log(`ID: ${me.id}`);
   console.log(`Username: ${me.username ?? '-'}`);
-  console.log(`Session: ${ctx.config.sessionPath}`);
   console.log(`Account label: ${ctx.config.accountLabel}`);
 }
