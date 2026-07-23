@@ -52,18 +52,31 @@ Open issue:
 
 - `sync.once { dialogs: 100 }` can hit Telegram `FLOOD_WAIT`; see `chihoai/chiho#57`.
 
-## Hosted Package Release Gate
+## Hosted Package Production Validation
 
-The OAuth and portable-name release candidate is deployed at
-`https://stagingapi.chiho.ai/mcp`. Claude Free custom-connector OAuth has been
-verified there through `auth_status`. Do not publish or merge the hosted
-`chiho-telegram` package until the same backend reaches
-`https://api.chiho.ai/mcp` and production passes all of these checks:
+The OAuth and portable-name backend is live at
+`https://api.chiho.ai/mcp`. The hosted `chiho-telegram` package release gate
+completed on 2026-07-23:
 
-1. OAuth discovery and the unauthenticated `WWW-Authenticate` challenge.
-2. Browser login from current Claude and Codex clients.
-3. Authenticated `tools/list` with portable snake_case names.
-4. `auth_status`, one read-only Telegram call, and one guarded preview/approval flow.
+1. OAuth discovery, protected-resource metadata, JWKS, dynamic client
+   registration, and the unauthenticated `WWW-Authenticate` challenge passed.
+2. Claude Free completed browser OAuth, `auth_status`, and `account_whoami`
+   through the production custom connector.
+3. Codex completed production OAuth and reused the grant from the current
+   client to call `auth_status`; authenticated tool discovery exposed portable
+   snake_case names.
+4. Claude created an `outbox_preview` record with one-time tool approval. The
+   self-recipient was correctly skipped as outside the token's dialog scope,
+   and no send or approval-execution tool ran.
+
+Codex CLI 0.144.6 currently fails a fresh OAuth callback with an upstream
+issuer-validation error even though the callback contains the correct
+`iss=https://api.chiho.ai`. Codex CLI 0.142.5 completes the same login, after
+which 0.144.6 can reuse the stored grant and call the hosted tools. Keep this
+workaround documented until the current client regression is fixed.
+
+Playwright was intentionally skipped at the project owner's request. The
+production Claude flow above was verified directly in the browser.
 
 Implementation follow-up on 2026-06-09:
 
@@ -85,7 +98,10 @@ Implementation follow-up on 2026-06-09:
   - Local: `npm test`, `npm run build`, `npm run validate:skills`, `npm run check:local-install`, `git diff --check`; local install check reported 42 local MCP tools.
   - Cloud: `npm test --workspace @chiho/backend`, targeted MCP tests, `npm run typecheck --workspace @chiho/backend`, `npm run sync:agent-contracts:check --workspace @chiho/backend`, `node --check backend/scripts/smoke-agent-mcp.mjs`, `git diff --check`.
 - Final subagent review passes reported no active P0/P1/P2 findings on both PR heads.
-- Hosted Chiho.ai Cloud still needs merge/deployment and live retest before treating these as production behavior.
+- Hosted Chiho.ai Cloud OAuth, portable tool discovery, authenticated reads,
+  and the guarded preview boundary are now deployed and live-tested in
+  production. The mutation-specific cases below remain explicitly marked for
+  separate testing.
 
 ## Quick MCP Smoke Script
 

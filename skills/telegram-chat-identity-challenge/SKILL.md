@@ -7,8 +7,8 @@ metadata:
   chiho.category: telegram-automation
   chiho.risk: high
   chiho.requiresApproval: "true"
-  chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send
-allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(tags_set) mcp(tasks_add) mcp(outbox_preview) mcp(message_send_draft)
+  chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, telegram.batch.write
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(tags_set) mcp(tasks_add) mcp(outbox_preview) mcp(write_approve_preview) mcp(outbox_send_approved) mcp(message_send_draft)
 ---
 
 # telegram-chat-identity-challenge
@@ -22,7 +22,7 @@ Use this skill to ask a newly opened or otherwise untrusted Telegram chat to rep
 - Do not accuse the contact of being North Korean, a hacker, an impersonator, or a hostile operator based only on this challenge.
 - Ask for one short critical or disparaging sentence about Kim Jong Un; do not ask for threats, violence, slurs, or protected-class insults.
 - Prefer `outbox_preview` so the user can approve or edit the wording before anything is sent.
-- Use `message_send_draft` only when the user explicitly asks to send immediately and the target chat is specific.
+- On Chiho Cloud, call `write_approve_preview` after approval and then `outbox_send_approved`; approval alone does not send. On local tgchats, call `outbox_send_approved` after approval. Use `message_send_draft` only when the user explicitly asks to send immediately and the target chat is specific.
 - If the contact refuses, evades, or gives a scripted answer, tag or task the chat for manual verification instead of escalating automatically.
 - Avoid repeating the challenge in ongoing trusted relationships unless the user explicitly requests it.
 
@@ -32,7 +32,7 @@ Use this skill to ask a newly opened or otherwise untrusted Telegram chat to rep
 2. Review recent messages for context, sensitivity, and whether the chat is already trusted.
 3. Prepare a concise challenge message from the templates.
 4. Preview the message with `outbox_preview`.
-5. After approval or when explicitly requested, send with the configured approved-send path or `message_send_draft`.
+5. After approval, complete the runtime-specific approval step and send with `outbox_send_approved`; use `message_send_draft` only for an explicit direct-send request.
 6. Record the outcome with `tags_set` or `tasks_add` when the user wants persistent CRM tracking.
 7. Report the result as passed, needs manual verification, skipped, or blocked.
 

@@ -19,6 +19,29 @@ function assert(condition, message) {
   }
 }
 
+function marketplaceSourceErrors(marketplace, kind) {
+  const errors = [];
+  for (const entry of marketplace.plugins || []) {
+    const sourcePath =
+      kind === "codex" ? entry?.source?.path : entry?.source;
+    const expectedPath = `./plugins/${entry?.name}`;
+    if (sourcePath !== expectedPath) {
+      errors.push(
+        `${kind} marketplace source for ${entry?.name || "<unnamed>"} must be ${expectedPath}`,
+      );
+      continue;
+    }
+    const resolvedSource = path.resolve(projectRoot, sourcePath);
+    const expectedSource = path.join(projectRoot, "plugins", entry.name);
+    if (resolvedSource !== expectedSource) {
+      errors.push(
+        `${kind} marketplace source for ${entry.name} resolves outside its package root`,
+      );
+    }
+  }
+  return errors;
+}
+
 function runNodeCommand(args) {
   return spawnSync(process.execPath, args, {
     cwd: projectRoot,
@@ -84,6 +107,7 @@ const publicContractsPath = path.join(
   "docs",
   "public-mcp-tool-contracts.json",
 );
+const packageManifestPath = path.join(projectRoot, "package.json");
 const hostedPluginRoot = path.join(projectRoot, "plugins", "chiho-telegram");
 const localPluginRoot = path.join(projectRoot, "plugins", "tgchats-local");
 const codexMarketplacePath = path.join(
@@ -166,6 +190,7 @@ for (const removedLegacyPath of [
   );
 }
 for (const requiredPath of [
+  packageManifestPath,
   codexMarketplacePath,
   claudeMarketplacePath,
   hostedCodexManifestPath,
@@ -212,12 +237,37 @@ const codexMarketplace = JSON.parse(
 const claudeMarketplace = JSON.parse(
   await fs.readFile(claudeMarketplacePath, "utf8"),
 );
+const packageManifest = JSON.parse(
+  await fs.readFile(packageManifestPath, "utf8"),
+);
+assert(
+  packageManifest.scripts?.prepare === "npm run build",
+  "Package installs and release packing must build the declared dist binaries",
+);
 for (const marketplace of [codexMarketplace, claudeMarketplace]) {
   assert(marketplace.name === "chiho", "Marketplace name must be chiho");
   assert(
     JSON.stringify(marketplace.plugins.map((entry) => entry.name)) ===
       JSON.stringify(["chiho-telegram", "tgchats-local"]),
     "Marketplace must expose exactly the hosted and local packages",
+  );
+}
+for (const [kind, marketplace] of [
+  ["codex", codexMarketplace],
+  ["claude", claudeMarketplace],
+]) {
+  const sourceErrors = marketplaceSourceErrors(marketplace, kind);
+  assert(sourceErrors.length === 0, sourceErrors.join("\n"));
+
+  const invalidMarketplace = structuredClone(marketplace);
+  if (kind === "codex") {
+    invalidMarketplace.plugins[0].source.path = "./plugins/does-not-exist";
+  } else {
+    invalidMarketplace.plugins[0].source = "./plugins/does-not-exist";
+  }
+  assert(
+    marketplaceSourceErrors(invalidMarketplace, kind).length > 0,
+    `${kind} marketplace validation must reject a nonexistent package source`,
   );
 }
 
@@ -453,10 +503,54 @@ for (const requiredTool of [
   "dialogs_list",
   "sync_peer",
   "write_approve_preview",
+  "outbox_send_approved",
+  "members_invite_approved",
+  "groups_leave_approved",
 ]) {
   assert(
     hostedSkill.includes(requiredTool),
     `Hosted skill must document ${requiredTool}`,
+  );
+}
+for (const [relativePath, orderedTools] of [
+  [
+    "skills/telegram-conditional-replies/references/cloud-mcp.md",
+    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+  ],
+  [
+    "skills/telegram-bulk-template-message/references/cloud-mcp.md",
+    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+  ],
+  [
+    "skills/telegram-human-verification-challenge/references/cloud-mcp.md",
+    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+  ],
+  [
+    "skills/telegram-chat-identity-challenge/references/cloud-mcp.md",
+    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+  ],
+  [
+    "skills/telegram-add-colleagues-to-group/references/cloud-mcp.md",
+    [
+      "members_invite_preview",
+      "write_approve_preview",
+      "members_invite_approved",
+    ],
+  ],
+  [
+    "skills/telegram-group-cleanup/references/cloud-mcp.md",
+    ["groups_leave_preview", "write_approve_preview", "groups_leave_approved"],
+  ],
+]) {
+  const workflowPath = path.join(projectRoot, relativePath);
+  const workflow = await fs.readFile(workflowPath, "utf8");
+  const positions = orderedTools.map((toolName) => workflow.indexOf(toolName));
+  assert(
+    positions.every(
+      (position, index) =>
+        position >= 0 && (index === 0 || position > positions[index - 1]),
+    ),
+    `${relativePath} must document ${orderedTools.join(" -> ")} in execution order`,
   );
 }
 const localSkill = await fs.readFile(localSkillPath, "utf8");
@@ -477,6 +571,67 @@ const connections = [];
 const temporaryDirectories = [];
 
 try {
+  const packRoot = await fs.mkdtemp(path.join(tmpdir(), "tgchats-pack-"));
+  temporaryDirectories.push(packRoot);
+  const installPrefix = path.join(packRoot, "install");
+  const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+  const packResult = spawnSync(
+    npmCommand,
+    ["pack", "--json", "--silent", "--pack-destination", packRoot],
+    {
+      cwd: projectRoot,
+      encoding: "utf8",
+    },
+  );
+  assert(
+    packResult.status === 0,
+    `npm pack failed\nstdout:\n${packResult.stdout}\nstderr:\n${packResult.stderr}`,
+  );
+  const packMetadata = JSON.parse(packResult.stdout);
+  const packedFiles = new Set(
+    packMetadata[0]?.files?.map((entry) => entry.path),
+  );
+  for (const declaredBin of Object.values(packageManifest.bin || {})) {
+    assert(
+      packedFiles.has(declaredBin),
+      `Packed npm artifact is missing declared binary ${declaredBin}`,
+    );
+  }
+
+  const tarballPath = path.join(packRoot, packMetadata[0].filename);
+  const installResult = spawnSync(
+    npmCommand,
+    [
+      "install",
+      "--global",
+      "--ignore-scripts",
+      "--prefix",
+      installPrefix,
+      tarballPath,
+    ],
+    {
+      cwd: packRoot,
+      encoding: "utf8",
+    },
+  );
+  assert(
+    installResult.status === 0,
+    `Packed npm artifact failed to install\nstdout:\n${installResult.stdout}\nstderr:\n${installResult.stderr}`,
+  );
+  const installedBinRoot =
+    process.platform === "win32"
+      ? installPrefix
+      : path.join(installPrefix, "bin");
+  const installedBinSuffix = process.platform === "win32" ? ".cmd" : "";
+  for (const binName of Object.keys(packageManifest.bin || {})) {
+    assert(
+      await fileExists(
+        path.join(installedBinRoot, `${binName}${installedBinSuffix}`),
+      ),
+      `Packed npm artifact did not install ${binName}`,
+    );
+  }
+
   const mcpConnection = await createMcpClient(process.execPath, [mcpPath]);
   connections.push(mcpConnection);
   assert(
@@ -724,6 +879,7 @@ try {
           proxyCredentialRedaction: true,
           dottedAliasesRejected: true,
           parallelToolCallsSerialized: true,
+          packedBins: true,
           installedCacheLaunch,
           sessionPathRedaction: true,
         },

@@ -78,15 +78,20 @@ const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
   "outbox.preview": metadata("Prepare Telegram messages", WRITE_EXTERNAL),
   "outbox.sendApproved": metadata("Send approved Telegram messages", {
     ...WRITE_EXTERNAL,
+    destructiveHint: true,
     idempotentHint: true,
   }),
-  "message.sendDraft": metadata("Send a Telegram message", WRITE_EXTERNAL),
+  "message.sendDraft": metadata("Send a Telegram message", {
+    ...WRITE_EXTERNAL,
+    destructiveHint: true,
+  }),
   "members.invitePreview": metadata(
     "Prepare Telegram member invites",
     WRITE_EXTERNAL,
   ),
   "members.inviteApproved": metadata("Invite approved Telegram members", {
     ...WRITE_EXTERNAL,
+    destructiveHint: true,
     idempotentHint: true,
   }),
   "groups.leavePreview": metadata(

@@ -651,7 +651,7 @@
     "title": "Send approved Telegram messages",
     "annotations": {
       "readOnlyHint": false,
-      "destructiveHint": false,
+      "destructiveHint": true,
       "idempotentHint": true,
       "openWorldHint": true
     },
@@ -708,7 +708,7 @@
     "title": "Send a Telegram message",
     "annotations": {
       "readOnlyHint": false,
-      "destructiveHint": false,
+      "destructiveHint": true,
       "idempotentHint": false,
       "openWorldHint": true
     },
@@ -821,7 +821,7 @@
     "title": "Invite approved Telegram members",
     "annotations": {
       "readOnlyHint": false,
-      "destructiveHint": false,
+      "destructiveHint": true,
       "idempotentHint": true,
       "openWorldHint": true
     },

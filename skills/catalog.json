@@ -10,7 +10,8 @@
       "telegram.read",
       "crm.write",
       "telegram.message.preview",
-      "telegram.message.send"
+      "telegram.message.send",
+      "telegram.batch.write"
     ],
     "supportedRuntimes": ["chiho-cloud-mcp", "tgchats-local-mcp"],
     "templates": "skills/telegram-chat-identity-challenge/assets/templates.json",

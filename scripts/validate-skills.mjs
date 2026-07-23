@@ -111,9 +111,9 @@ function validateToolArrays(filePath, value, knownTools) {
   }
 }
 
-function validateNoSendExamples(filePath, value) {
+function validateNoSendExamples(filePath, value, report = fail) {
   if (Array.isArray(value)) {
-    for (const item of value) validateNoSendExamples(filePath, item);
+    for (const item of value) validateNoSendExamples(filePath, item, report);
     return;
   }
   if (!value || typeof value !== "object") {
@@ -121,11 +121,13 @@ function validateNoSendExamples(filePath, value) {
   }
 
   const prompt = typeof value.prompt === "string" ? value.prompt : "";
-  if (/\b(?:do not|don't|without)\s+send(?:ing)?\b/i.test(prompt)) {
+  const explicitlyForbidsSending =
+    /\b(?:do\s+not|don't|never|without)(?:\s+[a-z]+){0,3}\s+send(?:ing)?\b/i;
+  if (explicitlyForbidsSending.test(prompt)) {
     const tools = Array.isArray(value.tools) ? value.tools : [];
     for (const toolName of tools) {
       if (directSendTools.has(toolName)) {
-        fail(
+        report(
           `${filePath}: explicit no-send example must not use ${toolName}`,
         );
       }
@@ -133,7 +135,7 @@ function validateNoSendExamples(filePath, value) {
   }
 
   for (const child of Object.values(value)) {
-    validateNoSendExamples(filePath, child);
+    validateNoSendExamples(filePath, child, report);
   }
 }
 
@@ -158,12 +160,49 @@ function validateAssetJson(skillDir, knownTools) {
   }
 }
 
-function validateSurfaceToolReferences(filePath, body, surfaceTools, knownTools) {
-  const portableToolReference = /`([a-z][a-z0-9]*(?:_[a-z0-9]+)+)`/g;
-  for (const match of body.matchAll(portableToolReference)) {
-    const toolName = match[1];
-    if (knownTools.has(toolName) && !surfaceTools.has(toolName)) {
-      fail(`${filePath}: ${toolName} is unavailable on this MCP surface`);
+function validateSurfaceToolReferences(
+  filePath,
+  body,
+  surfaceTools,
+  knownTools,
+  report = fail,
+) {
+  for (const toolName of knownTools) {
+    const toolReference = new RegExp(
+      `(?<![A-Za-z0-9_])${toolName}(?![A-Za-z0-9_])`,
+    );
+    if (toolReference.test(body) && !surfaceTools.has(toolName)) {
+      report(`${filePath}: ${toolName} is unavailable on this MCP surface`);
+    }
+  }
+}
+
+function validateValidatorGuards(cloudTools, knownTools) {
+  const routeErrors = [];
+  validateSurfaceToolReferences(
+    "route-negative-fixture.md",
+    "Use rules_dry_run before continuing.",
+    cloudTools,
+    knownTools,
+    (message) => routeErrors.push(message),
+  );
+  if (routeErrors.length === 0) {
+    fail("route validator must reject an unformatted local-only tool reference");
+  }
+
+  for (const prompt of [
+    "Never send it.",
+    "Do not ever send it.",
+    "Continue without actually sending it.",
+  ]) {
+    const noSendErrors = [];
+    validateNoSendExamples(
+      "no-send-negative-fixture.json",
+      { prompt, tools: ["message_send_draft"] },
+      (message) => noSendErrors.push(message),
+    );
+    if (noSendErrors.length === 0) {
+      fail(`no-send validator must reject direct-send tools for: ${prompt}`);
     }
   }
 }
@@ -254,6 +293,7 @@ function main() {
   const commonTools = new Set(
     [...localTools].filter((toolName) => cloudTools.has(toolName)),
   );
+  validateValidatorGuards(cloudTools, knownTools);
 
   const entries = fs
     .readdirSync(skillsDir, { withFileTypes: true })

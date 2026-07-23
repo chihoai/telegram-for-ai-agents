@@ -169,7 +169,23 @@ npm link
 codex plugin add tgchats-local@chiho
 ```
 
-Codex shares MCP configuration across the desktop app, CLI, and IDE extension. For the hosted package, select **Authenticate** in MCP settings or run `/mcp` and complete Chiho OAuth in the browser. The package asks Codex to prompt for tools not marked read-only.
+Codex plugins currently work in ChatGPT desktop/Work and Codex CLI, but not
+in the Codex IDE extension. In a supported plugin client, select
+**Authenticate** in MCP settings or run `/mcp` and complete Chiho OAuth in the
+browser. For the IDE extension, add the hosted MCP server directly:
+
+```bash
+codex mcp add chiho --url https://api.chiho.ai/mcp
+```
+
+The package asks Codex to prompt for tools not marked read-only.
+
+Known client issue, verified on 2026-07-23: Codex CLI 0.144.6 can reject a
+fresh OAuth callback with an issuer-validation error even though Chiho returns
+the required issuer. If that happens, run
+`npx -y @openai/codex@0.142.5 mcp login <server-name>` with the Chiho server
+name shown by `codex mcp list`, then return to the current Codex client. The
+current client can reuse that stored grant normally.
 
 ### Claude Code
 

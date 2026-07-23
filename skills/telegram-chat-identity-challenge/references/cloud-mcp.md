@@ -7,4 +7,4 @@ Recommended Chiho.ai Cloud scopes:
 - `telegram.message.send` only when the user approves sending.
 - `crm.write` to tag chats or create verification tasks.
 
-Use `outbox_preview` for the challenge message. Send only after explicit approval through the configured approved-send path, or use `message_send_draft` when the user explicitly requests a direct one-off send.
+Use `outbox_preview` for the challenge message. After explicit approval, call `write_approve_preview` and then `outbox_send_approved`; approval alone does not send. Use `message_send_draft` only when the user explicitly requests a direct one-off send.

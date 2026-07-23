@@ -14,6 +14,7 @@
     "dev": "tsx src/cli.ts",
     "export:contracts": "tsx src/contracts/export-tool-contracts.ts",
     "mcp": "tsx src/mcp/stdio.ts",
+    "prepare": "npm run build",
     "start": "tsx src/cli.ts",
     "validate:skills": "node scripts/validate-skills.mjs",
     "test": "vitest run"
