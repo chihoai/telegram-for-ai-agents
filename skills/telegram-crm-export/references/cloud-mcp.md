@@ -3,7 +3,6 @@
 Required scopes:
 
 - `telegram.read`
-- `crm.read`
 
 Useful tools:
 

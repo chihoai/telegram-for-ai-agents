@@ -46,15 +46,125 @@ const hostedApprovalFlows = new Map([
     ["groups_leave_preview", "write_approve_preview", "groups_leave_approved"],
   ],
 ]);
-const cloudToolRequiredScopes = new Map([
-  [
-    "outbox_send_approved",
-    ["telegram.message.send", "telegram.batch.write"],
-  ],
-  ["message_send_draft", ["telegram.message.send"]],
-  ["members_invite_approved", ["telegram.members.invite"]],
-  ["groups_leave_approved", ["telegram.groups.leave"]],
+const supportedCloudScopes = new Set([
+  "telegram.read",
+  "crm.write",
+  "telegram.message.preview",
+  "telegram.message.send",
+  "telegram.message.schedule",
+  "telegram.batch.write",
+  "telegram.members.invite",
+  "telegram.folders.write",
+  "telegram.groups.leave",
+  "automation.rules.write",
 ]);
+const cloudToolRequiredScopes = new Map();
+const cloudToolRequiredAnyScopes = new Map([
+  [
+    "write_approve_preview",
+    [
+      "telegram.message.preview",
+      "telegram.members.invite",
+      "telegram.groups.leave",
+    ],
+  ],
+]);
+const cloudScopeFreeTools = new Set(["auth_status"]);
+
+function requireCloudScopes(toolNames, ...requiredScopes) {
+  for (const toolName of toolNames) {
+    const existingScopes = cloudToolRequiredScopes.get(toolName) || [];
+    cloudToolRequiredScopes.set(
+      toolName,
+      [...new Set([...existingScopes, ...requiredScopes])],
+    );
+  }
+}
+
+requireCloudScopes(
+  [
+    "account_whoami",
+    "dialogs_list",
+    "chat_read",
+    "search_messages",
+    "folders_list",
+    "tags_get",
+    "tags_set",
+    "tags_clear",
+    "tags_suggest",
+    "company_get",
+    "company_link",
+    "company_unlink",
+    "company_suggest",
+    "tasks_today",
+    "tasks_add",
+    "tasks_done",
+    "tasks_suggest",
+    "summary_show",
+    "summary_refresh",
+    "nudge_generate",
+    "rules_list",
+    "rules_add",
+    "rules_disable",
+    "rules_delete",
+    "rules_run",
+    "rules_log",
+    "sync_once",
+    "sync_peer",
+    "session_logout",
+  ],
+  "telegram.read",
+);
+requireCloudScopes(
+  [
+    "tags_set",
+    "tags_clear",
+    "tags_suggest",
+    "company_link",
+    "company_unlink",
+    "company_suggest",
+    "tasks_add",
+    "tasks_done",
+    "tasks_suggest",
+    "summary_refresh",
+  ],
+  "crm.write",
+);
+requireCloudScopes(
+  [
+    "rules_list",
+    "rules_add",
+    "rules_disable",
+    "rules_delete",
+    "rules_run",
+    "rules_log",
+  ],
+  "automation.rules.write",
+);
+requireCloudScopes(["outbox_preview"], "telegram.message.preview");
+requireCloudScopes(
+  ["outbox_send_approved"],
+  "telegram.message.send",
+  "telegram.batch.write",
+);
+requireCloudScopes(["message_send_draft"], "telegram.message.send");
+requireCloudScopes(
+  ["members_invite_preview", "members_invite_approved"],
+  "telegram.members.invite",
+);
+requireCloudScopes(
+  ["groups_leave_preview", "groups_leave_approved"],
+  "telegram.groups.leave",
+);
+requireCloudScopes(
+  [
+    "folders_create",
+    "folders_add_dialog",
+    "folders_remove_dialog",
+    "folders_delete",
+  ],
+  "telegram.folders.write",
+);
 
 function fail(message) {
   console.error(message);
@@ -124,6 +234,11 @@ function validateCloudToolScopes(filePath, frontmatter, report = fail) {
   }
 
   const scopes = new Set(parseCloudScopes(rawScopes));
+  for (const scope of scopes) {
+    if (!supportedCloudScopes.has(scope)) {
+      report(`${filePath}: unsupported cloud scope ${scope}`);
+    }
+  }
   for (const [toolName, requiredScopes] of cloudToolRequiredScopes) {
     if (!allowedTools.includes(`mcp(${toolName})`)) {
       continue;
@@ -134,6 +249,16 @@ function validateCloudToolScopes(filePath, frontmatter, report = fail) {
           `${filePath}: ${toolName} requires cloud scope ${requiredScope}`,
         );
       }
+    }
+  }
+  for (const [toolName, requiredAnyScopes] of cloudToolRequiredAnyScopes) {
+    if (
+      allowedTools.includes(`mcp(${toolName})`) &&
+      !requiredAnyScopes.some((scope) => scopes.has(scope))
+    ) {
+      report(
+        `${filePath}: ${toolName} requires one of cloud scopes ${requiredAnyScopes.join(", ")}`,
+      );
     }
   }
 }
@@ -266,6 +391,16 @@ function validateSurfaceToolReferences(
 }
 
 function validateValidatorGuards(cloudTools, knownTools) {
+  for (const toolName of cloudTools) {
+    if (
+      !cloudScopeFreeTools.has(toolName) &&
+      !cloudToolRequiredScopes.has(toolName) &&
+      !cloudToolRequiredAnyScopes.has(toolName)
+    ) {
+      fail(`cloud scope validator is missing a contract for ${toolName}`);
+    }
+  }
+
   const routeErrors = [];
   validateSurfaceToolReferences(
     "route-negative-fixture.md",
@@ -322,6 +457,45 @@ function validateValidatorGuards(cloudTools, knownTools) {
   );
   if (cloudScopeErrors.length === 0) {
     fail("cloud scope validator must reject a missing executor scope");
+  }
+
+  const approvalScopeErrors = [];
+  validateCloudToolScopes(
+    "cloud-approval-scope-negative-fixture.md",
+    {
+      "allowed-tools": "mcp(write_approve_preview)",
+      "chiho.cloudScopes": "telegram.read",
+    },
+    (message) => approvalScopeErrors.push(message),
+  );
+  if (approvalScopeErrors.length === 0) {
+    fail("cloud scope validator must reject a missing approval scope");
+  }
+
+  const ruleScopeErrors = [];
+  validateCloudToolScopes(
+    "cloud-rule-scope-negative-fixture.md",
+    {
+      "allowed-tools": "mcp(rules_list)",
+      "chiho.cloudScopes": "telegram.read",
+    },
+    (message) => ruleScopeErrors.push(message),
+  );
+  if (ruleScopeErrors.length === 0) {
+    fail("cloud scope validator must reject a missing rule scope");
+  }
+
+  const unknownScopeErrors = [];
+  validateCloudToolScopes(
+    "unknown-cloud-scope-negative-fixture.md",
+    {
+      "allowed-tools": "mcp(tags_get)",
+      "chiho.cloudScopes": "telegram.read, crm.read",
+    },
+    (message) => unknownScopeErrors.push(message),
+  );
+  if (unknownScopeErrors.length === 0) {
+    fail("cloud scope validator must reject an unsupported scope");
   }
 }
 

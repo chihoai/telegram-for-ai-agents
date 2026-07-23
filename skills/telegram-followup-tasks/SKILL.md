@@ -7,7 +7,7 @@ metadata:
   chiho.category: crm-automation
   chiho.risk: low
   chiho.requiresApproval: "false"
-  chiho.cloudScopes: telegram.read, crm.write
+  chiho.cloudScopes: telegram.read, crm.write, automation.rules.write
 allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(tasks_today) mcp(tasks_suggest) mcp(tasks_add) mcp(tasks_done) mcp(rules_list) mcp(rules_add) mcp(rules_run) mcp(rules_log)
 ---
 
