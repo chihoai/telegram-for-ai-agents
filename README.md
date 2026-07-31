@@ -204,7 +204,12 @@ Add a custom connector with this exact URL:
 https://api.chiho.ai/mcp
 ```
 
-Select **Connect** and complete OAuth in the browser. Do not enter a personal access token, custom bearer header, or OAuth client secret. Free, Pro, and Max users can add Chiho directly as a custom connector; Claude Free currently permits one custom connector. Team and Enterprise owners are only required for organization-wide connector installation and directory submission.
+Select **Connect** and complete OAuth in the browser. Do not enter a personal
+access token, custom bearer header, or OAuth client secret. Free, Pro, and Max
+users can add Chiho directly as a custom connector; Claude Free currently
+permits one custom connector. Team and Enterprise permissions are required for
+organization-wide connector installation and the Claude.ai submission route;
+individual plugin authors can use Console as described below.
 
 Advanced service tokens remain available only for explicitly requested headless automation and are not part of Claude or Codex onboarding.
 
@@ -212,7 +217,8 @@ Advanced service tokens remain available only for explicitly requested headless 
 
 Direct custom-connector and marketplace testing does not require directory approval.
 
-- **Anthropic Connectors Directory:** submit from a Claude Team or Enterprise organization as an Owner or Primary Owner at `https://claude.ai/admin-settings/directory/submissions/new`. The Claude plugin is a separate submission from `https://claude.ai/settings/plugins/submit` or `https://platform.claude.com/plugins/submit`.
+- **Anthropic Connectors Directory:** this is separate from the plugin directory and uses its own connector review process.
+- **Claude Plugin Directory:** individual authors can create a free Console organization and submit at `https://platform.claude.com/plugins/submit`. The Claude.ai form at `https://claude.ai/admin-settings/directory/submissions/plugins/new` requires a Team or Enterprise organization plus directory-management access.
 - **OpenAI Plugins Directory:** complete business verification for the publishing OpenAI Platform organization, use an Owner or a role with Apps Management write access, then create a **With MCP** submission at `https://platform.openai.com/plugins` for `https://api.chiho.ai/mcp`.
 
 OpenAI does not require an existing ChatGPT app ID for a new MCP-backed submission. Both directories require production documentation, privacy and support details, accurate tool metadata, reviewer test instructions, and a production-ready OAuth flow.

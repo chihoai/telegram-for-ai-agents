@@ -26,6 +26,7 @@ OAuth grants all currently supported Chiho capabilities. Continue to respect the
 - Preview tools prepare approval state but do not execute the represented Telegram action.
 - Review recipients and content before sends, users and groups before invites, and groups plus history-clearing choices before leaving.
 - For a guarded Telegram action, create the matching preview, call `write_approve_preview` only after the user reviews it, then call the matching executor (`outbox_send_approved`, `members_invite_approved`, or `groups_leave_approved`). Approval records consent but does not execute the action.
+- `message_send_draft` sends or schedules one message directly without creating a Chiho preview record. Use it only when the user explicitly asks to send or schedule one message to one specific chat and approves the client tool call; otherwise use the preview, approval, and executor flow.
 - Treat logout, group leave, deletes, clears, unlinks, and replacements as destructive.
 - If Telegram authentication is stale, direct the user to Chiho's Telegram connection UI.
 

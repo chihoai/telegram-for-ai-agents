@@ -21,7 +21,8 @@ want to self-host the runtime.
 - A Chiho account with Telegram connected at
   [chiho.ai](https://chiho.ai/).
 - A browser available for the OAuth sign-in and consent flow.
-- For Claude Code, version 2.1.154 or later is recommended.
+- Claude Code 2.1.154 or later. Earlier versions ignore the
+  disabled-by-default setting and enable the plugin when it is installed.
 
 ## Install in Claude Code
 
@@ -48,26 +49,32 @@ consent in the browser.
 Until the directory submission is approved, use a direct plugin upload or add
 the MCP connector at `https://api.chiho.ai/mcp` for testing.
 
-## Verify the connection
+## Example prompts
 
-Start with a read-only check:
+Start with these read-only checks:
 
 > Check my Chiho connection and tell me which Telegram account is connected.
 
-Claude should call `auth_status` and then `account_whoami`. A second safe smoke
-test is:
+Claude should call `auth_status` and then `account_whoami`.
 
 > List my five most recent Telegram dialogs. Do not change anything.
 
 That should call `dialogs_list` without performing a write.
 
+> Show my Telegram follow-up tasks due today. Do not change anything.
+
+That should call `tasks_today` without performing a write.
+
 ## Safety and access
 
 - Review the Chiho account or team and the requested permissions before
   consenting.
-- Sends, member invitations, and group leaves use a preview, user review,
+- Batch sends, member invitations, and group leaves use a preview, user review,
   approval, and execution flow.
 - Approval records consent but does not itself execute the Telegram action.
+- `message_send_draft` sends or schedules one message directly without creating
+  a Chiho preview record. Use it only when the user explicitly asks to send or
+  schedule one message to a specific chat and approves the client tool call.
 - Treat logout, group leave, deletes, clears, unlinks, and replacements as
   destructive.
 - Revoke Claude's access at
@@ -78,6 +85,7 @@ That should call `dialogs_list` without performing a write.
 
 - Product guide: [chiho.ai/telegram-mcp](https://chiho.ai/telegram-mcp)
 - Support: [contact Chiho](https://chiho.ai/contact)
+- Security reports: [iwant@chiho.ai](mailto:iwant@chiho.ai)
 - Privacy policy: [chiho.ai/privacy](https://chiho.ai/privacy)
 - Terms: [chiho.ai/terms](https://chiho.ai/terms)
 - Source and issues:

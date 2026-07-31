@@ -139,6 +139,7 @@ const hostedLegacyClaudeMcpPath = path.join(
 const hostedReadmePath = path.join(hostedPluginRoot, "README.md");
 const hostedSetupPath = path.join(hostedPluginRoot, "SETUP.md");
 const hostedLicensePath = path.join(hostedPluginRoot, "LICENSE");
+const hostedSecurityPath = path.join(hostedPluginRoot, "SECURITY.md");
 const localCodexManifestPath = path.join(
   localPluginRoot,
   ".codex-plugin",
@@ -205,6 +206,7 @@ for (const requiredPath of [
   hostedReadmePath,
   hostedSetupPath,
   hostedLicensePath,
+  hostedSecurityPath,
   localCodexManifestPath,
   localCodexMcpPath,
   localClaudeManifestPath,
@@ -349,6 +351,8 @@ assert(localCodexServer.cwd === ".", "Local Codex MCP cwd must be plugin root");
 const hostedClaudeManifest = JSON.parse(
   await fs.readFile(hostedClaudeManifestPath, "utf8"),
 );
+const hostedReadme = await fs.readFile(hostedReadmePath, "utf8");
+const hostedSecurity = await fs.readFile(hostedSecurityPath, "utf8");
 const localClaudeManifest = JSON.parse(
   await fs.readFile(localClaudeManifestPath, "utf8"),
 );
@@ -375,6 +379,25 @@ assert(
 assert(
   hostedClaudeManifest.defaultEnabled === false,
   "Hosted Claude package must require explicit opt-in",
+);
+assert(
+  hostedReadme.includes("Claude Code 2.1.154 or later") &&
+    hostedReadme.includes("Earlier versions ignore"),
+  "Hosted Claude README must document the disabled-by-default version boundary",
+);
+assert(
+  hostedReadme.includes("`message_send_draft` sends or schedules") &&
+    hostedReadme.includes("Chiho preview record"),
+  "Hosted Claude README must document the direct-send exception",
+);
+assert(
+  (hostedReadme.match(/^> /gm) || []).length >= 3,
+  "Hosted Claude README must include at least three working example prompts",
+);
+assert(
+  hostedSecurity.includes("iwant@chiho.ai") &&
+    hostedSecurity.includes("Do not open a public issue"),
+  "Hosted package must provide private security reporting instructions",
 );
 assert(
   localClaudeManifest.name === "tgchats-local",
@@ -539,6 +562,7 @@ for (const requiredTool of [
   "outbox_send_approved",
   "members_invite_approved",
   "groups_leave_approved",
+  "message_send_draft",
 ]) {
   assert(
     hostedSkill.includes(requiredTool),

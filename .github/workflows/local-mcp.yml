@@ -58,5 +58,13 @@ jobs:
       - name: Validate skills
         run: npm run validate:skills
 
+      - name: Validate Claude plugin
+        run: |
+          npx -y @anthropic-ai/claude-code@2.1.220 plugin validate plugins/chiho-telegram --strict
+          npx -y @anthropic-ai/claude-code@2.1.220 plugin validate . --strict
+
       - name: Check local install surface
         run: npm run check:local-install
+
+      - name: Check generated contracts are committed
+        run: git diff --exit-code -- docs/tool-contracts.json docs/public-mcp-tool-contracts.json
