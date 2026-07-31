@@ -132,7 +132,13 @@ const hostedClaudeManifestPath = path.join(
   ".claude-plugin",
   "plugin.json",
 );
-const hostedClaudeMcpPath = path.join(hostedPluginRoot, "claude-mcp.json");
+const hostedLegacyClaudeMcpPath = path.join(
+  hostedPluginRoot,
+  "claude-mcp.json",
+);
+const hostedReadmePath = path.join(hostedPluginRoot, "README.md");
+const hostedSetupPath = path.join(hostedPluginRoot, "SETUP.md");
+const hostedLicensePath = path.join(hostedPluginRoot, "LICENSE");
 const localCodexManifestPath = path.join(
   localPluginRoot,
   ".codex-plugin",
@@ -196,7 +202,9 @@ for (const requiredPath of [
   hostedCodexManifestPath,
   hostedCodexMcpPath,
   hostedClaudeManifestPath,
-  hostedClaudeMcpPath,
+  hostedReadmePath,
+  hostedSetupPath,
+  hostedLicensePath,
   localCodexManifestPath,
   localCodexMcpPath,
   localClaudeManifestPath,
@@ -213,6 +221,10 @@ for (const requiredPath of [
 assert(
   await fileExists(pluginMcpLauncherPath),
   `Missing local plugin MCP launcher at ${pluginMcpLauncherPath}`,
+);
+assert(
+  !(await fileExists(hostedLegacyClaudeMcpPath)),
+  "Hosted package must keep the Claude MCP override inline to avoid Cowork collisions with .mcp.json",
 );
 
 const windowsCacheLaunch = resolveTgchatsMcpLaunch({
@@ -337,9 +349,6 @@ assert(localCodexServer.cwd === ".", "Local Codex MCP cwd must be plugin root");
 const hostedClaudeManifest = JSON.parse(
   await fs.readFile(hostedClaudeManifestPath, "utf8"),
 );
-const hostedClaudeMcp = JSON.parse(
-  await fs.readFile(hostedClaudeMcpPath, "utf8"),
-);
 const localClaudeManifest = JSON.parse(
   await fs.readFile(localClaudeManifestPath, "utf8"),
 );
@@ -352,16 +361,38 @@ assert(
   "Hosted Claude package name changed",
 );
 assert(
+  hostedClaudeManifest.displayName === "Chiho AI",
+  "Hosted Claude package display name changed",
+);
+assert(
+  hostedClaudeManifest.version === "1.0.1",
+  "Hosted Claude package version must be 1.0.1",
+);
+assert(
+  hostedClaudeManifest.homepage === "https://chiho.ai/telegram-mcp",
+  "Hosted Claude package must use the product homepage",
+);
+assert(
+  hostedClaudeManifest.defaultEnabled === false,
+  "Hosted Claude package must require explicit opt-in",
+);
+assert(
   localClaudeManifest.name === "tgchats-local",
   "Local Claude package name changed",
 );
 assert(
-  hostedClaudeManifest.mcpServers === "./claude-mcp.json" &&
-    localClaudeManifest.mcpServers === "./claude-mcp.json",
-  "Claude plugin manifests must point at ./claude-mcp.json",
+  hostedClaudeManifest.mcpServers &&
+    typeof hostedClaudeManifest.mcpServers === "object" &&
+    !Array.isArray(hostedClaudeManifest.mcpServers),
+  "Hosted Claude MCP override must stay inline for Cowork compatibility",
+);
+assert(
+  localClaudeManifest.mcpServers === "./claude-mcp.json",
+  "Local Claude plugin manifest must point at ./claude-mcp.json",
 );
 
-const hostedClaudeServer = hostedClaudeMcp?.mcpServers?.["chiho-cloud"];
+const hostedClaudeServer =
+  hostedClaudeManifest.mcpServers?.["chiho-cloud"];
 assert(
   hostedClaudeServer?.type === "http",
   "Hosted Claude MCP transport must be HTTP",
@@ -375,7 +406,9 @@ assert(
   "Hosted Claude package must rely on OAuth discovery",
 );
 assert(
-  !JSON.stringify(hostedClaudeMcp).includes("chihocool.chiho.ai"),
+  !JSON.stringify(hostedClaudeManifest.mcpServers).includes(
+    "chihocool.chiho.ai",
+  ),
   "Hosted Claude package must not use the legacy domain",
 );
 
