@@ -156,7 +156,13 @@ export function buildToolCommandArgs(
       "chat",
       requireString(input.peer, "peer"),
       ...integerFlag(input.limit, "--limit"),
-      ...integerFlag(input.sinceMessageId, "--since"),
+      ...boundedIntegerFlag(input.sinceMessageId, "--since", 2_147_483_647),
+      ...boundedIntegerFlag(input.offsetDate, "--offset-date", 2_147_483_647),
+      ...boundedIntegerFlag(
+        input.offsetMessageId,
+        "--offset-message-id",
+        2_147_483_647,
+      ),
     ];
   }
 

@@ -290,7 +290,13 @@ export function peerToRow(peer: Peer): {
 
 export async function fetchChatHistory(
   client: TelegramClient,
-  params: { chatId: string | number | Peer; limit: number; sinceMessageId?: number },
+  params: {
+    chatId: string | number | Peer;
+    limit: number;
+    sinceMessageId?: number;
+    offsetDate?: number;
+    offsetMessageId?: number;
+  },
 ): Promise<Message[]> {
   const chatId =
     typeof params.chatId === 'object'
@@ -299,6 +305,14 @@ export async function fetchChatHistory(
   const iterator = client.iterHistory(chatId, {
     limit: params.limit,
     ...(params.sinceMessageId ? { minId: params.sinceMessageId } : {}),
+    ...(params.offsetDate || params.offsetMessageId
+      ? {
+          offset: {
+            date: params.offsetDate ?? 0,
+            id: params.offsetMessageId ?? 0,
+          },
+        }
+      : {}),
   });
 
   const messages: Message[] = [];
