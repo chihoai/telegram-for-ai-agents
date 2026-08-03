@@ -67,6 +67,30 @@ describe('fetchChatHistory', () => {
     ).resolves.toEqual([message]);
     expect(client.iterHistory).toHaveBeenCalledWith(peer, { limit: 10 });
   });
+
+  it('passes both parts of a lossless history cursor to iterHistory', async () => {
+    const peer = {
+      id: -1003504325521,
+      type: 'chat',
+      displayName: 'takopi dev',
+      username: null,
+    };
+    const client = {
+      iterHistory: vi.fn(async function* () {}),
+    };
+
+    await fetchChatHistory(client as any, {
+      chatId: peer as any,
+      limit: 200,
+      offsetDate: 1_700_000_000,
+      offsetMessageId: 3198,
+    });
+
+    expect(client.iterHistory).toHaveBeenCalledWith(peer, {
+      limit: 200,
+      offset: { date: 1_700_000_000, id: 3198 },
+    });
+  });
 });
 
 describe('telegram rate-limit backoff', () => {

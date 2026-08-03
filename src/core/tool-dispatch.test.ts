@@ -21,6 +21,40 @@ describe("buildToolCommandArgs", () => {
     ]);
   });
 
+  it("maps lossless chat history cursors to chat args", () => {
+    expect(
+      buildToolCommandArgs("chat.read", {
+        peer: "123",
+        limit: 200,
+        sinceMessageId: 400,
+        offsetDate: 1_700_000_000,
+        offsetMessageId: 456,
+      })
+    ).toEqual([
+      "chat",
+      "123",
+      "--limit",
+      "200",
+      "--since",
+      "400",
+      "--offset-date",
+      "1700000000",
+      "--offset-message-id",
+      "456",
+    ]);
+  });
+
+  it("rejects chat history cursors outside Telegram's integer range", () => {
+    for (const field of ["sinceMessageId", "offsetDate", "offsetMessageId"]) {
+      expect(() =>
+        buildToolCommandArgs("chat.read", {
+          peer: "123",
+          [field]: 2_147_483_648,
+        })
+      ).toThrow("must be at most 2147483647");
+    }
+  });
+
   it("maps folders.update order to folders order", () => {
     expect(
       buildToolCommandArgs("folders.update", {

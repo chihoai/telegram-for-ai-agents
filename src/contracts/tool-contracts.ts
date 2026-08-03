@@ -78,18 +78,40 @@ const BASE_TOOL_CONTRACT_DEFINITIONS: BaseToolContractDefinition[] = [
   },
   {
     name: "chat.read",
-    description: "Read recent history for a Telegram peer.",
+    description:
+      "Read recent history for a Telegram peer. Full pages return nextOffsetDate and nextOffsetMessageId for lossless continuation.",
     transport: "shared",
     inputSchema: {
       type: "object",
       additionalProperties: false,
       required: ["peer"],
+      dependentRequired: {
+        offsetDate: ["offsetMessageId"],
+      },
       properties: {
         ...ACCOUNT_ID_PROPERTY,
         peer: { type: "string" },
         limit: { type: "integer", minimum: 1, maximum: 200 },
-        sinceMessageId: { type: "integer", minimum: 1 },
-        offsetDate: { type: "integer" },
+        sinceMessageId: {
+          type: "integer",
+          minimum: 1,
+          maximum: 2_147_483_647,
+          description: "Return only messages newer than this message ID.",
+        },
+        offsetDate: {
+          type: "integer",
+          minimum: 1,
+          maximum: 2_147_483_647,
+          description:
+            "Unix timestamp from nextOffsetDate; use with offsetMessageId.",
+        },
+        offsetMessageId: {
+          type: "integer",
+          minimum: 1,
+          maximum: 2_147_483_647,
+          description:
+            "Message ID from nextOffsetMessageId for lossless older-page continuation.",
+        },
         peerRef: {
           type: "object",
           additionalProperties: false,

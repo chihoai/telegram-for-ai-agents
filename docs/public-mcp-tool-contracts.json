@@ -111,7 +111,7 @@
   },
   {
     "name": "chat_read",
-    "description": "Read recent history for a Telegram peer.",
+    "description": "Read recent history for a Telegram peer. Full pages return nextOffsetDate and nextOffsetMessageId for lossless continuation.",
     "transport": "shared",
     "inputSchema": {
       "type": "object",
@@ -119,6 +119,11 @@
       "required": [
         "peer"
       ],
+      "dependentRequired": {
+        "offsetDate": [
+          "offsetMessageId"
+        ]
+      },
       "properties": {
         "accountId": {
           "type": "string"
@@ -133,10 +138,21 @@
         },
         "sinceMessageId": {
           "type": "integer",
-          "minimum": 1
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Return only messages newer than this message ID."
         },
         "offsetDate": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Unix timestamp from nextOffsetDate; use with offsetMessageId."
+        },
+        "offsetMessageId": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2147483647,
+          "description": "Message ID from nextOffsetMessageId for lossless older-page continuation."
         },
         "peerRef": {
           "type": "object",

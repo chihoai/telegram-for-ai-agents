@@ -8,6 +8,8 @@ import {
 } from '../services/telegram.js';
 import { printJson } from '../output.js';
 
+const MAX_TELEGRAM_INT = 2_147_483_647;
+
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat(undefined, {
     year: 'numeric',
@@ -20,10 +22,18 @@ function formatDate(date: Date): string {
 
 export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
   const commandArgs = args[0] === '--' ? args.slice(1) : args;
-  const parsed = parseCommandArgs(commandArgs, ['--limit', '-n', '--since']);
+  const parsed = parseCommandArgs(commandArgs, [
+    '--limit',
+    '-n',
+    '--since',
+    '--offset-date',
+    '--offset-message-id',
+  ]);
   const peerArg = parsed.positionals[0];
   if (!peerArg) {
-    throw new Error('Usage: tgchats chat <peer> [--limit N] [--since messageId]');
+    throw new Error(
+      'Usage: tgchats chat <peer> [--limit N] [--since messageId] [--offset-date unixSeconds] [--offset-message-id messageId]',
+    );
   }
 
   const limit = optionValue(parsed, ['--limit', '-n'])
@@ -38,6 +48,26 @@ export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
     }
     sinceMessageId = parsedSince;
   }
+  const offsetDateRaw = optionValue(parsed, ['--offset-date']);
+  const offsetDate = offsetDateRaw
+    ? parsePositiveInt(offsetDateRaw, '--offset-date')
+    : undefined;
+  const offsetMessageIdRaw = optionValue(parsed, ['--offset-message-id']);
+  const offsetMessageId = offsetMessageIdRaw
+    ? parsePositiveInt(offsetMessageIdRaw, '--offset-message-id')
+    : undefined;
+  for (const [name, value] of [
+    ['--since', sinceMessageId],
+    ['--offset-date', offsetDate],
+    ['--offset-message-id', offsetMessageId],
+  ] as const) {
+    if (value !== undefined && value > MAX_TELEGRAM_INT) {
+      throw new Error(`${name} must be at most ${MAX_TELEGRAM_INT}.`);
+    }
+  }
+  if (offsetDate !== undefined && offsetMessageId === undefined) {
+    throw new Error('--offset-message-id is required with --offset-date.');
+  }
 
   await ensureAuthorized(ctx.telegram);
   const peer = await resolveChatPeer(ctx.telegram, peerArg);
@@ -45,6 +75,8 @@ export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
     chatId: peer,
     limit,
     sinceMessageId,
+    offsetDate,
+    offsetMessageId,
   });
 
   if (messages.length === 0) {
@@ -68,6 +100,7 @@ export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
 
   if (ctx.config.jsonOutput) {
     const chronological = messages.slice().reverse();
+    const oldestMessage = messages.at(-1);
     printJson({
       ok: true,
       peer: {
@@ -77,6 +110,12 @@ export async function runChat(ctx: AppContext, args: string[]): Promise<void> {
         username: peer.username ?? null,
       },
       count: chronological.length,
+      ...(messages.length === limit && oldestMessage
+        ? {
+            nextOffsetDate: Math.floor(oldestMessage.date.getTime() / 1000),
+            nextOffsetMessageId: oldestMessage.id,
+          }
+        : {}),
       messages: chronological.map((message) => ({
         id: message.id,
         date: message.date.toISOString(),
