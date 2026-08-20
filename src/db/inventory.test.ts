@@ -161,4 +161,52 @@ describe("durable inventory transactions", () => {
     expect(queries).not.toContain("COMMIT");
     expect(queries.some((sql) => sql.startsWith("DELETE FROM telegram_contacts"))).toBe(false);
   });
+
+  it("reconciles a completed full run into persisted and skipped totals", async () => {
+    const queries: string[] = [];
+    const client = {
+      query: vi.fn(async (sql: string) => {
+        queries.push(sql.trim());
+        if (sql.includes("UPDATE telegram_sync_runs")) {
+          return {
+            rows: [
+              runRow({
+                phase: "complete",
+                status: "complete",
+                persistedCount: 499,
+                skippedCount: 1,
+              }),
+            ],
+          };
+        }
+        return { rows: [] };
+      }),
+      release: vi.fn(),
+    };
+    const pool = { connect: vi.fn(async () => client) } as any;
+
+    await expect(
+      commitContactSnapshot(pool, {
+        run: syncRun({
+          activeAvailableCount: 420,
+          archivedAvailableCount: 80,
+          persistedCount: 499,
+          phase: "contacts",
+        }),
+        contacts: [],
+      }),
+    ).resolves.toMatchObject({
+      persistedCount: 499,
+      skippedCount: 1,
+      status: "complete",
+    });
+    expect(
+      queries.some(
+        (sql) =>
+          sql.includes("skipped_count = GREATEST") &&
+          sql.includes("CASE WHEN include_archived"),
+      ),
+    ).toBe(true);
+    expect(queries).toContain("COMMIT");
+  });
 });

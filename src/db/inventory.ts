@@ -471,6 +471,15 @@ DO UPDATE SET
       `
 UPDATE telegram_sync_runs
 SET status = 'complete', phase = 'complete', cursor_token = NULL,
+    skipped_count = GREATEST(
+      skipped_count,
+      GREATEST(
+        0,
+        active_available_count +
+          CASE WHEN include_archived THEN archived_available_count ELSE 0 END -
+          persisted_count
+      )
+    ),
     resume_at = NULL, last_error_code = NULL, updated_at = now(), completed_at = now()
 WHERE run_id = $1
 RETURNING
