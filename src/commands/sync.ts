@@ -152,116 +152,162 @@ async function runDurableSyncOnce(
     return run;
   }
 
-  await ensureAuthorized(ctx.telegram);
-  run = await markSyncRunRunning(db, run.runId);
-  const codec = cursorCodecForContext(ctx);
-  const binding = accountCursorBinding(ctx, `sync:${run.runId}`);
+  const lockClient = await db.connect();
+  const lockKey = `telegram-for-ai-agents:sync:${accountId.toString()}`;
+  let lockHeld = false;
 
   try {
-    const totals = await getTelegramDialogTotals(ctx.telegram);
+    const lockResult = await lockClient.query<{ locked: boolean }>(
+      `SELECT pg_try_advisory_lock(hashtextextended($1, 0)) as locked`,
+      [lockKey],
+    );
+    if (!lockResult.rows[0]?.locked) return run;
+    lockHeld = true;
 
-    while (run.phase === 'active' || run.phase === 'archived') {
-      const phase = run.phase;
-      const defaultCursor: DurableSyncCursor = {
-        phase,
-        offset: null,
-        seenActive: 0,
-        seenArchived: 0,
-      };
-      const cursor = run.cursorToken
-        ? codec.decode<DurableSyncCursor>(run.cursorToken, 'sync.once', binding)
-        : defaultCursor;
-      if (cursor.phase !== phase) {
-        throw new Error('Stored sync cursor phase does not match the durable run.');
-      }
-
-      let page;
-      try {
-        page = await fetchTelegramDialogFolderPage(ctx.telegram, {
-          location: phase,
-          limit: 100,
-          offset: cursor.offset,
-        });
-      } catch (error) {
-        const rateLimit = telegramRateLimit(error);
-        if (!rateLimit) throw error;
-        return markSyncRunWaiting(db, {
-          runId: run.runId,
-          resumeAt: new Date(Date.now() + rateLimit.waitMs),
-          errorCode: rateLimit.code,
-        });
-      }
-
-      const seenActive =
-        cursor.seenActive + (phase === 'active' ? page.dialogs.length : 0);
-      const seenArchived =
-        cursor.seenArchived + (phase === 'archived' ? page.dialogs.length : 0);
-      const available = phase === 'active' ? totals.activeTotal : totals.archivedTotal;
-      const exhausted =
-        params.mode === 'recent' ||
-        page.dialogs.length === 0 ||
-        !page.nextOffset ||
-        (phase === 'active' ? seenActive : seenArchived) >= available;
-      const nextPhase = exhausted
-        ? phase === 'active' && params.includeArchived
-          ? 'archived'
-          : params.mode === 'full'
-            ? 'contacts'
-            : 'complete'
-        : phase;
-      const nextCursorToken = exhausted
-        ? null
-        : codec.encode<DurableSyncCursor>('sync.once', binding, {
-            phase,
-            offset: page.nextOffset,
-            seenActive,
-            seenArchived,
-          });
-
-      run = await commitDialogInventoryPage(db, {
-        run,
-        phase,
-        dialogs: page.dialogs.map(mapDialogInventoryItem),
-        nextPhase,
-        nextCursorToken,
-        activeAvailableCount: totals.activeTotal,
-        archivedAvailableCount: totals.archivedTotal,
-      });
-    }
-
-    if (run.phase === 'contacts') {
-      let contacts;
-      try {
-        contacts = (await getTelegramContacts(ctx.telegram)).map(mapTelegramContact);
-      } catch (error) {
-        const rateLimit = telegramRateLimit(error);
-        if (!rateLimit) throw error;
-        return markSyncRunWaiting(db, {
-          runId: run.runId,
-          resumeAt: new Date(Date.now() + rateLimit.waitMs),
-          errorCode: rateLimit.code,
-        });
-      }
-      run = await commitContactSnapshot(db, { run, contacts });
-    }
-
-    return run;
-  } catch (error) {
-    const rateLimit = telegramRateLimit(error);
-    if (rateLimit) {
-      return markSyncRunWaiting(db, {
-        runId: run.runId,
-        resumeAt: new Date(Date.now() + rateLimit.waitMs),
-        errorCode: rateLimit.code,
-      });
-    }
-    return markSyncRunFailed(db, {
+    const refreshedRun = await getLatestSyncRun(db, {
+      accountId,
       runId: run.runId,
-      errorCode:
-        error instanceof Error && error.message.includes('AUTH')
-          ? 'TELEGRAM_AUTH_FAILED'
-          : 'SYNC_FAILED',
     });
+    if (!refreshedRun) {
+      throw new Error(`Sync run not found: ${run.runId}`);
+    }
+    run = refreshedRun;
+    if (run.status === 'complete' || run.status === 'failed') return run;
+    if (
+      run.status === 'waiting_for_telegram' &&
+      run.resumeAt &&
+      run.resumeAt.getTime() > Date.now()
+    ) {
+      return run;
+    }
+    const runMode = run.mode;
+    const runIncludesArchived = run.includeArchived;
+
+    await ensureAuthorized(ctx.telegram);
+    run = await markSyncRunRunning(db, run.runId);
+    const codec = cursorCodecForContext(ctx);
+    const binding = accountCursorBinding(ctx, `sync:${run.runId}`);
+
+    try {
+      const totals = await getTelegramDialogTotals(ctx.telegram);
+
+      while (run.phase === 'active' || run.phase === 'archived') {
+        const phase = run.phase;
+        const defaultCursor: DurableSyncCursor = {
+          phase,
+          offset: null,
+          seenActive: 0,
+          seenArchived: 0,
+        };
+        const cursor = run.cursorToken
+          ? codec.decode<DurableSyncCursor>(run.cursorToken, 'sync.once', binding)
+          : defaultCursor;
+        if (cursor.phase !== phase) {
+          throw new Error('Stored sync cursor phase does not match the durable run.');
+        }
+
+        let page;
+        try {
+          page = await fetchTelegramDialogFolderPage(ctx.telegram, {
+            location: phase,
+            limit: 100,
+            offset: cursor.offset,
+          });
+        } catch (error) {
+          const rateLimit = telegramRateLimit(error);
+          if (!rateLimit) throw error;
+          return markSyncRunWaiting(db, {
+            runId: run.runId,
+            resumeAt: new Date(Date.now() + rateLimit.waitMs),
+            errorCode: rateLimit.code,
+          });
+        }
+
+        const seenActive =
+          cursor.seenActive + (phase === 'active' ? page.dialogs.length : 0);
+        const seenArchived =
+          cursor.seenArchived + (phase === 'archived' ? page.dialogs.length : 0);
+        const available = phase === 'active' ? totals.activeTotal : totals.archivedTotal;
+        const exhausted =
+          runMode === 'recent' ||
+          page.dialogs.length === 0 ||
+          !page.nextOffset ||
+          (phase === 'active' ? seenActive : seenArchived) >= available;
+        const nextPhase = exhausted
+          ? phase === 'active' && runIncludesArchived
+            ? 'archived'
+            : runMode === 'full'
+              ? 'contacts'
+              : 'complete'
+          : phase;
+        const nextCursorToken = exhausted
+          ? null
+          : codec.encode<DurableSyncCursor>('sync.once', binding, {
+              phase,
+              offset: page.nextOffset,
+              seenActive,
+              seenArchived,
+            });
+
+        run = await commitDialogInventoryPage(db, {
+          run,
+          phase,
+          dialogs: page.dialogs.map(mapDialogInventoryItem),
+          nextPhase,
+          nextCursorToken,
+          activeAvailableCount: totals.activeTotal,
+          archivedAvailableCount: totals.archivedTotal,
+        });
+      }
+
+      if (run.phase === 'contacts') {
+        let contacts;
+        try {
+          contacts = (await getTelegramContacts(ctx.telegram)).map(mapTelegramContact);
+        } catch (error) {
+          const rateLimit = telegramRateLimit(error);
+          if (!rateLimit) throw error;
+          return markSyncRunWaiting(db, {
+            runId: run.runId,
+            resumeAt: new Date(Date.now() + rateLimit.waitMs),
+            errorCode: rateLimit.code,
+          });
+        }
+        run = await commitContactSnapshot(db, { run, contacts });
+      }
+
+      return run;
+    } catch (error) {
+      const rateLimit = telegramRateLimit(error);
+      if (rateLimit) {
+        return markSyncRunWaiting(db, {
+          runId: run.runId,
+          resumeAt: new Date(Date.now() + rateLimit.waitMs),
+          errorCode: rateLimit.code,
+        });
+      }
+      return markSyncRunFailed(db, {
+        runId: run.runId,
+        errorCode:
+          error instanceof Error && error.message.includes('AUTH')
+            ? 'TELEGRAM_AUTH_FAILED'
+            : 'SYNC_FAILED',
+      });
+    }
+  } finally {
+    if (!lockHeld) {
+      lockClient.release();
+    } else {
+      try {
+        await lockClient.query(
+          `SELECT pg_advisory_unlock(hashtextextended($1, 0))`,
+          [lockKey],
+        );
+        lockClient.release();
+      } catch (error) {
+        lockClient.release(error as Error);
+      }
+    }
   }
 }
 

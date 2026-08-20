@@ -67,4 +67,28 @@ describe("Telegram contact commands", () => {
     expect(payload.nextCursor).toEqual(expect.any(String));
     expect(JSON.stringify(payload)).not.toContain("phoneNumber");
   });
+
+  it("rejects continuation after the Telegram contact snapshot changes", async () => {
+    await runContacts(context(), ["list", "--page-size", "29"]);
+    const firstPage = JSON.parse(logs.at(-1) ?? "");
+
+    telegram.getTelegramContacts.mockResolvedValueOnce(
+      Array.from({ length: 912 }, (_, index) => ({
+        id: index + 2,
+        displayName: `Contact ${String(index + 2).padStart(3, "0")}`,
+        username: null,
+        phoneNumber: `+1${index + 2}`,
+      })),
+    );
+
+    await expect(
+      runContacts(context(), [
+        "list",
+        "--page-size",
+        "29",
+        "--cursor",
+        firstPage.nextCursor,
+      ]),
+    ).rejects.toThrow("The cursor is invalid, expired, or belongs to another account.");
+  });
 });

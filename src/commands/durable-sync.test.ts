@@ -67,7 +67,15 @@ function run(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function context(): AppContext {
+function context(options: { lockAcquired?: boolean } = {}): AppContext {
+  const lockClient = {
+    query: vi.fn(async (sql: string) => ({
+      rows: sql.includes("pg_try_advisory_lock")
+        ? [{ locked: options.lockAcquired !== false }]
+        : [{ pg_advisory_unlock: true }],
+    })),
+    release: vi.fn(),
+  };
   return {
     config: {
       jsonOutput: true,
@@ -75,9 +83,9 @@ function context(): AppContext {
       sessionPath: "/tmp/test.session",
       apiHash: "test-api-hash",
     },
-    db: {},
+    db: { connect: vi.fn(async () => lockClient) },
     telegram: {},
-  } as AppContext;
+  } as unknown as AppContext;
 }
 
 describe("durable sync.once", () => {
@@ -89,6 +97,9 @@ describe("durable sync.once", () => {
     vi.spyOn(console, "log").mockImplementation((value: string) => logs.push(value));
     migration.migrate.mockResolvedValue(undefined);
     account.requireAccountId.mockResolvedValue(1n);
+    inventoryDb.getLatestSyncRun.mockImplementation(async () =>
+      inventoryDb.getOrCreateActiveSyncRun.mock.results.at(-1)?.value,
+    );
     telegram.ensureAuthorized.mockResolvedValue(undefined);
     telegram.getTelegramDialogTotals.mockResolvedValue({
       activeTotal: 200,
@@ -195,6 +206,114 @@ describe("durable sync.once", () => {
       status: "waiting_for_telegram",
       lastErrorCode: "FLOOD_WAIT_300",
     });
+  });
+
+  it("returns the shared active run without starting a second local worker", async () => {
+    inventoryDb.getOrCreateActiveSyncRun.mockResolvedValue(
+      run({ status: "running" }),
+    );
+
+    await runSync(context({ lockAcquired: false }), ["once", "--mode", "full"]);
+
+    expect(inventoryDb.markSyncRunRunning).not.toHaveBeenCalled();
+    expect(telegram.ensureAuthorized).not.toHaveBeenCalled();
+    expect(telegram.fetchTelegramDialogFolderPage).not.toHaveBeenCalled();
+    expect(JSON.parse(logs.at(-1) ?? "")).toMatchObject({
+      runId: "run-1",
+      status: "running",
+    });
+  });
+
+  it("does not revive a run completed while waiting to acquire the worker lock", async () => {
+    inventoryDb.getOrCreateActiveSyncRun.mockResolvedValue(
+      run({ status: "running" }),
+    );
+    inventoryDb.getLatestSyncRun.mockResolvedValueOnce(
+      run({
+        status: "complete",
+        phase: "complete",
+        completedAt: new Date("2026-08-20T00:01:00.000Z"),
+      }),
+    );
+
+    await runSync(context(), ["once", "--mode", "full"]);
+
+    expect(inventoryDb.markSyncRunRunning).not.toHaveBeenCalled();
+    expect(telegram.ensureAuthorized).not.toHaveBeenCalled();
+    expect(JSON.parse(logs.at(-1) ?? "")).toMatchObject({
+      runId: "run-1",
+      status: "complete",
+      phase: "complete",
+    });
+  });
+
+  it("resumes an existing durable run with its stored options", async () => {
+    inventoryDb.getOrCreateActiveSyncRun.mockResolvedValue(
+      run({ mode: "full", includeArchived: false }),
+    );
+    inventoryDb.markSyncRunRunning.mockResolvedValue(
+      run({ mode: "full", includeArchived: false, status: "running" }),
+    );
+    telegram.fetchTelegramDialogFolderPage
+      .mockResolvedValueOnce({
+        dialogs: Array.from({ length: 100 }, () => ({})),
+        total: 200,
+        nextOffset: {
+          date: 1_700_000_000,
+          id: 100,
+          peer: { kind: "user", id: "100", accessHash: "secret" },
+        },
+      })
+      .mockRejectedValueOnce({ errorMessage: "FLOOD_WAIT_300" });
+    inventoryDb.commitDialogInventoryPage.mockImplementation(
+      async (_db: unknown, params: any) =>
+        run({
+          mode: "full",
+          includeArchived: false,
+          status: "running",
+          phase: params.nextPhase,
+          cursorToken: params.nextCursorToken,
+          fetchedCount: 100,
+          persistedCount: 100,
+        }),
+    );
+    inventoryDb.markSyncRunWaiting.mockImplementation(
+      async (_db: unknown, params: any) =>
+        run({
+          mode: "full",
+          includeArchived: false,
+          status: "waiting_for_telegram",
+          cursorToken: "committed-encrypted-cursor",
+          fetchedCount: 100,
+          persistedCount: 100,
+          resumeAt: params.resumeAt,
+          lastErrorCode: params.errorCode,
+        }),
+    );
+
+    await runSync(context(), [
+      "once",
+      "--mode",
+      "recent",
+      "--include-archived",
+    ]);
+
+    expect(inventoryDb.getOrCreateActiveSyncRun).toHaveBeenCalledWith(
+      expect.anything(),
+      { accountId: 1n, mode: "recent", includeArchived: true },
+    );
+    expect(telegram.fetchTelegramDialogFolderPage).toHaveBeenCalledTimes(2);
+    expect(inventoryDb.commitDialogInventoryPage).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        nextPhase: "active",
+        nextCursorToken: expect.any(String),
+      }),
+    );
+    expect(inventoryDb.markSyncRunWaiting).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ errorCode: "FLOOD_WAIT_300" }),
+    );
   });
 
   it("bounds recent sync to one page per requested folder and does not refresh contacts", async () => {

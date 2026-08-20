@@ -266,6 +266,13 @@ ALTER TABLE sync_cursors ADD COLUMN IF NOT EXISTS peer_kind text;
 ALTER TABLE rule_events ADD COLUMN IF NOT EXISTS peer_kind text;
 ALTER TABLE telegram_contacts ADD COLUMN IF NOT EXISTS peer_kind text;
 
+-- mtcute marks channel and supergroup IDs below -10^12. Older rows stored every
+-- non-user peer as "chat", so recover the canonical channel kind before child
+-- rows inherit their parent's kind and the composite keys are rebuilt.
+UPDATE peers
+SET peer_kind = 'channel'
+WHERE peer_kind = 'chat' AND peer_id < -1000000000000;
+
 UPDATE dialogs child
 SET peer_kind = parent.peer_kind
 FROM peers parent

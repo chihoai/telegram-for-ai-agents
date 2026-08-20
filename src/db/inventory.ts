@@ -534,9 +534,24 @@ export async function listPersistedDialogs(
   lastSyncedAt: Date | null;
   dialogs: TelegramDialogInventoryItem[];
 }> {
-  const [state, rows] = await Promise.all([
-    getPersistedInventorySummary(pool, params.accountId),
-    pool.query<{
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+    const stateResult = await client.query<{
+      syncedTotal: number;
+      lastSyncedAt: Date | null;
+    }>(
+      `
+SELECT
+  crm_dialog_persisted_count as "syncedTotal",
+  last_dialog_sync_at as "lastSyncedAt"
+FROM telegram_inventory_state
+WHERE account_id = $1
+`,
+      [params.accountId.toString()],
+    );
+    const state = stateResult.rows[0] ?? { syncedTotal: 0, lastSyncedAt: null };
+    const rows = await client.query<{
       peerId: string;
       peerKind: "user" | "chat" | "channel" | "self";
       displayName: string;
@@ -560,30 +575,35 @@ ORDER BY last_message_at DESC NULLS LAST, peer_kind ASC, peer_id ASC
 LIMIT $2 OFFSET $3
 `,
       [params.accountId.toString(), params.limit, params.offset],
-    ),
-  ]);
-
-  return {
-    total: state.syncedTotal,
-    lastSyncedAt: state.lastSyncedAt,
-    dialogs: rows.rows.map((row) => ({
-      peer: {
-        id: row.peerId,
-        kind: row.peerKind,
-        displayName: row.displayName,
-        username: row.username,
-      },
-      archived: row.location === "archived",
-      pinned: row.pinned,
-      unreadCount: row.unreadCount,
-      lastMessage:
-        row.lastMessageId !== null && row.lastMessageAt
-          ? {
-              id: row.lastMessageId,
-              date: row.lastMessageAt.toISOString(),
-              preview: row.lastMessagePreview ?? "",
-            }
-          : null,
-    })),
-  };
+    );
+    await client.query("COMMIT");
+    return {
+      total: state.syncedTotal,
+      lastSyncedAt: state.lastSyncedAt,
+      dialogs: rows.rows.map((row) => ({
+        peer: {
+          id: row.peerId,
+          kind: row.peerKind,
+          displayName: row.displayName,
+          username: row.username,
+        },
+        archived: row.location === "archived",
+        pinned: row.pinned,
+        unreadCount: row.unreadCount,
+        lastMessage:
+          row.lastMessageId !== null && row.lastMessageAt
+            ? {
+                id: row.lastMessageId,
+                date: row.lastMessageAt.toISOString(),
+                preview: row.lastMessagePreview ?? "",
+              }
+            : null,
+      })),
+    };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }

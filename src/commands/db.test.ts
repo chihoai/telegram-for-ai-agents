@@ -4,13 +4,18 @@ import { MIGRATIONS } from '../db/schema.js';
 import type { AppContext } from '../app/context.js';
 
 function createMigratedPool() {
-  return {
+  const client = {
     query: vi.fn(async (sql: string) => {
       if (sql === 'SELECT id FROM schema_migrations') {
         return { rows: MIGRATIONS.map((migration) => ({ id: migration.id })) };
       }
       return { rows: [] };
     }),
+    release: vi.fn(),
+  };
+  return {
+    client,
+    connect: vi.fn(async () => client),
   };
 }
 
@@ -31,7 +36,9 @@ describe('runDb', () => {
       ok: true,
       action: 'migrate',
     });
-    expect(pool.query).toHaveBeenCalled();
+    expect(pool.connect).toHaveBeenCalledOnce();
+    expect(pool.client.query).toHaveBeenCalled();
+    expect(pool.client.release).toHaveBeenCalledOnce();
 
     log.mockRestore();
   });

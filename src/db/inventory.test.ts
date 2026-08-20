@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   commitContactSnapshot,
   commitDialogInventoryPage,
+  listPersistedDialogs,
   type TelegramSyncRun,
 } from "./inventory.js";
 
@@ -59,6 +60,57 @@ const dialog = {
 };
 
 describe("durable inventory transactions", () => {
+  it("reads a CRM page and its snapshot version from one repeatable-read snapshot", async () => {
+    const queries: string[] = [];
+    const client = {
+      query: vi.fn(async (sql: string) => {
+        queries.push(sql.trim());
+        if (sql.includes("crm_dialog_persisted_count")) {
+          return {
+            rows: [
+              {
+                syncedTotal: 1,
+                lastSyncedAt: new Date("2026-08-20T00:00:00.000Z"),
+              },
+            ],
+          };
+        }
+        if (sql.includes("FROM telegram_dialog_index")) {
+          return {
+            rows: [
+              {
+                peerId: "123",
+                peerKind: "user",
+                displayName: "Alice",
+                username: null,
+                location: "active",
+                pinned: false,
+                unreadCount: 0,
+                lastMessageId: null,
+                lastMessageAt: null,
+                lastMessagePreview: null,
+              },
+            ],
+          };
+        }
+        return { rows: [] };
+      }),
+      release: vi.fn(),
+    };
+    const pool = { connect: vi.fn(async () => client) } as any;
+
+    await expect(
+      listPersistedDialogs(pool, { accountId: 1n, limit: 100, offset: 0 }),
+    ).resolves.toMatchObject({
+      total: 1,
+      lastSyncedAt: new Date("2026-08-20T00:00:00.000Z"),
+      dialogs: [{ peer: { id: "123", kind: "user" } }],
+    });
+    expect(queries[0]).toBe("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+    expect(queries.at(-1)).toBe("COMMIT");
+    expect(client.release).toHaveBeenCalledOnce();
+  });
+
   it("commits dialog rows, canonical index, cursor, and counters atomically", async () => {
     const queries: string[] = [];
     const client = {

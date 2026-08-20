@@ -13,6 +13,7 @@ import {
 
 interface CrmDialogCursorState {
   offset: number;
+  snapshotVersion: string | null;
 }
 
 export async function runCrm(ctx: AppContext, args: string[]): Promise<void> {
@@ -26,8 +27,13 @@ export async function runCrm(ctx: AppContext, args: string[]): Promise<void> {
   const binding = accountCursorBinding(ctx, "crm-dialogs");
   const state = cursor
     ? codec.decode<CrmDialogCursorState>(cursor, "crm.dialogs.list", binding)
-    : { offset: 0 };
-  if (!Number.isSafeInteger(state.offset) || state.offset < 0) {
+    : null;
+  if (
+    state &&
+    (!Number.isSafeInteger(state.offset) ||
+      state.offset < 0 ||
+      (state.snapshotVersion !== null && typeof state.snapshotVersion !== "string"))
+  ) {
     throw new Error("The cursor is invalid, expired, or belongs to another account.");
   }
 
@@ -37,9 +43,13 @@ export async function runCrm(ctx: AppContext, args: string[]): Promise<void> {
   const result = await listPersistedDialogs(db, {
     accountId,
     limit: pageSize,
-    offset: state.offset,
+    offset: state?.offset ?? 0,
   });
-  const nextOffset = state.offset + result.dialogs.length;
+  const snapshotVersion = result.lastSyncedAt?.toISOString() ?? null;
+  if (state && state.snapshotVersion !== snapshotVersion) {
+    throw new Error("The cursor is invalid, expired, or belongs to another account.");
+  }
+  const nextOffset = (state?.offset ?? 0) + result.dialogs.length;
   const hasMore = nextOffset < result.total;
   const payload = {
     ok: true,
@@ -48,7 +58,10 @@ export async function runCrm(ctx: AppContext, args: string[]): Promise<void> {
     lastSyncedAt: result.lastSyncedAt?.toISOString() ?? null,
     hasMore,
     nextCursor: hasMore
-      ? codec.encode("crm.dialogs.list", binding, { offset: nextOffset })
+      ? codec.encode("crm.dialogs.list", binding, {
+          offset: nextOffset,
+          snapshotVersion,
+        })
       : null,
     dialogs: result.dialogs,
   };
