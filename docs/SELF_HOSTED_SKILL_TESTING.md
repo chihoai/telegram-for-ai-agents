@@ -15,6 +15,10 @@ Do not print Telegram API hashes, session files, session strings, database URLs 
 
 ## Current Local Baseline
 
+The dated results below preserve the pre-inventory-cutover behavior. For the
+current branch, replace legacy list/sync calls with the semantic checks in
+"Inventory And Durable Sync Cutover" below.
+
 Verified on 2026-06-10 and refreshed on 2026-06-11:
 
 - `npm test` passed: 17 files / 80 tests.
@@ -28,7 +32,7 @@ Verified on 2026-06-10 and refreshed on 2026-06-11:
   - built server: `dist/mcp/stdio.js`
   - Codex plugin launcher
   - Claude plugin launcher
-- Local MCP `tools/list` reports 42 tools.
+- Local MCP `tools/list` reports 47 tools.
 - CLI read-only Telegram smoke passed:
   - `auth status --json`
   - `whoami --json`
@@ -37,7 +41,8 @@ Verified on 2026-06-10 and refreshed on 2026-06-11:
 - Local MCP read-only Telegram smoke passed:
   - `auth_status {}`
   - `account_whoami {}`
-  - `dialogs_list { "limit": 5 }`
+  - `inventory_summary {}`
+  - `dialogs_list { "location": "active", "pageSize": 5 }`
   - `folders_list {}`
 - Local CRM read smoke passed after Postgres startup:
   - `tasks today --json`
@@ -47,7 +52,7 @@ Verified on 2026-06-10 and refreshed on 2026-06-11:
   - MCP `tags_get {}`
   - MCP `search_messages { "query": "test", "local": true, "limit": 5 }`
 - Small sync and local reads passed:
-  - `sync once --dialogs 5 --json`
+  - `sync once --mode recent --exclude-archived --json`
   - `search "test" --local --limit 5 --json`
   - `tags ls --json`
 - Deeper read-only and sync smoke passed on a redacted synced peer:
@@ -291,7 +296,10 @@ If testing through an MCP client, call:
 
 - `auth_status {}`
 - `account_whoami {}`
-- `dialogs_list { "limit": 10 }`
+- `inventory_summary {}`
+- `dialogs_list { "location": "active", "pageSize": 10 }`
+- `crm_dialogs_list { "pageSize": 10 }`
+- `contacts_count {}` (requires Telegram contact consent on Cloud; local mode uses the connected account)
 - `chat_read { "peer": "<peer>", "limit": 10 }`
 - `folders_list {}`
 - `tasks_today {}`
@@ -302,14 +310,33 @@ Expected:
 - Local MCP tool calls mirror CLI JSON behavior.
 - Local MCP tools accept `accountId` when it matches the configured `TELEGRAM_ACCOUNT_LABEL` for the running process. Set `TELEGRAM_ACCOUNT_LABEL` before starting `tgchats-mcp` to select a different local account.
 
-## Sync And CRM Store
+## Inventory And Durable Sync Cutover
 
-Use small limits first:
+Read each inventory independently:
 
 ```bash
-npm run dev -- sync once --dialogs 20 --json
+npm run dev -- inventory summary --json
+npm run dev -- inbox --location all --page-size 20 --json
+npm run dev -- contacts count --json
+npm run dev -- crm dialogs list --page-size 20 --json
+```
+
+Confirm that `telegramDialogs.allTotal`, `inventoryTotal`, `contactTotal`, and
+`syncedTotal` remain distinct. Never compare a page array length with an
+inventory total.
+
+Start or resume the durable inventory job:
+
+```bash
+npm run dev -- sync once --mode full --include-archived --json
+npm run dev -- sync status --json
 npm run dev -- sync backfill --dialogs 20 --per-chat-limit 50 --json
 ```
+
+If the run reports `waiting_for_telegram`, do not retry before `resumeAt`.
+After that time, invoke the same `sync once` command and confirm it resumes
+from the previously committed cursor. `crm dialogs list` must show the
+committed `syncedTotal` even when live `dialogs_list` returns a smaller page.
 
 For worker testing:
 

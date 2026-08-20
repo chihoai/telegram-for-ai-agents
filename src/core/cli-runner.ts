@@ -4,12 +4,15 @@ import { runArchive, runUnarchive } from "../commands/archive.js";
 import { runGroups, runMembers, runMessage, runOutbox } from "../commands/agentWrites.js";
 import { runAuth } from "../commands/auth.js";
 import { runChat } from "../commands/chat.js";
+import { runContacts } from "../commands/contacts.js";
 import { runCompany } from "../commands/company.js";
+import { runCrm } from "../commands/crm.js";
 import { runDb } from "../commands/db.js";
 import { runExport } from "../commands/export.js";
 import { runFolders } from "../commands/folders.js";
 import { runImport } from "../commands/import.js";
 import { runInbox } from "../commands/inbox.js";
+import { runInventory } from "../commands/inventory.js";
 import { runLogout } from "../commands/logout.js";
 import { runNudge } from "../commands/nudge.js";
 import { runOpen } from "../commands/open.js";
@@ -24,6 +27,9 @@ import { errorPayload, isJsonModeArgv, printJson } from "../output.js";
 
 export const HELP = `Usage:
   tgchats inbox [--limit <number>] [--all]
+  tgchats inventory summary
+  tgchats contacts <count|list> [--page-size N] [--cursor value]
+  tgchats crm dialogs list [--page-size N] [--cursor value]
   tgchats auth [status]
   tgchats whoami
   tgchats logout
@@ -43,7 +49,7 @@ export const HELP = `Usage:
   tgchats summary <show|refresh> ...
   tgchats nudge <peer> [--style concise|friendly]
   tgchats rules <list|add|disable|delete|run|log> ...
-  tgchats sync <backfill|once|tail> ...
+  tgchats sync <backfill|once|status|tail> ...
   tgchats export --format <json|jsonl|csv|md> --out <path>
   tgchats import --from <path>
   tgchats db migrate
@@ -86,7 +92,10 @@ export async function executeCli(argv: string[]): Promise<void> {
 
   try {
     if (command === "db") return await runDb(ctx, rest);
-    if (command === "inbox") return await runInbox(ctx);
+    if (command === "inbox") return await runInbox(ctx, args);
+    if (command === "inventory") return await runInventory(ctx, rest);
+    if (command === "contacts") return await runContacts(ctx, rest);
+    if (command === "crm") return await runCrm(ctx, rest);
     if (command === "auth") return await runAuth(ctx, rest);
     if (command === "whoami") return await runWhoami(ctx);
     if (command === "logout") return await runLogout(ctx);

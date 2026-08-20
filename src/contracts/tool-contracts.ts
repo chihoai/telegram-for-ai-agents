@@ -63,16 +63,78 @@ const BASE_TOOL_CONTRACT_DEFINITIONS: BaseToolContractDefinition[] = [
     },
   },
   {
-    name: "dialogs.list",
-    description: "List recent Telegram dialogs.",
+    name: "inventory.summary",
+    description:
+      "Return complete live Telegram dialog totals and the independently persisted CRM total. Use telegramDialogs.allTotal for questions about all Telegram chats; never use a list page length as an account total.",
     transport: "shared",
     inputSchema: {
       type: "object",
       additionalProperties: false,
       properties: {
         ...ACCOUNT_ID_PROPERTY,
-        limit: { type: "integer", minimum: 1, maximum: 200 },
-        all: { type: "boolean" },
+      },
+    },
+  },
+  {
+    name: "dialogs.list",
+    description:
+      "Page through live Telegram dialogs. Use inventory.summary for count questions: dialogs.length is only the current page and is never the account total.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+        location: {
+          type: "string",
+          enum: ["active", "archived", "all"],
+          default: "all",
+        },
+        pageSize: { type: "integer", minimum: 1, maximum: 100, default: 100 },
+        cursor: { type: "string", minLength: 1 },
+      },
+    },
+  },
+  {
+    name: "crm.dialogs.list",
+    description:
+      "Page through dialogs durably persisted in the CRM. syncedTotal is the complete persisted total; dialogs.length is only the current page.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+        pageSize: { type: "integer", minimum: 1, maximum: 100, default: 100 },
+        cursor: { type: "string", minLength: 1 },
+      },
+    },
+  },
+  {
+    name: "contacts.count",
+    description:
+      "Return the complete Telegram address-book contact total from Telegram contacts, not people inferred from dialogs.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+      },
+    },
+  },
+  {
+    name: "contacts.list",
+    description:
+      "Page through Telegram address-book contacts. contactTotal is the complete total; contacts.length is only the current page.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+        pageSize: { type: "integer", minimum: 1, maximum: 100, default: 100 },
+        cursor: { type: "string", minLength: 1 },
       },
     },
   },
@@ -767,14 +829,34 @@ const BASE_TOOL_CONTRACT_DEFINITIONS: BaseToolContractDefinition[] = [
   },
   {
     name: "sync.once",
-    description: "Perform a one-shot sync of latest dialog state.",
-    transport: "local",
+    description:
+      "Create or resume one durable Telegram inventory sync. Long Telegram waits are reported as waiting_for_telegram and can be observed with sync.status.",
+    transport: "shared",
     inputSchema: {
       type: "object",
       additionalProperties: false,
       properties: {
         ...ACCOUNT_ID_PROPERTY,
-        dialogs: { type: "integer", minimum: 1, maximum: 1000 },
+        mode: {
+          type: "string",
+          enum: ["recent", "full"],
+          default: "recent",
+        },
+        includeArchived: { type: "boolean", default: true },
+      },
+    },
+  },
+  {
+    name: "sync.status",
+    description:
+      "Return the latest durable Telegram inventory sync state without starting Telegram work.",
+    transport: "shared",
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        ...ACCOUNT_ID_PROPERTY,
+        runId: { type: "string", minLength: 1 },
       },
     },
   },

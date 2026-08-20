@@ -42,22 +42,65 @@ Session file paths are intentionally omitted from machine-readable identity and
 status payloads so MCP clients do not disclose local credential locations to a
 remote model.
 
-## `tgchats inbox --json`
+## Inventory semantics
+
+The runtime deliberately keeps three inventories separate:
+
+- live Telegram dialogs (`inventory summary` and `inbox`);
+- dialogs persisted in local CRM (`crm dialogs list`);
+- Telegram address-book contacts (`contacts count` and `contacts list`).
+
+Never answer an inventory question from the number of rows in a page. Use
+`telegramDialogs.allTotal`, `syncedTotal`, or `contactTotal`, depending on what
+the user asked.
+
+## `tgchats inventory summary --json`
 
 ```json
 {
   "ok": true,
-  "account": { "displayName": "string", "id": 123 },
-  "count": 10,
+  "telegramDialogs": {
+    "activeTotal": 420,
+    "archivedTotal": 80,
+    "allTotal": 500,
+    "measuredAt": "2026-08-20T00:00:00.000Z"
+  },
+  "chihoDialogs": {
+    "syncedTotal": 200,
+    "lastSyncedAt": "2026-08-20T00:00:00.000Z"
+  },
+  "sync": {
+    "status": "waiting_for_telegram",
+    "runId": "opaque-run-id"
+  }
+}
+```
+
+When `DATABASE_URL` is not configured, `syncedTotal`, `lastSyncedAt`,
+`sync.status`, and `sync.runId` are `null`; the live Telegram totals remain
+available.
+
+## `tgchats inbox --location all --page-size 100 --json`
+
+```json
+{
+  "ok": true,
+  "source": "telegram",
+  "location": "all",
+  "inventoryTotal": 500,
+  "hasMore": true,
+  "nextCursor": "opaque-cursor",
   "dialogs": [
     {
-      "index": 1,
       "peer": {
-        "id": 123,
-        "type": "user|chat|channel",
+        "id": "123",
+        "kind": "user|chat|channel|self",
         "displayName": "string",
         "username": "string|null"
       },
+      "archived": false,
+      "pinned": false,
+      "unreadCount": 0,
       "lastMessage": {
         "id": 1234,
         "date": "2026-03-03T12:00:00.000Z",
@@ -68,17 +111,73 @@ remote model.
 }
 ```
 
-Each dialog may also include an optional `peerRef` object when the runtime can provide a stable MCP-friendly peer descriptor:
+The cursor is authenticated and encrypted. It may contain Telegram routing
+state internally, but access hashes never appear in JSON output. `dialogs`
+contains only the current page; `inventoryTotal` is the live total for the
+selected location.
+
+The historical human CLI flags `--limit` and `--all` remain accepted. MCP uses
+the explicit `location`, `pageSize`, and opaque `cursor` contract.
+
+## `tgchats crm dialogs list --page-size 100 --json`
 
 ```json
 {
-  "peerRef": {
-    "id": "123",
-    "kind": "user",
-    "accessHash": "1234567890"
-  }
+  "ok": true,
+  "source": "chiho-crm",
+  "syncedTotal": 200,
+  "lastSyncedAt": "2026-08-20T00:00:00.000Z",
+  "hasMore": true,
+  "nextCursor": "opaque-cursor",
+  "dialogs": []
 }
 ```
+
+## `tgchats contacts count --json`
+
+```json
+{
+  "ok": true,
+  "source": "telegram-contacts",
+  "contactTotal": 913,
+  "fetchedAt": "2026-08-20T00:00:00.000Z"
+}
+```
+
+`contacts list` adds `hasMore`, `nextCursor`, and a `contacts` page containing
+only `peerId`, `displayName`, and `username`. Phone numbers and access hashes
+are never returned.
+
+## Durable sync
+
+`tgchats sync once --mode recent|full --include-archived --json` creates or
+resumes one account-level run. `full` traverses active and archived dialogs
+page by page, commits each page and its next cursor in one transaction, then
+atomically switches to a complete Telegram contact snapshot. `recent` refreshes
+one bounded page per selected location.
+
+Both `sync once` and `sync status [--run-id ID]` return:
+
+```json
+{
+  "ok": true,
+  "runId": "opaque-run-id",
+  "status": "queued|running|waiting_for_telegram|enriching|complete|failed",
+  "mode": "full",
+  "includeArchived": true,
+  "phase": "active|archived|contacts|enrichment|complete",
+  "fetchedCount": 200,
+  "persistedCount": 200,
+  "skippedCount": 0,
+  "failedCount": 0,
+  "resumeAt": "2026-08-20T00:05:00.000Z|null",
+  "lastErrorCode": "FLOOD_WAIT_300|null"
+}
+```
+
+`waiting_for_telegram` is resumable state, not a failed JSON-RPC call. Calling
+`sync once` before `resumeAt` returns status without making another Telegram
+request. Calling it later resumes from the last committed encrypted cursor.
 
 ## `tgchats chat <peer> --json`
 

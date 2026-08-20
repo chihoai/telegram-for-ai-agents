@@ -108,6 +108,9 @@ Quick start:
 
 ```bash
 npm run dev -- inbox --limit 5
+npm run dev -- inventory summary --json
+npm run dev -- contacts count --json
+npm run dev -- crm dialogs list --page-size 100 --json
 npm run dev -- auth
 npm run dev -- whoami
 npm run dev -- chat <peer> --limit 50
@@ -121,6 +124,8 @@ npm run dev -- tasks suggest <peer> --apply
 npm run dev -- nudge <peer> --style concise
 npm run dev -- rules run
 npm run dev -- sync backfill --per-chat-limit 100 --dialogs 200
+npm run dev -- sync once --mode full --include-archived --json
+npm run dev -- sync status --json
 npm run dev -- export --format json --out ./exports/backup.json
 ```
 
@@ -248,7 +253,10 @@ Auth and account:
 
 Reading and navigation:
 
-- `tgchats inbox [--limit N] [--all]`: lists chats with last-message preview.
+- `tgchats inventory summary`: reports complete live active/archive/all totals and the independently persisted CRM total.
+- `tgchats inbox [--location active|archived|all] [--page-size N] [--cursor value]`: pages live chats with a semantic inventory total. The historical `--limit` and `--all` human flags remain accepted.
+- `tgchats contacts count|list`: reads Telegram address-book contacts; it does not infer contacts from dialogs.
+- `tgchats crm dialogs list`: pages only dialogs durably persisted in local CRM.
 - `tgchats chat <peer> [--limit N] [--since messageId]`: prints recent chat history.
 - `tgchats open <peer>`: shows peer metadata plus local CRM metadata (tags/company/tasks/summary).
 - `tgchats search "<query>" [--chat <peer>] [--tag <tag>] [--company <name>] [--limit N] [--local]`:
@@ -279,7 +287,9 @@ AI helpers:
 
 Sync, backup, and DB:
 
-- `tgchats sync <backfill|once|tail> ...`: persists dialogs/messages into Postgres.
+- `tgchats sync once --mode recent|full [--include-archived|--exclude-archived]`: creates or resumes one durable account inventory run. A `FLOOD_WAIT` persists `waiting_for_telegram` plus `resumeAt` instead of losing committed pages.
+- `tgchats sync status [--run-id ID]`: reads durable run counters and status without making a Telegram call.
+- `tgchats sync backfill|tail ...`: retains the history-oriented and continuous legacy workflows.
 - `tgchats export --format <json|jsonl|csv|md> --out <path>`: exports Postgres-backed data.
 - `tgchats import --from <path>`: imports JSON/JSONL exports into Postgres.
 - `tgchats db migrate`: applies DB migrations.

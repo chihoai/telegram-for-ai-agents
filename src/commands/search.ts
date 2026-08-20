@@ -13,6 +13,7 @@ import {
 import { requireAccountId } from '../app/account.js';
 import { searchLocalMessages } from '../db/crm.js';
 import { printJson } from '../output.js';
+import { canonicalPeerKind, type StoredPeerKind } from '../db/peerIdentity.js';
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat(undefined, {
@@ -58,11 +59,14 @@ export async function runSearch(ctx: AppContext, args: string[]): Promise<void> 
     }
     const accountId = await requireAccountId(ctx);
     let peerId: number | undefined;
+    let peerKind: StoredPeerKind | undefined;
     if (chatId) {
       peerId = numericPeerIdFromRef(chatId);
       if (peerId === undefined) {
         await ensureAuthorized(ctx.telegram);
-        peerId = (await ctx.telegram.getPeer(normalizePeerRef(chatId))).id;
+        const peer = await ctx.telegram.getPeer(normalizePeerRef(chatId));
+        peerId = peer.id;
+        peerKind = canonicalPeerKind(peer);
       }
     }
     const rows = await searchLocalMessages(ctx.db, {
@@ -70,6 +74,7 @@ export async function runSearch(ctx: AppContext, args: string[]): Promise<void> 
       query,
       limit,
       peerId,
+      peerKind,
       tag,
       company,
     });

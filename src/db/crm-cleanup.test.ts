@@ -20,28 +20,36 @@ describe("CRM cleanup helpers", () => {
     const { pool, query } = mockPool(2);
 
     await expect(
-      clearPeerTags(pool, { accountId: 10n, peerId: 123 })
+      clearPeerTags(pool, { accountId: 10n, peerId: 123, peerKind: "user" })
     ).resolves.toBe(2);
 
     expect(query).toHaveBeenCalledWith(
       expect.stringContaining("DELETE FROM peer_tags"),
-      ["10", 123]
+      ["10", "user", 123]
     );
-    expect(query.mock.calls[0][0]).toContain("WHERE account_id = $1 AND peer_id = $2");
+    expect(query.mock.calls[0][0]).toContain(
+      "WHERE account_id = $1 AND peer_kind = $2 AND peer_id = $3",
+    );
   });
 
   it("unlinks company metadata for only the scoped account and peer", async () => {
     const { pool, query } = mockPool(1);
 
     await expect(
-      unlinkPeerCompany(pool, { accountId: 10n, peerId: 123 })
+      unlinkPeerCompany(pool, {
+        accountId: 10n,
+        peerId: 123,
+        peerKind: "channel",
+      })
     ).resolves.toBe(true);
 
     expect(query).toHaveBeenCalledWith(
       expect.stringContaining("DELETE FROM peer_company"),
-      ["10", 123]
+      ["10", "channel", 123]
     );
-    expect(query.mock.calls[0][0]).toContain("WHERE account_id = $1 AND peer_id = $2");
+    expect(query.mock.calls[0][0]).toContain(
+      "WHERE account_id = $1 AND peer_kind = $2 AND peer_id = $3",
+    );
   });
 
   it("disables rules for only the scoped account and rule id", async () => {

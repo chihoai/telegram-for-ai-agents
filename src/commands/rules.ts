@@ -20,6 +20,7 @@ import {
   setPeerTags,
 } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
+import { canonicalPeerKind } from '../db/peerIdentity.js';
 import { CliError } from '../app/errors.js';
 import { printJson } from '../output.js';
 
@@ -231,6 +232,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
             accountId,
             ruleId: rule.ruleId,
             peerId: dialog.peer.id,
+            peerKind: canonicalPeerKind(dialog.peer),
             matchMessageId: latestMessageId,
           })
         ) {
@@ -249,6 +251,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
             await setPeerTags(db, {
               accountId,
               peerId: dialog.peer.id,
+              peerKind: canonicalPeerKind(dialog.peer),
               tags: [resolvedTag],
               source: 'rule',
             });
@@ -272,6 +275,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
             await addTask(db, {
               accountId,
               peerId: dialog.peer.id,
+              peerKind: canonicalPeerKind(dialog.peer),
               dueAt,
               why: evaluation.why ?? `Automation rule "${rule.name}" matched`,
               priority: evaluation.priority,
@@ -285,6 +289,7 @@ export async function runRules(ctx: AppContext, args: string[]): Promise<void> {
             accountId,
             ruleId: rule.ruleId,
             peerId: dialog.peer.id,
+            peerKind: canonicalPeerKind(dialog.peer),
             matchMessageId: latestMessageId,
             note: `${dialog.peer.displayName}: ${evaluation.reason} | tag=${resolvedTag ?? '-'} | task=${shouldCreateTask ? 'yes' : 'no'}`,
           });

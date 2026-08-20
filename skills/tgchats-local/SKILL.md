@@ -42,6 +42,9 @@ If preconditions are missing, stop and request only the missing env/step.
 - Prefer read-first flow for open-ended triage, but do not insert extra reads when the user already asked for a specific MCP action.
 - Use `account_whoami` only for account identity checks, not as a generic first step for dialog listing, logout, or other direct actions.
 - Requests to list recent chats, dialogs, or conversations map to `dialogs_list`.
+- Questions such as "how many chats do I have?" map to `inventory_summary`; use `telegramDialogs.allTotal`, never a `dialogs_list` page length.
+- Questions about Telegram address-book contacts map to `contacts_count`, not dialogs or inferred people.
+- Requests to verify what is stored locally map to `crm_dialogs_list` or `sync_status`.
 - Requests to log out, sign out, or end the Telegram session map to `session_logout`.
 - For AI suggestion requests, call the specific suggestion tool directly:
   - `tags_suggest`
@@ -50,7 +53,7 @@ If preconditions are missing, stop and request only the missing env/step.
 - Only prepend `chat_read` when the user explicitly asks to read history, or when the workflow clearly requires a separate read before the write.
 - Multi-step requests should keep chaining tool calls until every explicit subgoal is satisfied. Do not stop after the first successful tool call when the user asked for additional steps.
 - Requests phrased as "X, then Y" or "first X, then Y, then Z" require every listed tool call in order.
-- If the user supplies a count like "5", "10", "15", or "50", pass that exact value as `limit` instead of falling back to a default.
+- If the user supplies a dialog/contact page size like "5", "10", "15", or "50", pass that exact value as `pageSize` instead of falling back to a default.
 - For chat-scoped `search_messages` requests without an explicit count, use `limit: 15`.
 - For persisted text fields such as `why` and `instruction`, prefer concise canonical wording and avoid paraphrasing when the user's meaning is already clear.
 - Use `--apply` only when the user explicitly asks to persist AI suggestions.
@@ -67,6 +70,11 @@ Use these mappings when the user's intent is already specific:
   - "is the local Telegram session available" -> `auth_status`
 - Dialog browsing:
   - "list dialogs", "recent chats", "recent conversations" -> `dialogs_list`
+  - "how many chats", "total Telegram chats" -> `inventory_summary`
+  - "what is synced", "stored CRM chats" -> `crm_dialogs_list`
+- Contacts:
+  - "how many contacts" -> `contacts_count`
+  - "list Telegram contacts" -> `contacts_list`
 - Read chat history:
   - "read messages", "show chat history" -> `chat_read`
 - Search:
@@ -100,7 +108,9 @@ Use these mappings when the user's intent is already specific:
   - "run rules, then show events/log" -> `rules_run` followed by `rules_log`
 - Sync:
   - "backfill history" -> `sync_backfill`
-  - "one-shot sync" -> `sync_once`
+  - "quick/recent sync" -> `sync_once { "mode": "recent" }`
+  - "sync everything" -> `sync_once { "mode": "full", "includeArchived": true }`
+  - "sync status" -> `sync_status`
 - Logout:
   - "log out", "sign out", "end session" -> `session_logout`
 
@@ -140,7 +150,11 @@ Use these mappings when the user's intent is already specific:
 - Show the currently logged-in Telegram account:
   - `account_whoami {}`
 - List my 10 most recent Telegram dialogs:
-  - `dialogs_list { "limit": 10 }`
+  - `dialogs_list { "location": "active", "pageSize": 10 }`
+- Count all live chats and compare with local CRM:
+  - `inventory_summary {}`
+- Count Telegram address-book contacts:
+  - `contacts_count {}`
 - Search messages in chat `@carol` for onboarding:
   - `search_messages { "query": "onboarding", "chat": "@carol", "limit": 15 }`
 - Generate task suggestions for `@frank` using the last 50 messages:
@@ -154,7 +168,7 @@ Use these mappings when the user's intent is already specific:
   - `rules_log { "limit": 20 }`
 - First check who I am, then list 5 dialogs, then read the last 10 messages with `@alice`:
   - `account_whoami {}`
-  - `dialogs_list { "limit": 5 }`
+  - `dialogs_list { "location": "active", "pageSize": 5 }`
   - `chat_read { "peer": "@alice", "limit": 10 }`
 - Log out the current Telegram session:
   - `session_logout {}`

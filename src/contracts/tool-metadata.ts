@@ -20,6 +20,88 @@ const SUCCESS_OUTPUT_SCHEMA: Record<string, unknown> = {
   },
 };
 
+const NULLABLE_STRING_SCHEMA = {
+  anyOf: [{ type: "string" }, { type: "null" }],
+} as const;
+
+const DIALOG_ITEM_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["peer", "archived", "pinned", "unreadCount", "lastMessage"],
+  properties: {
+    peer: {
+      type: "object",
+      additionalProperties: false,
+      required: ["id", "kind", "displayName", "username"],
+      properties: {
+        id: { type: "string" },
+        kind: { type: "string", enum: ["user", "chat", "channel", "self"] },
+        displayName: { type: "string" },
+        username: NULLABLE_STRING_SCHEMA,
+      },
+    },
+    archived: { type: "boolean" },
+    pinned: { type: "boolean" },
+    unreadCount: { type: "integer", minimum: 0 },
+    lastMessage: {
+      anyOf: [
+        { type: "null" },
+        {
+          type: "object",
+          additionalProperties: false,
+          required: ["id", "date", "preview"],
+          properties: {
+            id: { type: "integer" },
+            date: { type: "string", format: "date-time" },
+            preview: { type: "string" },
+          },
+        },
+      ],
+    },
+  },
+} as const;
+
+const SYNC_STATUS_VALUES = [
+  "queued",
+  "running",
+  "waiting_for_telegram",
+  "enriching",
+  "complete",
+  "failed",
+] as const;
+
+const SYNC_RUN_PROPERTIES = {
+  runId: { type: "string" },
+  status: { type: "string", enum: SYNC_STATUS_VALUES },
+  mode: { type: "string", enum: ["recent", "full"] },
+  includeArchived: { type: "boolean" },
+  phase: {
+    type: "string",
+    enum: ["active", "archived", "contacts", "enrichment", "complete"],
+  },
+  fetchedCount: { type: "integer", minimum: 0 },
+  persistedCount: { type: "integer", minimum: 0 },
+  skippedCount: { type: "integer", minimum: 0 },
+  failedCount: { type: "integer", minimum: 0 },
+  resumeAt: NULLABLE_STRING_SCHEMA,
+  lastErrorCode: NULLABLE_STRING_SCHEMA,
+} as const;
+
+function exactOutputSchema(
+  required: string[],
+  properties: Record<string, unknown>,
+): Record<string, unknown> {
+  return {
+    type: "object",
+    additionalProperties: false,
+    required: ["ok", ...required],
+    properties: {
+      ok: { type: "boolean", const: true },
+      ...properties,
+    },
+  };
+}
+
 const READ_INTERNAL = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -58,7 +140,119 @@ function metadata(
 const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
   "auth.status": metadata("Check local Telegram connection", READ_INTERNAL),
   "account.whoami": metadata("Show the local Telegram account", READ_EXTERNAL),
-  "dialogs.list": metadata("List Telegram chats", READ_EXTERNAL),
+  "inventory.summary": {
+    title: "Summarize Telegram inventory",
+    annotations: READ_EXTERNAL,
+    outputSchema: exactOutputSchema(
+      ["telegramDialogs", "chihoDialogs", "sync"],
+      {
+        telegramDialogs: {
+          type: "object",
+          additionalProperties: false,
+          required: ["activeTotal", "archivedTotal", "allTotal", "measuredAt"],
+          properties: {
+            activeTotal: { type: "integer", minimum: 0 },
+            archivedTotal: { type: "integer", minimum: 0 },
+            allTotal: { type: "integer", minimum: 0 },
+            measuredAt: { type: "string", format: "date-time" },
+          },
+        },
+        chihoDialogs: {
+          type: "object",
+          additionalProperties: false,
+          required: ["syncedTotal", "lastSyncedAt"],
+          properties: {
+            syncedTotal: {
+              anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }],
+            },
+            lastSyncedAt: NULLABLE_STRING_SCHEMA,
+          },
+        },
+        sync: {
+          type: "object",
+          additionalProperties: false,
+          required: ["status", "runId"],
+          properties: {
+            status: {
+              anyOf: [
+                { type: "string", enum: SYNC_STATUS_VALUES },
+                { type: "null" },
+              ],
+            },
+            runId: NULLABLE_STRING_SCHEMA,
+          },
+        },
+      },
+    ),
+  },
+  "dialogs.list": {
+    title: "List live Telegram chats",
+    annotations: READ_EXTERNAL,
+    outputSchema: exactOutputSchema(
+      ["source", "location", "inventoryTotal", "hasMore", "nextCursor", "dialogs"],
+      {
+        source: { type: "string", const: "telegram" },
+        location: { type: "string", enum: ["active", "archived", "all"] },
+        inventoryTotal: { type: "integer", minimum: 0 },
+        hasMore: { type: "boolean" },
+        nextCursor: NULLABLE_STRING_SCHEMA,
+        dialogs: { type: "array", items: DIALOG_ITEM_SCHEMA },
+      },
+    ),
+  },
+  "crm.dialogs.list": {
+    title: "List synced CRM chats",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(
+      ["source", "syncedTotal", "lastSyncedAt", "hasMore", "nextCursor", "dialogs"],
+      {
+        source: { type: "string", const: "chiho-crm" },
+        syncedTotal: { type: "integer", minimum: 0 },
+        lastSyncedAt: NULLABLE_STRING_SCHEMA,
+        hasMore: { type: "boolean" },
+        nextCursor: NULLABLE_STRING_SCHEMA,
+        dialogs: { type: "array", items: DIALOG_ITEM_SCHEMA },
+      },
+    ),
+  },
+  "contacts.count": {
+    title: "Count Telegram contacts",
+    annotations: READ_EXTERNAL,
+    outputSchema: exactOutputSchema(
+      ["source", "contactTotal", "fetchedAt"],
+      {
+        source: { type: "string", const: "telegram-contacts" },
+        contactTotal: { type: "integer", minimum: 0 },
+        fetchedAt: { type: "string", format: "date-time" },
+      },
+    ),
+  },
+  "contacts.list": {
+    title: "List Telegram contacts",
+    annotations: READ_EXTERNAL,
+    outputSchema: exactOutputSchema(
+      ["source", "contactTotal", "hasMore", "nextCursor", "contacts"],
+      {
+        source: { type: "string", const: "telegram-contacts" },
+        contactTotal: { type: "integer", minimum: 0 },
+        hasMore: { type: "boolean" },
+        nextCursor: NULLABLE_STRING_SCHEMA,
+        contacts: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["peerId", "displayName", "username"],
+            properties: {
+              peerId: { type: "string" },
+              displayName: { type: "string" },
+              username: NULLABLE_STRING_SCHEMA,
+            },
+          },
+        },
+      },
+    ),
+  },
   "chat.read": metadata("Read a Telegram chat", READ_EXTERNAL),
   "search.messages": metadata("Search Telegram messages", READ_EXTERNAL),
   "folders.list": metadata("List Telegram folders", READ_EXTERNAL),
@@ -165,10 +359,22 @@ const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
     ...WRITE_EXTERNAL,
     destructiveHint: true,
   }),
-  "sync.once": metadata("Sync recent Telegram chats", {
-    ...WRITE_EXTERNAL,
-    destructiveHint: true,
-  }),
+  "sync.once": {
+    title: "Start or resume Telegram sync",
+    annotations: { ...WRITE_EXTERNAL, destructiveHint: true, idempotentHint: true },
+    outputSchema: exactOutputSchema(
+      Object.keys(SYNC_RUN_PROPERTIES),
+      SYNC_RUN_PROPERTIES,
+    ),
+  },
+  "sync.status": {
+    title: "Show Telegram sync status",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(
+      Object.keys(SYNC_RUN_PROPERTIES),
+      SYNC_RUN_PROPERTIES,
+    ),
+  },
   "session.logout": metadata("Disconnect the local Telegram account", {
     ...WRITE_EXTERNAL,
     destructiveHint: true,

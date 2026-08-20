@@ -5,9 +5,10 @@ These are example self-hosted flows for local `tgchats` users.
 ## Morning Triage
 
 1. `npm run dev -- whoami --json`
-2. `npm run dev -- inbox --limit 30 --json`
-3. For top chats: `npm run dev -- open <peer> --json` and `npm run dev -- chat <peer> --limit 50 --json`
-4. Suggest follow-up: `npm run dev -- nudge <peer> --style concise --json`
+2. `npm run dev -- inventory summary --json`
+3. `npm run dev -- inbox --location active --page-size 30 --json`
+4. For top chats: `npm run dev -- open <peer> --json` and `npm run dev -- chat <peer> --limit 50 --json`
+5. Suggest follow-up: `npm run dev -- nudge <peer> --style concise --json`
 
 ## AI-Assisted CRM Enrichment
 
@@ -44,4 +45,6 @@ These are example self-hosted flows for local `tgchats` users.
 1. `npm run dev -- db migrate`
 2. `npm run dev -- auth`
 3. `npm run dev -- sync backfill --dialogs 200 --per-chat-limit 200`
-4. `npm run dev -- sync tail --interval-seconds 60 --dialogs 500`
+4. `npm run dev -- sync once --mode full --include-archived --json`
+5. If status is `waiting_for_telegram`, wait until `resumeAt`, run the same command again, and verify with `npm run dev -- sync status --json`.
+6. Start `npm run dev -- sync tail --interval-seconds 60 --dialogs 500` only when continuous history ingestion is also required.

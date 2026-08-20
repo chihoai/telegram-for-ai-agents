@@ -68,8 +68,8 @@
     }
   },
   {
-    "name": "dialogs.list",
-    "description": "List recent Telegram dialogs.",
+    "name": "inventory.summary",
+    "description": "Return complete live Telegram dialog totals and the independently persisted CRM total. Use telegramDialogs.allTotal for questions about all Telegram chats; never use a list page length as an account total.",
     "transport": "shared",
     "inputSchema": {
       "type": "object",
@@ -77,18 +77,10 @@
       "properties": {
         "accountId": {
           "type": "string"
-        },
-        "limit": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 200
-        },
-        "all": {
-          "type": "boolean"
         }
       }
     },
-    "title": "List Telegram chats",
+    "title": "Summarize Telegram inventory",
     "annotations": {
       "readOnlyHint": true,
       "destructiveHint": false,
@@ -97,14 +89,614 @@
     },
     "outputSchema": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "required": [
-        "ok"
+        "ok",
+        "telegramDialogs",
+        "chihoDialogs",
+        "sync"
       ],
       "properties": {
         "ok": {
           "type": "boolean",
           "const": true
+        },
+        "telegramDialogs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "activeTotal",
+            "archivedTotal",
+            "allTotal",
+            "measuredAt"
+          ],
+          "properties": {
+            "activeTotal": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "archivedTotal": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "allTotal": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "measuredAt": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "chihoDialogs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "syncedTotal",
+            "lastSyncedAt"
+          ],
+          "properties": {
+            "syncedTotal": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "lastSyncedAt": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "sync": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "runId"
+          ],
+          "properties": {
+            "status": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "queued",
+                    "running",
+                    "waiting_for_telegram",
+                    "enriching",
+                    "complete",
+                    "failed"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "runId": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "dialogs.list",
+    "description": "Page through live Telegram dialogs. Use inventory.summary for count questions: dialogs.length is only the current page and is never the account total.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived",
+            "all"
+          ],
+          "default": "all"
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 100
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "title": "List live Telegram chats",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "source",
+        "location",
+        "inventoryTotal",
+        "hasMore",
+        "nextCursor",
+        "dialogs"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "source": {
+          "type": "string",
+          "const": "telegram"
+        },
+        "location": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived",
+            "all"
+          ]
+        },
+        "inventoryTotal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hasMore": {
+          "type": "boolean"
+        },
+        "nextCursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dialogs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "peer",
+              "archived",
+              "pinned",
+              "unreadCount",
+              "lastMessage"
+            ],
+            "properties": {
+              "peer": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "kind",
+                  "displayName",
+                  "username"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "chat",
+                      "channel",
+                      "self"
+                    ]
+                  },
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "username": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              "archived": {
+                "type": "boolean"
+              },
+              "pinned": {
+                "type": "boolean"
+              },
+              "unreadCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "lastMessage": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "date",
+                      "preview"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "date": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "preview": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "crm.dialogs.list",
+    "description": "Page through dialogs durably persisted in the CRM. syncedTotal is the complete persisted total; dialogs.length is only the current page.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 100
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "title": "List synced CRM chats",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "source",
+        "syncedTotal",
+        "lastSyncedAt",
+        "hasMore",
+        "nextCursor",
+        "dialogs"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "source": {
+          "type": "string",
+          "const": "chiho-crm"
+        },
+        "syncedTotal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "lastSyncedAt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hasMore": {
+          "type": "boolean"
+        },
+        "nextCursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dialogs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "peer",
+              "archived",
+              "pinned",
+              "unreadCount",
+              "lastMessage"
+            ],
+            "properties": {
+              "peer": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "kind",
+                  "displayName",
+                  "username"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "chat",
+                      "channel",
+                      "self"
+                    ]
+                  },
+                  "displayName": {
+                    "type": "string"
+                  },
+                  "username": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              },
+              "archived": {
+                "type": "boolean"
+              },
+              "pinned": {
+                "type": "boolean"
+              },
+              "unreadCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "lastMessage": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "id",
+                      "date",
+                      "preview"
+                    ],
+                    "properties": {
+                      "id": {
+                        "type": "integer"
+                      },
+                      "date": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "preview": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "contacts.count",
+    "description": "Return the complete Telegram address-book contact total from Telegram contacts, not people inferred from dialogs.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        }
+      }
+    },
+    "title": "Count Telegram contacts",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "source",
+        "contactTotal",
+        "fetchedAt"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "source": {
+          "type": "string",
+          "const": "telegram-contacts"
+        },
+        "contactTotal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fetchedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  {
+    "name": "contacts.list",
+    "description": "Page through Telegram address-book contacts. contactTotal is the complete total; contacts.length is only the current page.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "pageSize": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 100
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "title": "List Telegram contacts",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "source",
+        "contactTotal",
+        "hasMore",
+        "nextCursor",
+        "contacts"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "source": {
+          "type": "string",
+          "const": "telegram-contacts"
+        },
+        "contactTotal": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "hasMore": {
+          "type": "boolean"
+        },
+        "nextCursor": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "contacts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "peerId",
+              "displayName",
+              "username"
+            ],
+            "properties": {
+              "peerId": {
+                "type": "string"
+              },
+              "displayName": {
+                "type": "string"
+              },
+              "username": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     }
@@ -1975,8 +2567,8 @@
   },
   {
     "name": "sync.once",
-    "description": "Perform a one-shot sync of latest dialog state.",
-    "transport": "local",
+    "description": "Create or resume one durable Telegram inventory sync. Long Telegram waits are reported as waiting_for_telegram and can be observed with sync.status.",
+    "transport": "shared",
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
@@ -1984,30 +2576,237 @@
         "accountId": {
           "type": "string"
         },
-        "dialogs": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 1000
+        "mode": {
+          "type": "string",
+          "enum": [
+            "recent",
+            "full"
+          ],
+          "default": "recent"
+        },
+        "includeArchived": {
+          "type": "boolean",
+          "default": true
         }
       }
     },
-    "title": "Sync recent Telegram chats",
+    "title": "Start or resume Telegram sync",
     "annotations": {
       "readOnlyHint": false,
       "destructiveHint": true,
-      "idempotentHint": false,
+      "idempotentHint": true,
       "openWorldHint": true
     },
     "outputSchema": {
       "type": "object",
-      "additionalProperties": true,
+      "additionalProperties": false,
       "required": [
-        "ok"
+        "ok",
+        "runId",
+        "status",
+        "mode",
+        "includeArchived",
+        "phase",
+        "fetchedCount",
+        "persistedCount",
+        "skippedCount",
+        "failedCount",
+        "resumeAt",
+        "lastErrorCode"
       ],
       "properties": {
         "ok": {
           "type": "boolean",
           "const": true
+        },
+        "runId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "queued",
+            "running",
+            "waiting_for_telegram",
+            "enriching",
+            "complete",
+            "failed"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "recent",
+            "full"
+          ]
+        },
+        "includeArchived": {
+          "type": "boolean"
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived",
+            "contacts",
+            "enrichment",
+            "complete"
+          ]
+        },
+        "fetchedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "persistedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skippedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resumeAt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lastErrorCode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "sync.status",
+    "description": "Return the latest durable Telegram inventory sync state without starting Telegram work.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "runId": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "title": "Show Telegram sync status",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "runId",
+        "status",
+        "mode",
+        "includeArchived",
+        "phase",
+        "fetchedCount",
+        "persistedCount",
+        "skippedCount",
+        "failedCount",
+        "resumeAt",
+        "lastErrorCode"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "runId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "queued",
+            "running",
+            "waiting_for_telegram",
+            "enriching",
+            "complete",
+            "failed"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "recent",
+            "full"
+          ]
+        },
+        "includeArchived": {
+          "type": "boolean"
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "active",
+            "archived",
+            "contacts",
+            "enrichment",
+            "complete"
+          ]
+        },
+        "fetchedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "persistedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skippedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failedCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resumeAt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lastErrorCode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     }

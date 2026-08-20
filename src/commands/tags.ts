@@ -10,6 +10,7 @@ import { requireAccountId } from '../app/account.js';
 import { requireDb } from '../app/db.js';
 import { clearPeerTags, listPeerTags, setPeerTags } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
+import { canonicalPeerKind } from '../db/peerIdentity.js';
 import { printJson } from '../output.js';
 
 export function parseTagsSetArgs(args: string[]): { peer: string; tags: string[] } {
@@ -40,6 +41,7 @@ export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
     await setPeerTags(db, {
       accountId,
       peerId: peer.id,
+      peerKind: canonicalPeerKind(peer),
       tags,
       source: 'manual',
     });
@@ -67,7 +69,11 @@ export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
 
     await ensureAuthorized(ctx.telegram);
     const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
-    const removed = await clearPeerTags(db, { accountId, peerId: peer.id });
+    const removed = await clearPeerTags(db, {
+      accountId,
+      peerId: peer.id,
+      peerKind: canonicalPeerKind(peer),
+    });
     if (ctx.config.jsonOutput) {
       printJson({
         ok: true,
@@ -140,6 +146,7 @@ export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
       await setPeerTags(db, {
         accountId,
         peerId: peer.id,
+        peerKind: canonicalPeerKind(peer),
         tags: suggestion.tags,
         source: 'ai',
       });
@@ -163,13 +170,15 @@ export async function runTags(ctx: AppContext, args: string[]): Promise<void> {
     const parsed = parseCommandArgs(args.slice(1), ['--peer']);
     const peerInput = optionValue(parsed, ['--peer']);
     let peerId: number | undefined;
+    let peerKind: ReturnType<typeof canonicalPeerKind> | undefined;
     if (peerInput) {
       await ensureAuthorized(ctx.telegram);
       const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
       peerId = peer.id;
+      peerKind = canonicalPeerKind(peer);
     }
 
-    const rows = await listPeerTags(db, { accountId, peerId });
+    const rows = await listPeerTags(db, { accountId, peerId, peerKind });
     if (rows.length === 0) {
       if (ctx.config.jsonOutput) {
         printJson({ ok: true, count: 0, tags: [] });

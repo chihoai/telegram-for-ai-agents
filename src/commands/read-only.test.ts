@@ -8,6 +8,9 @@ const telegramServices = vi.hoisted(() => ({
   listDialogs: vi.fn(),
   resolveChatPeer: vi.fn(),
 }));
+const dialogInventoryServices = vi.hoisted(() => ({
+  listTelegramDialogInventoryPage: vi.fn(),
+}));
 const databaseWrites = vi.hoisted(() => ({
   insertMessage: vi.fn(),
   upsertDialog: vi.fn(),
@@ -15,6 +18,7 @@ const databaseWrites = vi.hoisted(() => ({
 }));
 
 vi.mock("../services/telegram.js", () => telegramServices);
+vi.mock("../services/dialogInventory.js", () => dialogInventoryServices);
 vi.mock("../db/writes.js", () => databaseWrites);
 
 import { runChat } from "./chat.js";
@@ -39,6 +43,9 @@ function createContext(): AppContext {
       all: false,
       jsonOutput: true,
       limit: 5,
+      accountLabel: "default",
+      sessionPath: "/tmp/test.session",
+      apiHash: "test-api-hash",
     },
     db: {},
     telegram: {
@@ -55,6 +62,28 @@ describe("read-only Telegram commands", () => {
     telegramServices.listDialogs.mockResolvedValue([
       { lastMessage: message, peer },
     ]);
+    dialogInventoryServices.listTelegramDialogInventoryPage.mockResolvedValue({
+      inventoryTotal: 420,
+      nextState: null,
+      dialogs: [
+        {
+          peer: {
+            id: "123",
+            kind: "user",
+            displayName: "Test User",
+            username: "testuser",
+          },
+          archived: false,
+          pinned: false,
+          unreadCount: 0,
+          lastMessage: {
+            id: 456,
+            date: "2026-07-22T00:00:00.000Z",
+            preview: "preview",
+          },
+        },
+      ],
+    });
     telegramServices.resolveChatPeer.mockResolvedValue(peer);
     telegramServices.fetchChatHistory.mockResolvedValue([message]);
     logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
@@ -70,17 +99,22 @@ describe("read-only Telegram commands", () => {
 
     expect(JSON.parse(String(logSpy.mock.calls.at(-1)?.[0]))).toEqual({
       ok: true,
-      account: { displayName: "Owner", id: 1 },
-      count: 1,
+      source: "telegram",
+      location: "active",
+      inventoryTotal: 420,
+      hasMore: false,
+      nextCursor: null,
       dialogs: [
         {
-          index: 1,
           peer: {
-            id: 123,
-            type: "user",
+            id: "123",
+            kind: "user",
             displayName: "Test User",
             username: "testuser",
           },
+          archived: false,
+          pinned: false,
+          unreadCount: 0,
           lastMessage: {
             id: 456,
             date: "2026-07-22T00:00:00.000Z",
@@ -95,14 +129,21 @@ describe("read-only Telegram commands", () => {
   });
 
   it("returns the exact empty inbox JSON contract", async () => {
-    telegramServices.listDialogs.mockResolvedValue([]);
+    dialogInventoryServices.listTelegramDialogInventoryPage.mockResolvedValue({
+      inventoryTotal: 0,
+      nextState: null,
+      dialogs: [],
+    });
 
     await runInbox(createContext());
 
     expect(JSON.parse(String(logSpy.mock.calls.at(-1)?.[0]))).toEqual({
       ok: true,
-      account: { displayName: "Owner", id: 1 },
-      count: 0,
+      source: "telegram",
+      location: "active",
+      inventoryTotal: 0,
+      hasMore: false,
+      nextCursor: null,
       dialogs: [],
     });
   });

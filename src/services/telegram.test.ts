@@ -1,10 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   fetchChatHistory,
+  getTelegramContacts,
+  getTelegramDialogTotals,
+  mapTelegramContact,
   resolveChatPeer,
   telegramRateLimit,
   withTelegramRateLimitBackoff,
 } from './telegram.js';
+import { Dialog } from '@mtcute/node';
 
 describe('resolveChatPeer', () => {
   it('uses visible dialogs for numeric peer ids', async () => {
@@ -90,6 +94,48 @@ describe('fetchChatHistory', () => {
       limit: 200,
       offset: { date: 1_700_000_000, id: 3198 },
     });
+  });
+});
+
+describe('semantic Telegram inventories', () => {
+  it('measures active and archived folder totals without materializing all dialogs', async () => {
+    const parseSpy = vi.spyOn(Dialog, 'parseTlDialogs').mockReturnValue([]);
+    const client = {
+      call: vi
+        .fn()
+        .mockResolvedValueOnce({ _: 'messages.dialogsSlice', count: 420, dialogs: [] })
+        .mockResolvedValueOnce({ _: 'messages.dialogsSlice', count: 80, dialogs: [] }),
+    };
+
+    await expect(getTelegramDialogTotals(client as any)).resolves.toEqual({
+      activeTotal: 420,
+      archivedTotal: 80,
+      allTotal: 500,
+    });
+    expect(client.call.mock.calls.map(([request]) => request.folderId)).toEqual([0, 1]);
+    expect(client.call.mock.calls.every(([request]) => request.limit === 1)).toBe(true);
+    parseSpy.mockRestore();
+  });
+
+  it('uses Telegram contacts and omits phone numbers and access hashes from mapped output', async () => {
+    const rawUser = {
+      id: 123,
+      displayName: 'Alice',
+      username: 'alice',
+      phoneNumber: '+12025550123',
+      raw: { accessHash: 'secret-access-hash' },
+    };
+    const client = { getContacts: vi.fn().mockResolvedValue([rawUser]) };
+
+    await expect(getTelegramContacts(client as any)).resolves.toEqual([rawUser]);
+    expect(mapTelegramContact(rawUser as any)).toEqual({
+      peerId: '123',
+      displayName: 'Alice',
+      username: 'alice',
+    });
+    expect(JSON.stringify(mapTelegramContact(rawUser as any))).not.toMatch(
+      /phone|accessHash|12025550123|secret-access-hash/,
+    );
   });
 });
 
