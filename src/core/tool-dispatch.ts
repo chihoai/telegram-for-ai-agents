@@ -97,6 +97,27 @@ function requirePositiveInteger(value: unknown, label: string) {
   return String(value);
 }
 
+function optionalEnum(
+  value: unknown,
+  label: string,
+  allowed: readonly string[],
+  fallback: string,
+) {
+  if (value === undefined || value === null || value === "") return fallback;
+  if (typeof value !== "string" || !allowed.includes(value)) {
+    throw new Error(`${label} must be one of: ${allowed.join(", ")}.`);
+  }
+  return value;
+}
+
+function optionalBoolean(value: unknown, label: string, fallback: boolean) {
+  if (value === undefined || value === null) return fallback;
+  if (typeof value !== "boolean") {
+    throw new Error(`${label} must be a boolean.`);
+  }
+  return value;
+}
+
 function inputWithoutAccountId(input: Record<string, unknown>) {
   const { accountId: _accountId, ...rest } = input;
   return rest;
@@ -143,11 +164,46 @@ export function buildToolCommandArgs(
     return ["whoami"];
   }
 
+  if (toolName === "inventory.summary") {
+    return ["inventory", "summary"];
+  }
+
   if (toolName === "dialogs.list") {
+    const location = optionalEnum(
+      input.location,
+      "location",
+      ["active", "archived", "all"],
+      "all",
+    );
     return [
       "inbox",
-      ...integerFlag(input.limit, "--limit"),
-      ...(input.all ? ["--all"] : []),
+      "--location",
+      location,
+      ...boundedIntegerFlag(input.pageSize ?? 100, "--page-size", 100),
+      ...stringFlag(input.cursor, "--cursor"),
+    ];
+  }
+
+  if (toolName === "crm.dialogs.list") {
+    return [
+      "crm",
+      "dialogs",
+      "list",
+      ...boundedIntegerFlag(input.pageSize ?? 100, "--page-size", 100),
+      ...stringFlag(input.cursor, "--cursor"),
+    ];
+  }
+
+  if (toolName === "contacts.count") {
+    return ["contacts", "count"];
+  }
+
+  if (toolName === "contacts.list") {
+    return [
+      "contacts",
+      "list",
+      ...boundedIntegerFlag(input.pageSize ?? 100, "--page-size", 100),
+      ...stringFlag(input.cursor, "--cursor"),
     ];
   }
 
@@ -479,7 +535,23 @@ export function buildToolCommandArgs(
   }
 
   if (toolName === "sync.once") {
-    return ["sync", "once", ...integerFlag(input.dialogs, "--dialogs")];
+    const mode = optionalEnum(input.mode, "mode", ["recent", "full"], "recent");
+    const includeArchived = optionalBoolean(
+      input.includeArchived,
+      "includeArchived",
+      true,
+    );
+    return [
+      "sync",
+      "once",
+      "--mode",
+      mode,
+      includeArchived ? "--include-archived" : "--exclude-archived",
+    ];
+  }
+
+  if (toolName === "sync.status") {
+    return ["sync", "status", ...stringFlag(input.runId, "--run-id")];
   }
 
   if (toolName === "session.logout") {

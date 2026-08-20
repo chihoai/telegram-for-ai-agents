@@ -15,6 +15,7 @@ import { requireDb } from '../app/db.js';
 import { requireAccountId } from '../app/account.js';
 import { addTask, listTasksToday, markTaskDone } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
+import { canonicalPeerKind } from '../db/peerIdentity.js';
 import { printJson } from '../output.js';
 
 function parseDueAt(raw: string): Date {
@@ -57,6 +58,7 @@ export async function runTasks(ctx: AppContext, args: string[]): Promise<void> {
     const taskId = await addTask(db, {
       accountId,
       peerId: peer.id,
+      peerKind: canonicalPeerKind(peer),
       dueAt: parseDueAt(dueRaw),
       why,
       priority: priorityRaw as 'low' | 'med' | 'high',
@@ -213,6 +215,7 @@ export async function runTasks(ctx: AppContext, args: string[]): Promise<void> {
       const taskId = await addTask(db, {
         accountId,
         peerId: peer.id,
+        peerKind: canonicalPeerKind(peer),
         dueAt,
         why: suggestion.why,
         priority: suggestion.priority,

@@ -3,6 +3,7 @@ import { ensureAuthorized, normalizePeerRef } from '../services/telegram.js';
 import { requireAccountId } from '../app/account.js';
 import { getPeerCompany, getSummary, listPeerTags, listTasksForPeer } from '../db/crm.js';
 import { printJson } from '../output.js';
+import { canonicalPeerKind } from '../db/peerIdentity.js';
 
 export async function runOpen(ctx: AppContext, args: string[]): Promise<void> {
   const peerArg = args[0];
@@ -37,12 +38,14 @@ export async function runOpen(ctx: AppContext, args: string[]): Promise<void> {
   }
 
   const accountId = await requireAccountId(ctx);
-  const tags = await listPeerTags(ctx.db, { accountId, peerId: peer.id });
-  const company = await getPeerCompany(ctx.db, { accountId, peerId: peer.id });
-  const tasks = await listTasksForPeer(ctx.db, { accountId, peerId: peer.id });
+  const peerKind = canonicalPeerKind(peer);
+  const tags = await listPeerTags(ctx.db, { accountId, peerId: peer.id, peerKind });
+  const company = await getPeerCompany(ctx.db, { accountId, peerId: peer.id, peerKind });
+  const tasks = await listTasksForPeer(ctx.db, { accountId, peerId: peer.id, peerKind });
   const summary = await getSummary(ctx.db, {
     accountId,
     peerId: peer.id,
+    peerKind,
     kind: 'rolling',
   });
 

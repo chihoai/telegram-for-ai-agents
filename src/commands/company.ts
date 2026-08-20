@@ -10,6 +10,7 @@ import { requireDb } from '../app/db.js';
 import { requireAccountId } from '../app/account.js';
 import { getPeerCompany, linkPeerCompany, unlinkPeerCompany } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
+import { canonicalPeerKind } from '../db/peerIdentity.js';
 import { printJson } from '../output.js';
 
 export async function runCompany(ctx: AppContext, args: string[]): Promise<void> {
@@ -39,6 +40,7 @@ export async function runCompany(ctx: AppContext, args: string[]): Promise<void>
     await linkPeerCompany(db, {
       accountId,
       peerId: peer.id,
+      peerKind: canonicalPeerKind(peer),
       companyName,
       role,
       source: 'manual',
@@ -66,7 +68,11 @@ export async function runCompany(ctx: AppContext, args: string[]): Promise<void>
 
     await ensureAuthorized(ctx.telegram);
     const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
-    const unlinked = await unlinkPeerCompany(db, { accountId, peerId: peer.id });
+    const unlinked = await unlinkPeerCompany(db, {
+      accountId,
+      peerId: peer.id,
+      peerKind: canonicalPeerKind(peer),
+    });
     if (ctx.config.jsonOutput) {
       printJson({
         ok: true,
@@ -91,7 +97,11 @@ export async function runCompany(ctx: AppContext, args: string[]): Promise<void>
 
     await ensureAuthorized(ctx.telegram);
     const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
-    const company = await getPeerCompany(db, { accountId, peerId: peer.id });
+    const company = await getPeerCompany(db, {
+      accountId,
+      peerId: peer.id,
+      peerKind: canonicalPeerKind(peer),
+    });
     if (!company) {
       if (ctx.config.jsonOutput) {
         printJson({
@@ -177,7 +187,11 @@ export async function runCompany(ctx: AppContext, args: string[]): Promise<void>
     console.log(`Suggested company for ${peer.displayName}: ${suggestion.companyName}${roleLabel}`);
 
     if (apply) {
-      const existing = await getPeerCompany(db, { accountId, peerId: peer.id });
+      const existing = await getPeerCompany(db, {
+        accountId,
+        peerId: peer.id,
+        peerKind: canonicalPeerKind(peer),
+      });
       if (existing) {
         if (ctx.config.jsonOutput) {
           printJson({
@@ -206,6 +220,7 @@ export async function runCompany(ctx: AppContext, args: string[]): Promise<void>
       await linkPeerCompany(db, {
         accountId,
         peerId: peer.id,
+        peerKind: canonicalPeerKind(peer),
         companyName: suggestion.companyName,
         role: suggestion.role ?? undefined,
         source: 'ai',

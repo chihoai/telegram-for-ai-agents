@@ -1,5 +1,6 @@
 import type { Dialog, Message, Peer } from '@mtcute/node';
 import type { DbPool } from './pool.js';
+import { canonicalPeerKind } from './peerIdentity.js';
 
 export async function upsertAccount(
   pool: DbPool,
@@ -19,10 +20,6 @@ RETURNING id
   return BigInt(result.rows[0].id);
 }
 
-function peerKind(peer: Peer): 'user' | 'chat' {
-  return peer.type;
-}
-
 export async function upsertPeer(pool: DbPool, params: {
   accountId: bigint;
   peer: Peer;
@@ -32,9 +29,8 @@ export async function upsertPeer(pool: DbPool, params: {
     `
 INSERT INTO peers (account_id, peer_id, peer_kind, username, display_name, updated_at)
 VALUES ($1, $2, $3, $4, $5, now())
-ON CONFLICT (account_id, peer_id)
+ON CONFLICT (account_id, peer_kind, peer_id)
 DO UPDATE SET
-  peer_kind = excluded.peer_kind,
   username = excluded.username,
   display_name = excluded.display_name,
   updated_at = now()
@@ -42,7 +38,7 @@ DO UPDATE SET
     [
       params.accountId.toString(),
       peer.id,
-      peerKind(peer),
+      canonicalPeerKind(peer),
       peer.username,
       peer.displayName,
     ],
@@ -60,6 +56,7 @@ export async function upsertDialog(pool: DbPool, params: {
     `
 INSERT INTO dialogs (
   account_id,
+  peer_kind,
   peer_id,
   archived,
   pinned,
@@ -68,8 +65,8 @@ INSERT INTO dialogs (
   unread_count,
   updated_at
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, now())
-ON CONFLICT (account_id, peer_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())
+ON CONFLICT (account_id, peer_kind, peer_id)
 DO UPDATE SET
   archived = excluded.archived,
   pinned = excluded.pinned,
@@ -80,6 +77,7 @@ DO UPDATE SET
 `,
     [
       params.accountId.toString(),
+      canonicalPeerKind(dialog.peer),
       dialog.peer.id,
       dialog.isArchived,
       dialog.isPinned,
@@ -103,24 +101,28 @@ export async function insertMessage(pool: DbPool, params: {
     `
 INSERT INTO messages (
   account_id,
+  peer_kind,
   peer_id,
   message_id,
   sent_at,
   sender_peer_id,
+  sender_peer_kind,
   text,
   is_service,
   media_type
 )
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-ON CONFLICT (account_id, peer_id, message_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+ON CONFLICT (account_id, peer_kind, peer_id, message_id)
 DO NOTHING
 `,
     [
       params.accountId.toString(),
+      canonicalPeerKind(params.peer),
       params.peer.id,
       message.id,
       message.date,
       senderPeerId,
+      canonicalPeerKind(message.sender),
       message.text,
       message.isService,
       mediaType,

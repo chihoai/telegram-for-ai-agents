@@ -22,9 +22,11 @@ If a precondition is missing, stop and request only that missing setup. Do not f
 - Prefer the local MCP tools; use the JSON CLI only when MCP is unavailable.
 - Call the specific requested tool directly. Do not add broad reads before an explicit action.
 - Preserve user-supplied limits and execute multi-step requests in order.
+- Use `inventory_summary` for chat-count questions; never answer from the length of a `dialogs_list` page.
+- Use `contacts_count`/`contacts_list` for Telegram address-book contacts and `crm_dialogs_list` for persisted CRM coverage.
 - Treat suggest tools with an apply option as writes when applying results.
 - Preview sends, invites, and group leaves before execution and verify recipients or targets.
 - Assume one writer process per Telegram session.
 - Never print session strings, API hashes, or session paths unless the user explicitly asks.
 
-Start with `auth_status` only when connection state is relevant. Use `account_whoami` for identity checks and `dialogs_list` for recent chats.
+Start with `auth_status` only when connection state is relevant. Use `account_whoami` for identity checks, `inventory_summary` for totals, and `dialogs_list` for paged live chats.

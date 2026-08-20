@@ -13,11 +13,58 @@ describe("buildToolCommandArgs", () => {
   });
 
   it("maps dialogs.list to inbox args", () => {
-    expect(buildToolCommandArgs("dialogs.list", { limit: 15, all: true })).toEqual([
+    expect(buildToolCommandArgs("dialogs.list", {
+      location: "archived",
+      pageSize: 15,
+      cursor: "next-page",
+    })).toEqual([
       "inbox",
-      "--limit",
+      "--location",
+      "archived",
+      "--page-size",
       "15",
-      "--all",
+      "--cursor",
+      "next-page",
+    ]);
+  });
+
+  it("maps semantic inventory, contact, CRM, and durable sync tools", () => {
+    expect(buildToolCommandArgs("inventory.summary", {})).toEqual([
+      "inventory",
+      "summary",
+    ]);
+    expect(buildToolCommandArgs("contacts.count", {})).toEqual([
+      "contacts",
+      "count",
+    ]);
+    expect(buildToolCommandArgs("contacts.list", { pageSize: 25 })).toEqual([
+      "contacts",
+      "list",
+      "--page-size",
+      "25",
+    ]);
+    expect(buildToolCommandArgs("crm.dialogs.list", { pageSize: 30 })).toEqual([
+      "crm",
+      "dialogs",
+      "list",
+      "--page-size",
+      "30",
+    ]);
+    expect(buildToolCommandArgs("sync.once", {
+      mode: "full",
+      includeArchived: false,
+    })).toEqual([
+      "sync",
+      "once",
+      "--mode",
+      "full",
+      "--exclude-archived",
+    ]);
+    expect(buildToolCommandArgs("sync.status", { runId: "run-1" })).toEqual([
+      "sync",
+      "status",
+      "--run-id",
+      "run-1",
     ]);
   });
 
@@ -236,9 +283,11 @@ describe("buildToolCommandArgs", () => {
 
   it("accepts accountId inputs that match the configured local account label", () => {
     process.env.TELEGRAM_ACCOUNT_LABEL = "work";
-    expect(buildToolCommandArgs("dialogs.list", { accountId: "work", limit: 2 })).toEqual([
+    expect(buildToolCommandArgs("dialogs.list", { accountId: "work", pageSize: 2 })).toEqual([
       "inbox",
-      "--limit",
+      "--location",
+      "all",
+      "--page-size",
       "2",
     ]);
   });

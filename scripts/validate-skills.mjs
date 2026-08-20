@@ -49,6 +49,7 @@ const hostedApprovalFlows = new Map([
 ]);
 const supportedCloudScopes = new Set([
   "telegram.read",
+  "telegram.contacts.read",
   "crm.write",
   "telegram.message.preview",
   "telegram.message.send",
@@ -85,7 +86,9 @@ function requireCloudScopes(toolNames, ...requiredScopes) {
 requireCloudScopes(
   [
     "account_whoami",
+    "inventory_summary",
     "dialogs_list",
+    "crm_dialogs_list",
     "chat_read",
     "search_messages",
     "folders_list",
@@ -111,10 +114,15 @@ requireCloudScopes(
     "rules_run",
     "rules_log",
     "sync_once",
+    "sync_status",
     "sync_peer",
     "session_logout",
   ],
   "telegram.read",
+);
+requireCloudScopes(
+  ["contacts_count", "contacts_list"],
+  "telegram.contacts.read",
 );
 requireCloudScopes(
   [

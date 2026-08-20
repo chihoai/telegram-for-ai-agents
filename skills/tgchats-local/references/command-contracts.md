@@ -15,6 +15,10 @@ High-value JSON commands:
 
 - `whoami --json`
 - `inbox --json`
+- `inventory summary --json`
+- `contacts count|list --json`
+- `crm dialogs list --json`
+- `sync once|status --json`
 - `chat <peer> --json`
 - `open <peer> --json`
 - `tags ls|clear --json`

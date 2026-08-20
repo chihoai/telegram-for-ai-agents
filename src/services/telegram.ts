@@ -1,5 +1,5 @@
-import type { TelegramClient, Message, Dialog, Peer } from '@mtcute/node';
-import { tl } from '@mtcute/node';
+import type { TelegramClient, Message, Peer, User } from '@mtcute/node';
+import { Dialog, Long, tl } from '@mtcute/node';
 import qrcodeTerminal from 'qrcode-terminal';
 
 const RATE_LIMIT_ERROR_PREFIX_RE = /^(FLOOD_WAIT|SLOWMODE_WAIT|FLOOD_TEST_PHONE_WAIT|FLOOD_PREMIUM_WAIT)$/;
@@ -222,6 +222,223 @@ export interface ListDialogsOptions {
   limit: number;
   all: boolean;
   includeArchived?: boolean;
+}
+
+export type TelegramDialogLocation = 'active' | 'archived' | 'all';
+export type TelegramPeerKind = 'user' | 'chat' | 'channel' | 'self';
+
+export interface TelegramDialogOffsetPeer {
+  kind: TelegramPeerKind;
+  id: string;
+  accessHash?: string;
+}
+
+export interface TelegramDialogOffset {
+  date: number;
+  id: number;
+  peer: TelegramDialogOffsetPeer;
+}
+
+export interface TelegramDialogPage {
+  dialogs: Dialog[];
+  total: number;
+  nextOffset: TelegramDialogOffset | null;
+}
+
+export interface TelegramDialogTotals {
+  activeTotal: number;
+  archivedTotal: number;
+  allTotal: number;
+}
+
+export interface TelegramDialogInventoryItem {
+  peer: {
+    id: string;
+    kind: TelegramPeerKind;
+    displayName: string;
+    username: string | null;
+  };
+  archived: boolean;
+  pinned: boolean;
+  unreadCount: number;
+  lastMessage: {
+    id: number;
+    date: string;
+    preview: string;
+  } | null;
+}
+
+export interface TelegramContactItem {
+  peerId: string;
+  displayName: string;
+  username: string | null;
+}
+
+function totalFromDialogsResponse(response: tl.messages.TypeDialogs): number {
+  if (response._ === 'messages.dialogsSlice' || response._ === 'messages.dialogsNotModified') {
+    return response.count;
+  }
+  return response.dialogs.length;
+}
+
+function serializeInputPeer(peer: tl.TypeInputPeer): TelegramDialogOffsetPeer {
+  switch (peer._) {
+    case 'inputPeerSelf':
+      return { kind: 'self', id: 'self' };
+    case 'inputPeerUser':
+      return {
+        kind: 'user',
+        id: peer.userId.toString(),
+        accessHash: peer.accessHash.toString(),
+      };
+    case 'inputPeerChat':
+      return { kind: 'chat', id: peer.chatId.toString() };
+    case 'inputPeerChannel':
+      return {
+        kind: 'channel',
+        id: peer.channelId.toString(),
+        accessHash: peer.accessHash.toString(),
+      };
+    default:
+      throw new Error(`Unsupported Telegram dialog offset peer: ${peer._}`);
+  }
+}
+
+function deserializeInputPeer(peer: TelegramDialogOffsetPeer): tl.TypeInputPeer {
+  if (peer.kind === 'self') {
+    return { _: 'inputPeerSelf' };
+  }
+  const id = Number(peer.id);
+  if (!Number.isSafeInteger(id)) {
+    throw new Error('Telegram dialog cursor contains an invalid peer id.');
+  }
+  if (peer.kind === 'chat') {
+    return { _: 'inputPeerChat', chatId: id };
+  }
+  if (!peer.accessHash) {
+    throw new Error('Telegram dialog cursor is missing a required access hash.');
+  }
+  if (peer.kind === 'user') {
+    return {
+      _: 'inputPeerUser',
+      userId: id,
+      accessHash: Long.fromString(peer.accessHash),
+    };
+  }
+  return {
+    _: 'inputPeerChannel',
+    channelId: id,
+    accessHash: Long.fromString(peer.accessHash),
+  };
+}
+
+export function telegramPeerKind(peer: Peer): TelegramPeerKind {
+  if (peer.type === 'user') {
+    return peer.isSelf ? 'self' : 'user';
+  }
+  return peer.chatType === 'group' ? 'chat' : 'channel';
+}
+
+export function dialogInventoryKey(dialog: Dialog): string {
+  return `${telegramPeerKind(dialog.peer)}:${dialog.peer.id}`;
+}
+
+export function mapDialogInventoryItem(dialog: Dialog): TelegramDialogInventoryItem {
+  return {
+    peer: {
+      id: String(dialog.peer.id),
+      kind: telegramPeerKind(dialog.peer),
+      displayName: dialog.peer.displayName,
+      username: dialog.peer.username ?? null,
+    },
+    archived: dialog.isArchived,
+    pinned: dialog.isPinned,
+    unreadCount: dialog.unreadCount,
+    lastMessage: dialog.lastMessage
+      ? {
+          id: dialog.lastMessage.id,
+          date: dialog.lastMessage.date.toISOString(),
+          preview: formatMessagePreview(dialog.lastMessage),
+        }
+      : null,
+  };
+}
+
+export async function fetchTelegramDialogFolderPage(
+  client: TelegramClient,
+  params: {
+    location: Exclude<TelegramDialogLocation, 'all'>;
+    limit: number;
+    offset?: TelegramDialogOffset | null;
+  },
+): Promise<TelegramDialogPage> {
+  const response = await client.call({
+    _: 'messages.getDialogs',
+    excludePinned: false,
+    folderId: params.location === 'archived' ? 1 : 0,
+    offsetDate: params.offset?.date ?? 0,
+    offsetId: params.offset?.id ?? 0,
+    offsetPeer: params.offset
+      ? deserializeInputPeer(params.offset.peer)
+      : { _: 'inputPeerEmpty' },
+    limit: params.limit,
+    hash: Long.ZERO,
+  });
+
+  if (response._ === 'messages.dialogsNotModified') {
+    return { dialogs: [], total: response.count, nextOffset: null };
+  }
+
+  const dialogs = Dialog.parseTlDialogs(response);
+  const last = dialogs.at(-1) ?? null;
+  return {
+    dialogs,
+    total: totalFromDialogsResponse(response),
+    nextOffset: last
+      ? {
+          date: last.lastMessage?.raw.date ?? 0,
+          id: last.raw.topMessage,
+          peer: serializeInputPeer(last.peer.inputPeer),
+        }
+      : null,
+  };
+}
+
+async function fetchTelegramDialogFolderTotal(
+  client: TelegramClient,
+  location: Exclude<TelegramDialogLocation, 'all'>,
+): Promise<number> {
+  const page = await fetchTelegramDialogFolderPage(client, {
+    location,
+    limit: 1,
+  });
+  return page.total;
+}
+
+export async function getTelegramDialogTotals(
+  client: TelegramClient,
+): Promise<TelegramDialogTotals> {
+  const [activeTotal, archivedTotal] = await Promise.all([
+    fetchTelegramDialogFolderTotal(client, 'active'),
+    fetchTelegramDialogFolderTotal(client, 'archived'),
+  ]);
+  return {
+    activeTotal,
+    archivedTotal,
+    allTotal: activeTotal + archivedTotal,
+  };
+}
+
+export async function getTelegramContacts(client: TelegramClient): Promise<User[]> {
+  return client.getContacts();
+}
+
+export function mapTelegramContact(user: User): TelegramContactItem {
+  return {
+    peerId: String(user.id),
+    displayName: user.displayName,
+    username: user.username ?? null,
+  };
 }
 
 export function normalizePeerRef(value: string | number): string | number {

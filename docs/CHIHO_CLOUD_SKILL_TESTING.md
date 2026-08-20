@@ -48,9 +48,13 @@ Additional testing on 2026-06-08:
 - CRM/rule cleanup boundary found: `tags.set { tags: [] }` is rejected, and `tags.clear`, `company.unlink`, `rules.delete`, and `rules.disable` are unavailable for the current token.
 - Stopped before positive `tags.set`, `company.link`, or `rules.add` tests to avoid leaving durable smoke-test metadata with no cleanup path.
 
-Open issue:
+Historical open issue observation (the integer input below is retired by the
+current hard-cut contract):
 
 - `sync.once { dialogs: 100 }` can hit Telegram `FLOOD_WAIT`; see `chihoai/chiho#57`.
+- The replacement is `sync_once { mode: "full", includeArchived: true }` plus
+  `sync_status`; keep issue 57 open until the staging and production resume
+  checks later in this document pass.
 
 ## Hosted Package Production Validation
 
@@ -249,7 +253,10 @@ Test these next:
 
 - Run `tools/list`.
 - Run `auth_status`.
-- Run `dialogs_list { limit: 20 }`.
+- Run `inventory_summary {}` and record live active/archive/all plus synced totals.
+- Run `dialogs_list { location: "all", pageSize: 20 }` and confirm its page length is not presented as the total.
+- Run `crm_dialogs_list { pageSize: 20 }` and confirm `syncedTotal` matches the persisted index.
+- With a separately consented `telegram.contacts.read` grant, run `contacts_count {}` and `contacts_list { pageSize: 20 }`.
 - Run `folders_list`.
 - Run `rules_list`.
 - Run `tasks_today`.
@@ -319,15 +326,13 @@ Safe progression:
 
 ### 6. Large Sync Boundary
 
-Known issue:
+Validate the durable replacement after the matching Chiho deployment:
 
-- `sync_once { dialogs: 100 }` may hit `FLOOD_WAIT`.
-
-Retest after issue `chihoai/chiho#57` is fixed:
-
-- Run `sync_once { dialogs: 100 }`.
-- Confirm the tool either backs off successfully or returns structured partial success with retry-after details.
-- Sample coverage for dialogs 80-99 using `tags_get`.
+- Run `sync_once { mode: "full", includeArchived: true }`.
+- Poll `sync_status { runId: "<returned runId>" }`.
+- Confirm `FLOOD_WAIT` becomes `waiting_for_telegram` with a future `resumeAt`, no synchronous sleep, and no lost committed pages.
+- Confirm the worker resumes automatically and eventually reports `complete`.
+- Confirm `crm_dialogs_list.syncedTotal` equals the completed run's committed unique count.
 
 ## Skill Workflow Coverage
 
@@ -363,8 +368,7 @@ For each workflow skill:
 
 ## Product Gaps To Watch For
 
-- Large `sync_once` can fail with `FLOOD_WAIT` after doing partial work.
-- `sync_once` invalid `dialogs` rejection was implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
+- Durable `sync_once`/`sync_status`, full active+archive traversal, and true Telegram contact counts require live deployment and production retest before issue `chihoai/chiho#57` can close.
 - Some skill catalog tools may not be exposed by hosted Cloud MCP yet, especially `search_messages`, `nudge_generate`, and planned group leave tools.
 - Rule cleanup/disable/delete was implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
 - CRM cleanup paths were implemented in PR `chihoai/chiho#59`; live deployment and production retest are still pending.
@@ -379,6 +383,6 @@ For each workflow skill:
 - Live retest account-scoped CRM behavior for personal multi-account tokens.
 - Live retest team-token forbidden-account behavior: switching `peer` or `accountId` outside team scope should return `403`.
 - Live retest Cloud smoke script with `--mutate` only, then separately with `--mutate --crm-metadata` on a safe test peer.
-- Resolve or retest `sync_once { dialogs: 100 }` / `FLOOD_WAIT` from `chihoai/chiho#57`.
+- Retest `sync_once { mode: "full", includeArchived: true }`, automatic `FLOOD_WAIT` resume, `sync_status`, and persisted totals from `crm_dialogs_list` for `chihoai/chiho#57`.
 - Confirm folder write tools and cleanup once a token with `telegram.folders.write` is available.
 - Confirm preview/send and member/group approval tools only with explicit user approval and appropriate token scopes.

@@ -13,8 +13,8 @@ function csvEscape(value: string): string {
   return value;
 }
 
-function peerKey(value: unknown): string {
-  return String(value);
+function peerKey(kind: unknown, value: unknown): string {
+  return `${String(kind)}:${String(value)}`;
 }
 
 export async function runExport(ctx: AppContext, args: string[]): Promise<void> {
@@ -77,10 +77,12 @@ export async function runExport(ctx: AppContext, args: string[]): Promise<void> 
   }
 
   if (format === 'jsonl') {
-    const peersById = new Map(peers.rows.map((peer) => [peerKey(peer.peer_id), peer]));
+    const peersById = new Map(
+      peers.rows.map((peer) => [peerKey(peer.peer_kind, peer.peer_id), peer]),
+    );
     const lines = messages.rows
       .map((row) => {
-        const peer = peersById.get(peerKey(row.peer_id));
+        const peer = peersById.get(peerKey(row.peer_kind, row.peer_id));
         return JSON.stringify({
           ...row,
           peer_kind: peer?.peer_kind ?? null,
@@ -97,9 +99,11 @@ export async function runExport(ctx: AppContext, args: string[]): Promise<void> 
   if (format === 'csv') {
     const header = [
       'peer_id',
+      'peer_kind',
       'message_id',
       'sent_at',
       'sender_peer_id',
+      'sender_peer_kind',
       'text',
       'is_service',
       'media_type',
@@ -109,9 +113,11 @@ export async function runExport(ctx: AppContext, args: string[]): Promise<void> 
       lines.push(
         [
           row.peer_id,
+          row.peer_kind,
           row.message_id,
           row.sent_at instanceof Date ? row.sent_at.toISOString() : String(row.sent_at),
           row.sender_peer_id ?? '',
+          row.sender_peer_kind ?? '',
           csvEscape(String(row.text ?? '')),
           row.is_service ? 'true' : 'false',
           row.media_type ?? '',
@@ -131,10 +137,14 @@ export async function runExport(ctx: AppContext, args: string[]): Promise<void> 
     lines.push(`Messages (sampled): ${messages.rows.length}`);
     lines.push('');
     for (const dialog of dialogs.rows.slice(0, 200)) {
-      const peer = peers.rows.find((item) => item.peer_id === dialog.peer_id);
+      const peer = peers.rows.find(
+        (item) =>
+          item.peer_id === dialog.peer_id && item.peer_kind === dialog.peer_kind,
+      );
       const title = peer?.display_name ?? String(dialog.peer_id);
       lines.push(`## ${title}`);
       lines.push(`- Peer ID: ${dialog.peer_id}`);
+      lines.push(`- Peer kind: ${dialog.peer_kind}`);
       lines.push(`- Last message id: ${dialog.last_message_id ?? '-'}`);
       lines.push(`- Unread: ${dialog.unread_count}`);
       lines.push('');

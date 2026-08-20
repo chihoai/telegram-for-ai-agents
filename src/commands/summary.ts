@@ -11,12 +11,17 @@ import {
 } from '../services/telegram.js';
 import { getSummary, upsertSummary } from '../db/crm.js';
 import { upsertPeer } from '../db/writes.js';
+import {
+  canonicalPeerKind,
+  type StoredPeerKind,
+} from '../db/peerIdentity.js';
 import { printJson } from '../output.js';
 
 async function upsertBothSummaries(
   ctx: AppContext,
   accountId: bigint,
   peerId: number,
+  peerKind: StoredPeerKind,
   peerDisplayName: string,
   messages: Awaited<ReturnType<typeof fetchChatHistory>>,
 ): Promise<void> {
@@ -34,6 +39,7 @@ async function upsertBothSummaries(
   await upsertSummary(requireDb(ctx), {
     accountId,
     peerId,
+    peerKind,
     kind: 'rolling',
     content: rolling.summary,
     sourceModel: aiSource,
@@ -47,6 +53,7 @@ async function upsertBothSummaries(
   await upsertSummary(requireDb(ctx), {
     accountId,
     peerId,
+    peerKind,
     kind: 'since_last_seen',
     content: sinceLastSeen.summary,
     sourceModel: aiSource,
@@ -72,16 +79,26 @@ async function refreshPeerSummary(
   });
 
   await upsertPeer(requireDb(ctx), { accountId, peer });
-  await upsertBothSummaries(ctx, accountId, peer.id, peer.displayName, messages);
+  const peerKind = canonicalPeerKind(peer);
+  await upsertBothSummaries(
+    ctx,
+    accountId,
+    peer.id,
+    peerKind,
+    peer.displayName,
+    messages,
+  );
   if (ctx.config.jsonOutput) {
     const rolling = await getSummary(requireDb(ctx), {
       accountId,
       peerId: peer.id,
+      peerKind,
       kind: 'rolling',
     });
     const sinceLastSeen = await getSummary(requireDb(ctx), {
       accountId,
       peerId: peer.id,
+      peerKind,
       kind: 'since_last_seen',
     });
     printJson({
@@ -112,7 +129,7 @@ function numericPeerIdFromRef(value: string): number | undefined {
 async function resolveSummaryPeer(
   ctx: AppContext,
   peerInput: string,
-): Promise<{ id: number; displayName: string }> {
+): Promise<{ id: number; displayName: string; peerKind?: StoredPeerKind }> {
   const numericPeerId = numericPeerIdFromRef(peerInput);
   if (numericPeerId !== undefined) {
     return { id: numericPeerId, displayName: String(numericPeerId) };
@@ -120,7 +137,11 @@ async function resolveSummaryPeer(
 
   await ensureAuthorized(ctx.telegram);
   const peer = await ctx.telegram.getPeer(normalizePeerRef(peerInput));
-  return { id: peer.id, displayName: peer.displayName };
+  return {
+    id: peer.id,
+    displayName: peer.displayName,
+    peerKind: canonicalPeerKind(peer),
+  };
 }
 
 export async function runSummary(ctx: AppContext, args: string[]): Promise<void> {
@@ -157,6 +178,7 @@ export async function runSummary(ctx: AppContext, args: string[]): Promise<void>
     const summary = await getSummary(db, {
       accountId,
       peerId: peer.id,
+      peerKind: peer.peerKind,
       kind,
     });
     if (!summary) {
@@ -209,6 +231,7 @@ export async function runSummary(ctx: AppContext, args: string[]): Promise<void>
           ctx,
           accountId,
           dialog.peer.id,
+          canonicalPeerKind(dialog.peer),
           dialog.peer.displayName,
           messages,
         );

@@ -110,7 +110,7 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
       });
       expect(tool.outputSchema).toMatchObject({
         type: "object",
-        required: ["ok"],
+        required: expect.arrayContaining(["ok"]),
         properties: {
           ok: { type: "boolean", const: true },
         },
@@ -122,7 +122,11 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
     const expected: Record<string, [boolean, boolean, boolean, boolean]> = {
       "auth.status": [true, false, true, false],
       "account.whoami": [true, false, true, true],
+      "inventory.summary": [true, false, true, true],
       "dialogs.list": [true, false, true, true],
+      "crm.dialogs.list": [true, false, true, false],
+      "contacts.count": [true, false, true, true],
+      "contacts.list": [true, false, true, true],
       "chat.read": [true, false, true, true],
       "search.messages": [true, false, true, true],
       "folders.list": [true, false, true, true],
@@ -160,7 +164,8 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
       "rules.dryRun": [false, false, false, true],
       "rules.log": [true, false, true, false],
       "sync.backfill": [false, true, false, true],
-      "sync.once": [false, true, false, true],
+      "sync.once": [false, true, true, true],
+      "sync.status": [true, false, true, false],
       "session.logout": [false, true, false, true],
     };
 
@@ -175,5 +180,51 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
         tool.annotations.openWorldHint,
       ]).toEqual(expected[tool.name]);
     }
+  });
+
+  it("hard-cuts ambiguous inventory and sync inputs", () => {
+    const dialogs = TOOL_CONTRACT_DEFINITIONS.find(
+      (tool) => tool.name === "dialogs.list",
+    );
+    const sync = TOOL_CONTRACT_DEFINITIONS.find(
+      (tool) => tool.name === "sync.once",
+    );
+
+    expect(dialogs?.inputSchema).toMatchObject({
+      properties: {
+        location: { enum: ["active", "archived", "all"] },
+        pageSize: { maximum: 100 },
+        cursor: { type: "string" },
+      },
+    });
+    expect((dialogs?.inputSchema as any).properties).not.toHaveProperty("limit");
+    expect((dialogs?.inputSchema as any).properties).not.toHaveProperty("all");
+    expect(sync?.inputSchema).toMatchObject({
+      properties: {
+        mode: { enum: ["recent", "full"] },
+        includeArchived: { type: "boolean" },
+      },
+    });
+    expect((sync?.inputSchema as any).properties).not.toHaveProperty("dialogs");
+  });
+
+  it("publishes exact privacy-tight output schemas for new inventory tools", () => {
+    for (const name of [
+      "inventory.summary",
+      "dialogs.list",
+      "crm.dialogs.list",
+      "contacts.count",
+      "contacts.list",
+      "sync.once",
+      "sync.status",
+    ]) {
+      const tool = TOOL_CONTRACT_DEFINITIONS.find((candidate) => candidate.name === name);
+      expect(tool?.outputSchema).toMatchObject({ additionalProperties: false });
+    }
+    const serialized = JSON.stringify(
+      TOOL_CONTRACT_DEFINITIONS.filter((tool) => tool.name.startsWith("contacts.")),
+    );
+    expect(serialized).not.toContain("phone");
+    expect(serialized).not.toContain("accessHash");
   });
 });
