@@ -65,7 +65,7 @@ const BASE_TOOL_CONTRACT_DEFINITIONS: BaseToolContractDefinition[] = [
   {
     name: "inventory.summary",
     description:
-      "Return complete live Telegram dialog totals and the independently persisted CRM total. Use telegramDialogs.allTotal for questions about all Telegram chats; never use a list page length as an account total.",
+      "Return complete live Telegram dialog totals and the independently persisted CRM total. The telegramDialogs.allTotal field is the complete account total; list page lengths are page-local counts.",
     transport: "shared",
     inputSchema: {
       type: "object",
@@ -78,7 +78,7 @@ const BASE_TOOL_CONTRACT_DEFINITIONS: BaseToolContractDefinition[] = [
   {
     name: "dialogs.list",
     description:
-      "Page through live Telegram dialogs. Use inventory.summary for count questions: dialogs.length is only the current page and is never the account total.",
+      "Page through live Telegram dialogs. The dialogs array contains only the current page and is not a complete account total.",
     transport: "shared",
     inputSchema: {
       type: "object",
