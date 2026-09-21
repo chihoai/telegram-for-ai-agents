@@ -1,13 +1,13 @@
-# Set up Chiho AI
+# Set up Chiho.ai Telegram CRM
 
 Use this setup flow after the plugin is installed or whenever the
 `chiho-cloud` MCP connection needs to be reconnected.
 
 1. Confirm that the user has a Chiho account and has connected Telegram at
    `https://chiho.ai/`. If not, direct them there and wait for them to finish.
-2. Confirm that the Chiho AI plugin is enabled. In Claude Code, ask the user to
-   open `/plugin`, select **Chiho AI**, and enable it. If they installed it
-   directly from Chiho's marketplace, they can instead run
+2. Confirm that the Chiho.ai Telegram CRM plugin is enabled. In Claude Code,
+   ask the user to open `/plugin`, select **Chiho.ai Telegram CRM**, and enable
+   it. If they installed it directly from Chiho's marketplace, they can instead run
    `claude plugin enable chiho-telegram@chiho`. In Cowork, they can enable the
    plugin in its settings.
 3. Open the MCP connection interface. In Claude Code, ask the user to open
