@@ -3,7 +3,14 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type { AppConfig } from '../app/config.js';
 
-export type AgentWritePreviewKind = 'outbox' | 'members.invite' | 'groups.leave';
+export type AgentWritePreviewKind =
+  | 'outbox'
+  | 'members.invite'
+  | 'groups.leave'
+  | 'message.action'
+  | 'media.send';
+
+export type AgentWritePreviewStatus = 'pending' | 'completed' | 'canceled';
 
 export interface AgentWritePreviewRecord {
   previewId: string;
@@ -11,6 +18,10 @@ export interface AgentWritePreviewRecord {
   createdAt: string;
   expiresAt: string;
   payloadHash: string;
+  resourceProfile: string;
+  accountId: string;
+  credentialId: string;
+  status: AgentWritePreviewStatus;
   payload: Record<string, unknown>;
   summary: Record<string, unknown>;
 }
@@ -45,6 +56,9 @@ export async function saveAgentWritePreview(
     kind: AgentWritePreviewKind;
     payload: Record<string, unknown>;
     summary: Record<string, unknown>;
+    resourceProfile?: string;
+    accountId?: string;
+    credentialId?: string;
   },
 ) {
   const now = new Date();
@@ -54,6 +68,10 @@ export async function saveAgentWritePreview(
     createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + PREVIEW_TTL_MS).toISOString(),
     payloadHash: createPayloadHash(input.payload),
+    resourceProfile: input.resourceProfile ?? 'local-telegram-client',
+    accountId: input.accountId ?? config.accountLabel,
+    credentialId: input.credentialId ?? 'local-session',
+    status: 'pending',
     payload: input.payload,
     summary: input.summary,
   };
@@ -82,7 +100,35 @@ export async function loadAgentWritePreview(
     throw new Error(`Preview expired: ${previewId}`);
   }
 
+  if (record.resourceProfile !== 'local-telegram-client') {
+    throw new Error(`Preview ${previewId} belongs to another resource.`);
+  }
+  if (record.accountId !== config.accountLabel) {
+    throw new Error(`Preview ${previewId} belongs to another Telegram account.`);
+  }
+  if (record.credentialId !== 'local-session') {
+    throw new Error(`Preview ${previewId} belongs to another credential.`);
+  }
+  if (record.status !== 'pending') {
+    throw new Error(`Preview ${previewId} is already ${record.status}.`);
+  }
+  if (record.payloadHash !== createPayloadHash(record.payload)) {
+    throw new Error(`Preview ${previewId} failed its integrity check.`);
+  }
+
   return record;
+}
+
+export async function completeAgentWritePreview(
+  config: AppConfig,
+  record: AgentWritePreviewRecord,
+) {
+  const completed = { ...record, status: 'completed' as const };
+  await writeFile(
+    previewPath(config, record.previewId),
+    JSON.stringify(completed, null, 2),
+  );
+  return completed;
 }
 
 export function createAgentWriteRunKey(input: {

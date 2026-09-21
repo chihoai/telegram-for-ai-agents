@@ -27,6 +27,8 @@ const directSendTools = new Set([
   "groups_leave_approved",
   "members_invite_approved",
   "message_send_draft",
+  "message_action_approved",
+  "media_send_approved",
   "outbox_send_approved",
 ]);
 const hostedApprovalFlows = new Map([
@@ -46,13 +48,24 @@ const hostedApprovalFlows = new Map([
     "groups_leave_approved",
     ["groups_leave_preview", "write_approve_preview", "groups_leave_approved"],
   ],
+  [
+    "message_action_approved",
+    ["message_action_preview", "write_approve_preview", "message_action_approved"],
+  ],
+  [
+    "media_send_approved",
+    ["media_send_preview", "write_approve_preview", "media_send_approved"],
+  ],
 ]);
 const supportedCloudScopes = new Set([
   "telegram.read",
   "telegram.contacts.read",
+  "telegram.media.read",
   "crm.write",
   "telegram.message.preview",
   "telegram.message.send",
+  "telegram.message.manage",
+  "telegram.media.send",
   "telegram.message.schedule",
   "telegram.batch.write",
   "telegram.members.invite",
@@ -90,6 +103,10 @@ requireCloudScopes(
     "dialogs_list",
     "crm_dialogs_list",
     "chat_read",
+    "message_get",
+    "thread_read",
+    "scheduled_list",
+    "updates_poll",
     "search_messages",
     "folders_list",
     "tags_get",
@@ -121,9 +138,10 @@ requireCloudScopes(
   "telegram.read",
 );
 requireCloudScopes(
-  ["contacts_count", "contacts_list"],
+  ["contacts_count", "contacts_list", "members_list"],
   "telegram.contacts.read",
 );
+requireCloudScopes(["media_info", "media_download"], "telegram.media.read");
 requireCloudScopes(
   [
     "tags_set",
@@ -157,6 +175,20 @@ requireCloudScopes(
   "telegram.batch.write",
 );
 requireCloudScopes(["message_send_draft"], "telegram.message.send");
+requireCloudScopes(
+  ["message_action_preview", "media_send_preview"],
+  "telegram.message.preview",
+);
+requireCloudScopes(
+  ["message_action_approved"],
+  "telegram.message.send",
+  "telegram.message.manage",
+);
+requireCloudScopes(
+  ["media_send_approved"],
+  "telegram.message.send",
+  "telegram.media.send",
+);
 requireCloudScopes(
   ["members_invite_preview", "members_invite_approved"],
   "telegram.members.invite",
