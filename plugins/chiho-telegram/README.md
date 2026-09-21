@@ -1,4 +1,4 @@
-# Chiho AI for Claude
+# Chiho.ai Telegram CRM for Claude
 
 Connect Claude to the Telegram account you already use through Chiho's hosted
 Telegram CRM. The plugin uses browser OAuth, so you never need to paste a
@@ -12,9 +12,9 @@ personal access token, Telegram API hash, or Telegram session into Claude.
 - Prepare guarded Telegram actions with an explicit preview, approval, and
   execution flow.
 
-Chiho AI is the hosted package. It does not install a local Telegram client,
-database, or background process. Use the separate `tgchats-local` plugin if you
-want to self-host the runtime.
+Chiho.ai Telegram CRM is the hosted package. It does not install a local
+Telegram client, database, or background process. Use the separate
+`tgchats-local` plugin if you want to self-host the runtime.
 
 ## Requirements
 
@@ -42,9 +42,9 @@ Complete Chiho sign-in and review the requested access in the browser.
 
 ## Install in Cowork
 
-Install **Chiho AI** from the plugin directory, enable it, and select
-**Connect** for the bundled `chiho-cloud` connector. Complete Chiho sign-in and
-consent in the browser.
+Install **Chiho.ai Telegram CRM** from the plugin directory, enable it, and
+select **Connect** for the bundled `chiho-cloud` connector. Complete Chiho
+sign-in and consent in the browser.
 
 Until the directory submission is approved, use a direct plugin upload or add
 the MCP connector at `https://api.chiho.ai/mcp` for testing.
