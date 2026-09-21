@@ -2,6 +2,14 @@ import { createContext, destroyContext } from "../app/context.js";
 import { normalizeCliError } from "../app/errors.js";
 import { runArchive, runUnarchive } from "../commands/archive.js";
 import { runGroups, runMembers, runMessage, runOutbox } from "../commands/agentWrites.js";
+import {
+  runMedia,
+  runMembersList,
+  runMessageClientTools,
+  runScheduled,
+  runThread,
+  runUpdatesPoll,
+} from "../commands/clientTools.js";
 import { runAuth } from "../commands/auth.js";
 import { runChat } from "../commands/chat.js";
 import { runContacts } from "../commands/contacts.js";
@@ -38,8 +46,12 @@ export const HELP = `Usage:
   tgchats search "<query>" [--chat <peer>] [--tag <tag>] [--company <name>] [--limit N]
   tgchats folders <list|create|rename|delete|order|add|remove> ...
   tgchats outbox <preview|send-approved> ...
-  tgchats message send-draft ...
-  tgchats members <invite-preview|invite-approved> ...
+  tgchats message <get|action-preview|action-approved|send-draft> ...
+  tgchats thread read ...
+  tgchats scheduled list ...
+  tgchats media <stage|info|download|redeem|send-preview|send-approved> ...
+  tgchats members <list|invite-preview|invite-approved> ...
+  tgchats updates poll ...
   tgchats groups <leave-preview|leave-approved> ...
   tgchats archive <peer...>
   tgchats unarchive <peer...>
@@ -104,8 +116,29 @@ export async function executeCli(argv: string[]): Promise<void> {
     if (command === "search") return await runSearch(ctx, rest);
     if (command === "folders") return await runFolders(ctx, rest);
     if (command === "outbox") return await runOutbox(ctx, rest);
-    if (command === "message") return await runMessage(ctx, rest);
-    if (command === "members") return await runMembers(ctx, rest);
+    if (command === "message") {
+      return rest[0] === "send-draft"
+        ? await runMessage(ctx, rest)
+        : await runMessageClientTools(ctx, rest);
+    }
+    if (command === "thread") {
+      if (rest[0] !== "read") throw new Error("Usage: tgchats thread read --payload JSON");
+      return await runThread(ctx, rest.slice(1));
+    }
+    if (command === "scheduled") {
+      if (rest[0] !== "list") throw new Error("Usage: tgchats scheduled list --payload JSON");
+      return await runScheduled(ctx, rest.slice(1));
+    }
+    if (command === "media") return await runMedia(ctx, rest);
+    if (command === "members") {
+      return rest[0] === "list"
+        ? await runMembersList(ctx, rest.slice(1))
+        : await runMembers(ctx, rest);
+    }
+    if (command === "updates") {
+      if (rest[0] !== "poll") throw new Error("Usage: tgchats updates poll --payload JSON");
+      return await runUpdatesPoll(ctx, rest.slice(1));
+    }
     if (command === "groups") return await runGroups(ctx, rest);
     if (command === "archive") return await runArchive(ctx, rest);
     if (command === "unarchive") return await runUnarchive(ctx, rest);

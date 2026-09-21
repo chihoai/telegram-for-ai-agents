@@ -222,6 +222,62 @@ export function buildToolCommandArgs(
     ];
   }
 
+  if (toolName === "message.get") {
+    return ["message", "get", ...payloadArg(input)];
+  }
+
+  if (toolName === "thread.read") {
+    return ["thread", "read", ...payloadArg(input)];
+  }
+
+  if (toolName === "scheduled.list") {
+    return ["scheduled", "list", ...payloadArg(input)];
+  }
+
+  if (toolName === "media.info") {
+    return ["media", "info", ...payloadArg(input)];
+  }
+
+  if (toolName === "media.download") {
+    return ["media", "download", ...payloadArg(input)];
+  }
+
+  if (toolName === "members.list") {
+    return ["members", "list", ...payloadArg(input)];
+  }
+
+  if (toolName === "updates.poll") {
+    return ["updates", "poll", ...payloadArg(input)];
+  }
+
+  if (toolName === "message.actionPreview") {
+    return ["message", "action-preview", ...payloadArg(input)];
+  }
+
+  if (toolName === "message.actionApproved") {
+    return [
+      "message",
+      "action-approved",
+      requireString(input.previewId, "previewId"),
+      "--idempotency-key",
+      requireString(input.idempotencyKey, "idempotencyKey"),
+    ];
+  }
+
+  if (toolName === "media.sendPreview") {
+    return ["media", "send-preview", ...payloadArg(input)];
+  }
+
+  if (toolName === "media.sendApproved") {
+    return [
+      "media",
+      "send-approved",
+      requireString(input.previewId, "previewId"),
+      "--idempotency-key",
+      requireString(input.idempotencyKey, "idempotencyKey"),
+    ];
+  }
+
   if (toolName === "search.messages") {
     return [
       "search",

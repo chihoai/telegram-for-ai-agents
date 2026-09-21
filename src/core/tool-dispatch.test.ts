@@ -197,6 +197,67 @@ describe("buildToolCommandArgs", () => {
     }
   });
 
+  it("maps Telegram client reads and previews to JSON-first commands", () => {
+    process.env.TELEGRAM_ACCOUNT_LABEL = "default";
+    const cases = [
+      ["message.get", ["message", "get"], { peer: "@alice", messageId: 12 }],
+      ["thread.read", ["thread", "read"], { peer: "@group", messageId: 9 }],
+      ["scheduled.list", ["scheduled", "list"], { peer: "@alice" }],
+      ["media.info", ["media", "info"], { peer: "@alice", messageId: 12 }],
+      ["media.download", ["media", "download"], { peer: "@alice", messageId: 12 }],
+      ["members.list", ["members", "list"], { peer: "@group" }],
+      ["updates.poll", ["updates", "poll"], { limit: 25 }],
+      [
+        "message.actionPreview",
+        ["message", "action-preview"],
+        { action: "reaction", peer: "@alice", messageId: 12, emoji: "👍" },
+      ],
+      [
+        "media.sendPreview",
+        ["media", "send-preview"],
+        { peer: "@alice", uploadRef: "upload-1", mediaKind: "photo" },
+      ],
+    ] as const;
+
+    for (const [toolName, prefix, payload] of cases) {
+      expect(buildToolCommandArgs(toolName, { accountId: "default", ...payload })).toEqual([
+        ...prefix,
+        "--payload",
+        JSON.stringify(payload),
+      ]);
+    }
+  });
+
+  it("requires explicit idempotency keys for approved Telegram actions", () => {
+    expect(
+      buildToolCommandArgs("message.actionApproved", {
+        previewId: "message.action:1",
+        idempotencyKey: "run-1",
+      }),
+    ).toEqual([
+      "message",
+      "action-approved",
+      "message.action:1",
+      "--idempotency-key",
+      "run-1",
+    ]);
+    expect(
+      buildToolCommandArgs("media.sendApproved", {
+        previewId: "media.send:1",
+        idempotencyKey: "run-2",
+      }),
+    ).toEqual([
+      "media",
+      "send-approved",
+      "media.send:1",
+      "--idempotency-key",
+      "run-2",
+    ]);
+    expect(() =>
+      buildToolCommandArgs("message.actionApproved", { previewId: "x" }),
+    ).toThrow("idempotencyKey is required");
+  });
+
   it("maps rules.dryRun to rules run dry-run", () => {
     expect(buildToolCommandArgs("rules.dryRun", { dialogs: 3 })).toEqual([
       "rules",

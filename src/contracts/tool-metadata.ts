@@ -61,6 +61,67 @@ const DIALOG_ITEM_SCHEMA = {
   },
 } as const;
 
+const MESSAGE_ITEM_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: [
+    "id",
+    "date",
+    "editedAt",
+    "outgoing",
+    "pinned",
+    "sender",
+    "text",
+    "hasMedia",
+  ],
+  properties: {
+    id: { type: "integer", minimum: 1 },
+    date: { type: "string", format: "date-time" },
+    editedAt: NULLABLE_STRING_SCHEMA,
+    outgoing: { type: "boolean" },
+    pinned: { type: "boolean" },
+    sender: {
+      type: "object",
+      additionalProperties: false,
+      required: ["id", "displayName", "username"],
+      properties: {
+        id: { type: "string" },
+        displayName: { type: "string" },
+        username: NULLABLE_STRING_SCHEMA,
+      },
+    },
+    text: { type: "string" },
+    hasMedia: { type: "boolean" },
+    replyToMessageId: {
+      anyOf: [{ type: "integer", minimum: 1 }, { type: "null" }],
+    },
+  },
+} as const;
+
+const MEDIA_INFO_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["type", "fileName", "mimeType", "sizeBytes", "downloadable"],
+  properties: {
+    type: { type: "string" },
+    fileName: NULLABLE_STRING_SCHEMA,
+    mimeType: NULLABLE_STRING_SCHEMA,
+    sizeBytes: {
+      anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }],
+    },
+    width: {
+      anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }],
+    },
+    height: {
+      anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }],
+    },
+    durationSeconds: {
+      anyOf: [{ type: "number", minimum: 0 }, { type: "null" }],
+    },
+    downloadable: { type: "boolean" },
+  },
+} as const;
+
 const SYNC_STATUS_VALUES = [
   "queued",
   "running",
@@ -254,6 +315,190 @@ const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
     ),
   },
   "chat.read": metadata("Read a Telegram chat", READ_EXTERNAL),
+  "message.get": {
+    title: "Get one Telegram message",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(["peer", "message"], {
+      peer: { type: "string" },
+      message: MESSAGE_ITEM_SCHEMA,
+    }),
+  },
+  "thread.read": {
+    title: "Read a Telegram reply thread",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(
+      ["peer", "rootMessageId", "threadKind", "hasMore", "nextCursor", "messages"],
+      {
+        peer: { type: "string" },
+        rootMessageId: { type: "integer", minimum: 1 },
+        threadKind: { type: "string", enum: ["replies", "discussion", "none"] },
+        hasMore: { type: "boolean" },
+        nextCursor: NULLABLE_STRING_SCHEMA,
+        messages: { type: "array", items: MESSAGE_ITEM_SCHEMA },
+      },
+    ),
+  },
+  "scheduled.list": {
+    title: "List scheduled Telegram messages",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(["peer", "hasMore", "nextCursor", "messages"], {
+      peer: { type: "string" },
+      hasMore: { type: "boolean" },
+      nextCursor: NULLABLE_STRING_SCHEMA,
+      messages: { type: "array", items: MESSAGE_ITEM_SCHEMA },
+    }),
+  },
+  "media.info": {
+    title: "Inspect Telegram media",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(["peer", "messageId", "media"], {
+      peer: { type: "string" },
+      messageId: { type: "integer", minimum: 1 },
+      media: { anyOf: [MEDIA_INFO_SCHEMA, { type: "null" }] },
+    }),
+  },
+  "media.download": {
+    title: "Create a Telegram media download",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(
+      ["peer", "messageId", "downloadRef", "expiresAt", "media"],
+      {
+        peer: { type: "string" },
+        messageId: { type: "integer", minimum: 1 },
+        downloadRef: { type: "string" },
+        expiresAt: { type: "string", format: "date-time" },
+        media: MEDIA_INFO_SCHEMA,
+      },
+    ),
+  },
+  "members.list": {
+    title: "List Telegram chat members",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(
+      ["peer", "visibleTotal", "hasMore", "nextCursor", "members"],
+      {
+        peer: { type: "string" },
+        visibleTotal: { type: "integer", minimum: 0 },
+        hasMore: { type: "boolean" },
+        nextCursor: NULLABLE_STRING_SCHEMA,
+        members: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["id", "displayName", "username", "status", "title"],
+            properties: {
+              id: { type: "string" },
+              displayName: { type: "string" },
+              username: NULLABLE_STRING_SCHEMA,
+              status: { type: "string" },
+              title: NULLABLE_STRING_SCHEMA,
+            },
+          },
+        },
+      },
+    ),
+  },
+  "updates.poll": {
+    title: "Poll Telegram updates",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(
+      ["epoch", "gapDetected", "nextCursor", "events", "reconcileWith"],
+      {
+        epoch: { type: "string" },
+        gapDetected: { type: "boolean" },
+        nextCursor: { type: "string" },
+        events: {
+          type: "array",
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["id", "type", "occurredAt", "peer", "messageId"],
+            properties: {
+              id: { type: "string" },
+              type: { type: "string" },
+              occurredAt: { type: "string", format: "date-time" },
+              peer: NULLABLE_STRING_SCHEMA,
+              messageId: {
+                anyOf: [{ type: "integer", minimum: 1 }, { type: "null" }],
+              },
+            },
+          },
+        },
+        reconcileWith: {
+          type: "array",
+          items: { type: "string", enum: ["dialogs.list", "chat.read"] },
+        },
+      },
+    ),
+  },
+  "message.actionPreview": {
+    title: "Preview a Telegram message action",
+    annotations: WRITE_INTERNAL,
+    outputSchema: exactOutputSchema(["preview"], {
+      preview: {
+        type: "object",
+        additionalProperties: false,
+        required: ["previewId", "action", "payloadHash", "createdAt", "expiresAt", "summary"],
+        properties: {
+          previewId: { type: "string" },
+          action: { type: "string" },
+          payloadHash: { type: "string" },
+          createdAt: { type: "string", format: "date-time" },
+          expiresAt: { type: "string", format: "date-time" },
+          summary: { type: "string" },
+        },
+      },
+    }),
+  },
+  "message.actionApproved": {
+    title: "Execute an approved Telegram message action",
+    annotations: { ...WRITE_EXTERNAL, destructiveHint: true, idempotentHint: true },
+    outputSchema: exactOutputSchema(
+      ["previewId", "action", "completedAt", "idempotentReplay"],
+      {
+        previewId: { type: "string" },
+        action: { type: "string" },
+        completedAt: { type: "string", format: "date-time" },
+        idempotentReplay: { type: "boolean" },
+        resultMessageId: {
+          anyOf: [{ type: "integer", minimum: 1 }, { type: "null" }],
+        },
+      },
+    ),
+  },
+  "media.sendPreview": {
+    title: "Preview a Telegram media send",
+    annotations: WRITE_INTERNAL,
+    outputSchema: exactOutputSchema(["preview"], {
+      preview: {
+        type: "object",
+        additionalProperties: false,
+        required: ["previewId", "payloadHash", "uploadSha256", "createdAt", "expiresAt", "summary"],
+        properties: {
+          previewId: { type: "string" },
+          payloadHash: { type: "string" },
+          uploadSha256: { type: "string" },
+          createdAt: { type: "string", format: "date-time" },
+          expiresAt: { type: "string", format: "date-time" },
+          summary: { type: "string" },
+        },
+      },
+    }),
+  },
+  "media.sendApproved": {
+    title: "Send approved Telegram media",
+    annotations: { ...WRITE_EXTERNAL, destructiveHint: true, idempotentHint: true },
+    outputSchema: exactOutputSchema(
+      ["previewId", "messageId", "completedAt", "idempotentReplay"],
+      {
+        previewId: { type: "string" },
+        messageId: { type: "integer", minimum: 1 },
+        completedAt: { type: "string", format: "date-time" },
+        idempotentReplay: { type: "boolean" },
+      },
+    ),
+  },
   "search.messages": metadata("Search Telegram messages", READ_EXTERNAL),
   "folders.list": metadata("List Telegram folders", READ_EXTERNAL),
   "folders.update": metadata("Update Telegram folders", {

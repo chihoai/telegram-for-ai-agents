@@ -25,6 +25,9 @@ Use [AGENTS.md](./AGENTS.md) only for coding and contributing inside this repo.
 - Chiho.ai Cloud path includes the hosted CRM table UI for organizing Telegram chats, contacts, tags, tasks, and follow-ups
 - Telegram auth with QR-first + phone fallback
 - Inbox and per-chat history browsing
+- Exact-message, reply-thread, scheduled-message, member, media, and update reads
+- Preview/approve message lifecycle actions: edit, delete, forward, react, pin, unpin, mark read, and cancel scheduled messages
+- Managed-upload-only file, photo, and voice sends; unrestricted remote URLs are rejected
 - Local MCP server for agent integrations (`tgchats-mcp`)
 - Telegram folders management
 - CRM metadata: tags, company links, tasks, summaries
@@ -114,6 +117,12 @@ npm run dev -- crm dialogs list --page-size 100 --json
 npm run dev -- auth
 npm run dev -- whoami
 npm run dev -- chat <peer> --limit 50
+npm run dev -- message get --payload '{"peer":"<peer>","messageId":123}' --json
+npm run dev -- thread read --payload '{"peer":"<peer>","messageId":123}' --json
+npm run dev -- scheduled list --payload '{"peer":"<peer>"}' --json
+npm run dev -- media info --payload '{"peer":"<peer>","messageId":123}' --json
+npm run dev -- members list --payload '{"peer":"<group>"}' --json
+npm run dev -- updates poll --payload '{}' --json
 npm run dev -- open <peer>
 npm run dev -- search "pricing" --limit 20
 npm run dev -- folders list
@@ -128,6 +137,9 @@ npm run dev -- sync once --mode full --include-archived --json
 npm run dev -- sync status --json
 npm run dev -- export --format json --out ./exports/backup.json
 ```
+
+See [Telegram client tools](./docs/TELEGRAM_CLIENT_TOOLS.md) for preview/approval,
+managed media staging, opaque cursors, and the untrusted-content boundary.
 
 Equivalent entrypoints:
 

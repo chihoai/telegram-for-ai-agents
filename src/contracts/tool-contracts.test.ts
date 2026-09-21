@@ -89,8 +89,17 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
     });
   });
 
-  it("advertises accountId on every local MCP tool", () => {
+  it("advertises accountId except on immutable preview approvals", () => {
     for (const tool of TOOL_CONTRACT_DEFINITIONS) {
+      if (
+        tool.name === "message.actionApproved" ||
+        tool.name === "media.sendApproved"
+      ) {
+        expect(tool.inputSchema).not.toMatchObject({
+          properties: { accountId: expect.anything() },
+        });
+        continue;
+      }
       expect(tool.inputSchema).toMatchObject({
         properties: {
           accountId: { type: "string" },
@@ -128,6 +137,17 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
       "contacts.count": [true, false, true, true],
       "contacts.list": [true, false, true, true],
       "chat.read": [true, false, true, true],
+      "message.get": [true, false, true, false],
+      "thread.read": [true, false, true, false],
+      "scheduled.list": [true, false, true, false],
+      "media.info": [true, false, true, false],
+      "media.download": [true, false, true, false],
+      "members.list": [true, false, true, false],
+      "updates.poll": [true, false, true, false],
+      "message.actionPreview": [false, false, false, false],
+      "message.actionApproved": [false, true, true, true],
+      "media.sendPreview": [false, false, false, false],
+      "media.sendApproved": [false, true, true, true],
       "search.messages": [true, false, true, true],
       "folders.list": [true, false, true, true],
       "folders.update": [false, true, false, true],
@@ -226,5 +246,47 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
     );
     expect(serialized).not.toContain("phone");
     expect(serialized).not.toContain("accessHash");
+  });
+
+  it("publishes the Telegram client tool family with closed schemas", () => {
+    const names = [
+      "message.get",
+      "thread.read",
+      "scheduled.list",
+      "media.info",
+      "media.download",
+      "members.list",
+      "updates.poll",
+      "message.actionPreview",
+      "message.actionApproved",
+      "media.sendPreview",
+      "media.sendApproved",
+    ];
+    for (const name of names) {
+      const tool = TOOL_CONTRACT_DEFINITIONS.find((candidate) => candidate.name === name);
+      expect(tool?.transport).toBe("shared");
+      expect(tool?.inputSchema).toMatchObject({ additionalProperties: false });
+      expect(tool?.outputSchema).toMatchObject({ additionalProperties: false });
+    }
+  });
+
+  it("uses an explicit action union and excludes remote media URLs", () => {
+    const action = TOOL_CONTRACT_DEFINITIONS.find(
+      (candidate) => candidate.name === "message.actionPreview",
+    );
+    expect(action?.inputSchema).toMatchObject({
+      oneOf: expect.arrayContaining([
+        expect.objectContaining({ properties: { action: { const: "edit" } } }),
+        expect.objectContaining({ properties: { action: { const: "delete" } } }),
+        expect.objectContaining({ properties: { action: { const: "forward" } } }),
+        expect.objectContaining({ properties: { action: { const: "reaction" } } }),
+      ]),
+    });
+    const mediaSend = TOOL_CONTRACT_DEFINITIONS.find(
+      (candidate) => candidate.name === "media.sendPreview",
+    );
+    expect((mediaSend?.inputSchema as any).properties).toHaveProperty("uploadRef");
+    expect((mediaSend?.inputSchema as any).properties).not.toHaveProperty("url");
+    expect((mediaSend?.inputSchema as any).properties).not.toHaveProperty("remoteUrl");
   });
 });
