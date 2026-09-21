@@ -365,12 +365,12 @@ assert(
   "Hosted Claude package name changed",
 );
 assert(
-  hostedClaudeManifest.displayName === "Chiho AI",
+  hostedClaudeManifest.displayName === "Chiho.ai Telegram CRM",
   "Hosted Claude package display name changed",
 );
 assert(
-  hostedClaudeManifest.version === "1.0.1",
-  "Hosted Claude package version must be 1.0.1",
+  hostedClaudeManifest.version === "1.0.2",
+  "Hosted Claude package version must be 1.0.2",
 );
 assert(
   hostedClaudeManifest.homepage === "https://chiho.ai/telegram-mcp",
