@@ -89,8 +89,17 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
     });
   });
 
-  it("advertises accountId on every local MCP tool", () => {
+  it("advertises accountId except on immutable preview approvals", () => {
     for (const tool of TOOL_CONTRACT_DEFINITIONS) {
+      if (
+        tool.name === "message.actionApproved" ||
+        tool.name === "media.sendApproved"
+      ) {
+        expect(tool.inputSchema).not.toMatchObject({
+          properties: { accountId: expect.anything() },
+        });
+        continue;
+      }
       expect(tool.inputSchema).toMatchObject({
         properties: {
           accountId: { type: "string" },

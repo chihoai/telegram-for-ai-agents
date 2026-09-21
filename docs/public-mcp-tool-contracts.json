@@ -2036,9 +2036,6 @@
         "idempotencyKey"
       ],
       "properties": {
-        "accountId": {
-          "type": "string"
-        },
         "previewId": {
           "type": "string",
           "minLength": 1
@@ -2222,9 +2219,6 @@
         "idempotencyKey"
       ],
       "properties": {
-        "accountId": {
-          "type": "string"
-        },
         "previewId": {
           "type": "string",
           "minLength": 1

@@ -348,7 +348,6 @@ const BASE_TOOL_CONTRACT_DEFINITIONS: BaseToolContractDefinition[] = [
       additionalProperties: false,
       required: ["previewId", "idempotencyKey"],
       properties: {
-        ...ACCOUNT_ID_PROPERTY,
         previewId: { type: "string", minLength: 1 },
         idempotencyKey: { type: "string", minLength: 1, maxLength: 200 },
       },
@@ -383,7 +382,6 @@ const BASE_TOOL_CONTRACT_DEFINITIONS: BaseToolContractDefinition[] = [
       additionalProperties: false,
       required: ["previewId", "idempotencyKey"],
       properties: {
-        ...ACCOUNT_ID_PROPERTY,
         previewId: { type: "string", minLength: 1 },
         idempotencyKey: { type: "string", minLength: 1, maxLength: 200 },
       },
