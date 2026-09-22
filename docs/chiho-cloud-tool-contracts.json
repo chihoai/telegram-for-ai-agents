@@ -387,6 +387,128 @@
     }
   },
   {
+    "name": "team.queue.list",
+    "title": "Read saved team messages for review",
+    "description": "List exact saved message content, sending account, recipient, schedule, attachment hashes, status and contentHash. Administrators see team reviews; members see their own. Continue nextCursor even on an empty page. Plugin reviews are bound to their originating release.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.queue.cancel",
+    "title": "Cancel a pending team message",
+    "description": "Cancel a saved message before execution starts. Requires its initiating member or a current team administrator. Execution already in progress cannot be cancelled by this operation.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reviewId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "reviewId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.queue.approve",
+    "title": "Approve and send an exact team message",
+    "description": "After a current team administrator explicitly approves the exact content, recipient, sending account and schedule returned by team_queue_list, send the immutable saved message once. Supply its contentHash. Initiating approval is separate from administrator approval. Retries return a receipt; an unknown outcome must be checked in Telegram before submitting another message.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reviewId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contentHash": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confirmed": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "reviewId",
+        "contentHash",
+        "confirmed"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
     "name": "team.queue.set",
     "title": "Set teammate message review",
     "description": "Require or remove administrator review for a member's future outgoing team messages. Changing the policy requires a current administrator. This never approves a pending message.",
