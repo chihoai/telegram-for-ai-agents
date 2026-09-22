@@ -594,6 +594,90 @@
     }
   },
   {
+    "name": "team.conversation.update",
+    "title": "Update shared CRM fields",
+    "description": "Update notes, goal, status, priority, company, label or message template text in a shared conversation. Read fieldsRevision from team_conversation_get first and pass it as expectedRevision. Only changed fields are replaced; tasks and assignments are preserved. This does not send messages or run AI processing.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "peerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fields": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "note": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "goal": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "status": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "priority": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "company": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 10000
+            },
+            "template": {
+              "type": "string",
+              "maxLength": 10000
+            }
+          }
+        }
+      },
+      "required": [
+        "accountId",
+        "peerId",
+        "fields",
+        "expectedRevision"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
     "name": "team.conversation.assign",
     "title": "Assign a shared conversation",
     "description": "Assign or unassign a shared conversation with a handover note and optional due date. Use a current team member ID and the revision from team_conversation_get; 0 means no assignment exists. A conflict requires reading again. Requires the team's collaboration capability.",
