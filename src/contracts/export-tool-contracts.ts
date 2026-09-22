@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { CHIHO_CLOUD_TOOL_CONTRACTS } from "./chiho-cloud-contracts.js";
 import {
   getPublicMcpToolContractDefinitions,
   TOOL_CONTRACT_DEFINITIONS,
@@ -15,6 +16,7 @@ const publicOutputPath = path.resolve(
 );
 
 await Promise.all([
+  fs.writeFile(path.resolve(__dirname, "../../docs/chiho-cloud-tool-contracts.json"), `${JSON.stringify(CHIHO_CLOUD_TOOL_CONTRACTS, null, 2)}\n`, "utf8"),
   fs.writeFile(
     outputPath,
     `${JSON.stringify(TOOL_CONTRACT_DEFINITIONS, null, 2)}\n`,

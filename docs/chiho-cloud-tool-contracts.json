@@ -1,0 +1,790 @@
+[
+  {
+    "name": "teams.list",
+    "title": "Show authorized Chiho teams",
+    "description": "List the Chiho teams allowed by this connection, including current role, shared account IDs and owner-funded plan capabilities. A team connection only returns its bound team. Telegram group membership is separate.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {},
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "teams.create",
+    "title": "Create a Chiho team",
+    "description": "Create a Chiho team owned by the connected account. Requires account-management consent and a connected Telegram account. Reuse requestId when retrying. This does not authorize the new team's data; reconnect to select it.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 30
+        },
+        "requestId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "name",
+        "requestId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "teams.invitations.list",
+    "title": "Show Chiho team invitations",
+    "description": "List invitations addressed to the connected account's verified email. Returns team names and IDs only. Requires account-management consent.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {},
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "teams.invitation.respond",
+    "title": "Respond to a Chiho team invitation",
+    "description": "Accept or decline an invitation to a Chiho team after the user chooses. Acceptance uses a reserved seat and does not grant this connection access to that team. Reconnect with team scope to access its data.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "teamId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "accept": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "teamId",
+        "accept"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.rename",
+    "title": "Rename the authorized Chiho team",
+    "description": "Rename the team bound to this connection. Requires a current team administrator and team-management consent.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 30
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.invite",
+    "title": "Invite a Chiho teammate",
+    "description": "Reserve one team seat and invite this exact email to Chiho. Requires administrator access. May send an invitation email. Confirm the recipient with the user; retries never send a duplicate invitation.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "confirmed": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "email",
+        "confirmed"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": true
+    }
+  },
+  {
+    "name": "team.invitation.cancel",
+    "title": "Cancel a Chiho team invitation",
+    "description": "Cancel the specified outstanding invitation and release its reserved seat. Requires a team administrator.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "required": [
+        "email"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.member.remove",
+    "title": "Remove a Chiho teammate",
+    "description": "Remove the selected current member from the authorized team after explicit confirmation. Their team access is revoked. The last administrator and billing owner are protected.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confirmed": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "userId",
+        "confirmed"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.leave",
+    "title": "Leave the authorized Chiho team",
+    "description": "Leave this connection's team after explicit user confirmation. Future calls through this team connection will fail. The last administrator and billing owner cannot leave without resolving ownership.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmed": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "confirmed"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.delete",
+    "title": "Delete the authorized Chiho team",
+    "description": "Delete the authorized team after explicit confirmation. Requires administrator access and revokes all team memberships; retained cleanup records are inaccessible to former members.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "confirmed": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "confirmed"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.queue.set",
+    "title": "Set teammate message review",
+    "description": "Require or remove administrator review for a member's future outgoing team messages. Changing the policy requires a current administrator. This never approves a pending message.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "userId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "userId",
+        "queued"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.conversation.get",
+    "title": "Read conversation ownership and tasks",
+    "description": "Read ownership, handover details and tasks for a conversation shared with this team. Use accountId and peerId from crm_dialogs_list. This is deterministic stored CRM data and consumes no Chiho AI credits.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "peerId": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "accountId",
+        "peerId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.conversation.assign",
+    "title": "Assign a shared conversation",
+    "description": "Assign or unassign a shared conversation with a handover note and optional due date. Use a current team member ID and the revision from team_conversation_get; 0 means no assignment exists. A conflict requires reading again. Requires the team's collaboration capability.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "peerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assigneeId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "handoverNote": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "dueAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "accountId",
+        "peerId",
+        "assigneeId",
+        "handoverNote",
+        "dueAt",
+        "expectedRevision"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.tasks.add",
+    "title": "Create a shared team task",
+    "description": "Create one task in a shared conversation, optionally assigned to a current teammate. Reuse idempotencyKey for retries. Assigning a teammate requires the team's collaboration capability; no AI credits are consumed.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "peerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "due": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "low",
+            "med",
+            "high"
+          ]
+        },
+        "assigneeId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "accountId",
+        "peerId",
+        "why",
+        "due",
+        "idempotencyKey"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.tasks.update",
+    "title": "Assign, reschedule or complete a team task",
+    "description": "Update an existing shared task. Assignment and date changes require expectedRevision from the latest read. Assignment is limited to current members and requires collaboration capability. Completion remains available after downgrade.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "peerId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "taskId": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "assigneeId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "due": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "accountId",
+        "peerId",
+        "taskId"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": false,
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.tasks.list",
+    "title": "Find assigned or overdue team work",
+    "description": "Page pending tasks and conversation assignments for one shared account. Choose me, unassigned, or all. Continue nextCursor even when a filtered page is empty. Cursors belong to this connection, release, account and filter. Requires collaboration capability.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accountId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "assignee": {
+          "type": "string",
+          "enum": [
+            "all",
+            "me",
+            "unassigned"
+          ]
+        },
+        "overdueOnly": {
+          "type": "boolean"
+        },
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "accountId",
+        "assignee"
+      ]
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  },
+  {
+    "name": "team.activity.list",
+    "title": "Read team activity history",
+    "description": "Page the authorized team's activity over the last 90 days, including actor, source, action, target and time. History starts when recording is enabled and does not invent earlier events. Message content and credentials are excluded. Requires collaboration capability.",
+    "transport": "cloud",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": []
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    }
+  }
+]

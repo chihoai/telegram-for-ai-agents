@@ -1,0 +1,43 @@
+/** Hosted Chiho CRM contracts. These are deliberately absent from local stdio
+ * and from the separate Unofficial Telegram MCP product. */
+const string = { type: "string", minLength: 1 };
+const nullableString = { anyOf: [string, { type: "null" }] };
+const revision = { type: "integer", minimum: 0 };
+const team = { teamId: string };
+const conversation = { accountId: string, peerId: string };
+
+function tool(name: string, title: string, description: string,
+  properties: Record<string, unknown>, required: string[],
+  options: { read?: boolean; destructive?: boolean; external?: boolean; idempotent?: boolean } = {},
+) {
+  return {
+    name, title, description, transport: "cloud",
+    inputSchema: { type: "object", additionalProperties: false, properties, required },
+    outputSchema: { type: "object", additionalProperties: true, required: ["ok"], properties: { ok: { type: "boolean", const: true } } },
+    annotations: {
+      readOnlyHint: options.read === true, destructiveHint: options.destructive === true,
+      idempotentHint: options.read === true || options.idempotent === true,
+      openWorldHint: options.external === true,
+    },
+  };
+}
+
+export const CHIHO_CLOUD_TOOL_CONTRACTS = [
+  tool("teams.list", "Show authorized Chiho teams", "List the Chiho teams allowed by this connection, including current role, shared account IDs and owner-funded plan capabilities. A team connection only returns its bound team. Telegram group membership is separate.", {}, [], { read: true }),
+  tool("teams.create", "Create a Chiho team", "Create a Chiho team owned by the connected account. Requires account-management consent and a connected Telegram account. Reuse requestId when retrying. This does not authorize the new team's data; reconnect to select it.", { name: { type: "string", minLength: 2, maxLength: 30 }, requestId: string }, ["name", "requestId"], { idempotent: true }),
+  tool("teams.invitations.list", "Show Chiho team invitations", "List invitations addressed to the connected account's verified email. Returns team names and IDs only. Requires account-management consent.", {}, [], { read: true }),
+  tool("teams.invitation.respond", "Respond to a Chiho team invitation", "Accept or decline an invitation to a Chiho team after the user chooses. Acceptance uses a reserved seat and does not grant this connection access to that team. Reconnect with team scope to access its data.", { ...team, accept: { type: "boolean" } }, ["teamId", "accept"], { idempotent: false }),
+  tool("team.rename", "Rename the authorized Chiho team", "Rename the team bound to this connection. Requires a current team administrator and team-management consent.", { name: { type: "string", minLength: 2, maxLength: 30 } }, ["name"], { destructive: true }),
+  tool("team.invite", "Invite a Chiho teammate", "Reserve one team seat and invite this exact email to Chiho. Requires administrator access. May send an invitation email. Confirm the recipient with the user; retries never send a duplicate invitation.", { email: { type: "string", format: "email" }, confirmed: { type: "boolean", const: true } }, ["email", "confirmed"], { external: true, idempotent: true }),
+  tool("team.invitation.cancel", "Cancel a Chiho team invitation", "Cancel the specified outstanding invitation and release its reserved seat. Requires a team administrator.", { email: { type: "string", format: "email" } }, ["email"], { destructive: true, idempotent: true }),
+  tool("team.member.remove", "Remove a Chiho teammate", "Remove the selected current member from the authorized team after explicit confirmation. Their team access is revoked. The last administrator and billing owner are protected.", { userId: string, confirmed: { type: "boolean", const: true } }, ["userId", "confirmed"], { destructive: true }),
+  tool("team.leave", "Leave the authorized Chiho team", "Leave this connection's team after explicit user confirmation. Future calls through this team connection will fail. The last administrator and billing owner cannot leave without resolving ownership.", { confirmed: { type: "boolean", const: true } }, ["confirmed"], { destructive: true }),
+  tool("team.delete", "Delete the authorized Chiho team", "Delete the authorized team after explicit confirmation. Requires administrator access and revokes all team memberships; retained cleanup records are inaccessible to former members.", { confirmed: { type: "boolean", const: true } }, ["confirmed"], { destructive: true }),
+  tool("team.queue.set", "Set teammate message review", "Require or remove administrator review for a member's future outgoing team messages. Changing the policy requires a current administrator. This never approves a pending message.", { userId: string, queued: { type: "boolean" } }, ["userId", "queued"], { destructive: true }),
+  tool("team.conversation.get", "Read conversation ownership and tasks", "Read ownership, handover details and tasks for a conversation shared with this team. Use accountId and peerId from crm_dialogs_list. This is deterministic stored CRM data and consumes no Chiho AI credits.", conversation, ["accountId", "peerId"], { read: true }),
+  tool("team.conversation.assign", "Assign a shared conversation", "Assign or unassign a shared conversation with a handover note and optional due date. Use a current team member ID and the revision from team_conversation_get; 0 means no assignment exists. A conflict requires reading again. Requires the team's collaboration capability.", { ...conversation, assigneeId: nullableString, handoverNote: { type: "string", maxLength: 2000 }, dueAt: { anyOf: [{ type: "string", format: "date-time" }, { type: "null" }] }, expectedRevision: revision }, ["accountId", "peerId", "assigneeId", "handoverNote", "dueAt", "expectedRevision"], { destructive: true }),
+  tool("team.tasks.add", "Create a shared team task", "Create one task in a shared conversation, optionally assigned to a current teammate. Reuse idempotencyKey for retries. Assigning a teammate requires the team's collaboration capability; no AI credits are consumed.", { ...conversation, why: { type: "string", minLength: 1, maxLength: 2000 }, due: { type: "string", format: "date-time" }, priority: { type: "string", enum: ["low", "med", "high"] }, assigneeId: nullableString, idempotencyKey: string }, ["accountId", "peerId", "why", "due", "idempotencyKey"], { idempotent: true }),
+  tool("team.tasks.update", "Assign, reschedule or complete a team task", "Update an existing shared task. Assignment and date changes require expectedRevision from the latest read. Assignment is limited to current members and requires collaboration capability. Completion remains available after downgrade.", { ...conversation, taskId: { type: "integer", minimum: 1 }, expectedRevision: revision, assigneeId: nullableString, due: { type: "string", format: "date-time" }, completed: { type: "boolean", const: true } }, ["accountId", "peerId", "taskId"], { destructive: true }),
+  tool("team.tasks.list", "Find assigned or overdue team work", "Page pending tasks and conversation assignments for one shared account. Choose me, unassigned, or all. Continue nextCursor even when a filtered page is empty. Cursors belong to this connection, release, account and filter. Requires collaboration capability.", { accountId: string, assignee: { type: "string", enum: ["all", "me", "unassigned"] }, overdueOnly: { type: "boolean" }, cursor: string }, ["accountId", "assignee"], { read: true }),
+  tool("team.activity.list", "Read team activity history", "Page the authorized team's activity over the last 90 days, including actor, source, action, target and time. History starts when recording is enabled and does not invent earlier events. Message content and credentials are excluded. Requires collaboration capability.", { cursor: string }, [], { read: true }),
+];
