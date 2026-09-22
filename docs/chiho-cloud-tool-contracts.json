@@ -2,7 +2,7 @@
   {
     "name": "teams.list",
     "title": "Show authorized Chiho teams",
-    "description": "List the Chiho teams allowed by this connection, including current role, shared account IDs and owner-funded plan capabilities. A team connection only returns its bound team. Telegram group membership is separate.",
+    "description": "List the Chiho teams allowed by this connection, including current role, shared account IDs and centrally billed seat capabilities. A team connection only returns its bound team. Telegram group membership is separate.",
     "transport": "cloud",
     "inputSchema": {
       "type": "object",

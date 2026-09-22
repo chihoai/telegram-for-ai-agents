@@ -23,7 +23,7 @@ function tool(name: string, title: string, description: string,
 }
 
 export const CHIHO_CLOUD_TOOL_CONTRACTS = [
-  tool("teams.list", "Show authorized Chiho teams", "List the Chiho teams allowed by this connection, including current role, shared account IDs and owner-funded plan capabilities. A team connection only returns its bound team. Telegram group membership is separate.", {}, [], { read: true }),
+  tool("teams.list", "Show authorized Chiho teams", "List the Chiho teams allowed by this connection, including current role, shared account IDs and centrally billed seat capabilities. A team connection only returns its bound team. Telegram group membership is separate.", {}, [], { read: true }),
   tool("teams.create", "Create a Chiho team", "Create a Chiho team owned by the connected account. Requires account-management consent and a connected Telegram account. Reuse requestId when retrying. This does not authorize the new team's data; reconnect to select it.", { name: { type: "string", minLength: 2, maxLength: 30 }, requestId: string }, ["name", "requestId"], { idempotent: true }),
   tool("teams.invitations.list", "Show Chiho team invitations", "List invitations addressed to the connected account's verified email. Returns team names and IDs only. Requires account-management consent.", {}, [], { read: true }),
   tool("teams.invitation.respond", "Respond to a Chiho team invitation", "Accept or decline an invitation to a Chiho team after the user chooses. Acceptance uses a reserved seat and does not grant this connection access to that team. Reconnect with team scope to access its data.", { ...team, accept: { type: "boolean" } }, ["teamId", "accept"], { idempotent: false }),
