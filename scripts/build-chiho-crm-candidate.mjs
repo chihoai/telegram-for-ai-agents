@@ -65,6 +65,9 @@ Local validation is not proof of live client support. Record the client, install
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  if (execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim()) {
+    throw new Error("Commit candidate package changes before recording its companion source SHA.");
+  }
   const options = Object.fromEntries(process.argv.slice(2).map((arg) => { const [name, ...value] = arg.replace(/^--/, "").split("="); return [name, value.join("=")]; }));
   const record = await buildCandidate({ release: options.release, environment: options.environment, output: options.output, backendManifest: options["backend-manifest"] });
   console.log(JSON.stringify(record, null, 2));
