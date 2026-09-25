@@ -243,17 +243,22 @@ export async function getMember(client: TelegramClient, peer: string, userId: st
 export async function getChatCapabilities(client: TelegramClient, peer: string) {
   const full = await client.getFullChat(normalizePeerRef(peer));
   const basic = full.chatType === 'group';
+  const basicParticipants = basic
+    ? (full.full as { participants?: { _: string; participants?: unknown[] } }).participants
+    : undefined;
   const rights = Object.fromEntries(Object.entries(full.adminRights ?? {})
     .filter(([key, value]) => key !== '_' && typeof value === 'boolean')) as Record<string, boolean>;
   const defaults = full.defaultPermissions;
   const memberVisible = basic
-    ? (full.full as { participants?: { _: string } }).participants?._ !== 'chatParticipantsForbidden'
+    ? basicParticipants?._ === 'chatParticipants' ? true : basicParticipants?._ === 'chatParticipantsForbidden' ? false : null
     : full.canViewParticipants;
   return {
     chatType: full.chatType,
     membership: full.isCreator ? 'creator' : full.isAdmin ? 'admin' : full.isMember ? 'member' : 'left',
-    memberCountReported: full.membersCount ?? null,
-    participantVisibility: memberVisible ? (full.hasHiddenParticipants ? 'limited' : 'visible') : 'unavailable',
+    memberCountReported: basic ? basicParticipants?.participants?.length ?? null :
+      (full.full as { participantsCount?: number }).participantsCount ?? null,
+    participantVisibility: memberVisible === null ? 'unknown' : memberVisible ?
+      (full.hasHiddenParticipants ? 'limited' : 'visible') : 'unavailable',
     participantsHidden: full.hasHiddenParticipants,
     canViewParticipants: memberVisible,
     adminRights: rights,
@@ -262,7 +267,7 @@ export async function getChatCapabilities(client: TelegramClient, peer: string) 
       canListMembers: memberVisible,
       canListAdmins: full.isMember || full.isAdmin || full.isCreator ? true : null,
       canInvite: full.isCreator ? true : rights.inviteUsers ?? null,
-      canManageJoinRequests: full.hasJoinRequests ? (full.isCreator ? true : rights.inviteUsers ?? null) : false,
+      canManageJoinRequests: basic ? false : full.isCreator ? true : rights.inviteUsers ?? null,
       canViewAdminLog: basic ? false : full.isAdmin || full.isCreator,
     },
   };
