@@ -106,6 +106,7 @@ requireCloudScopes(
     "message_get",
     "thread_read",
     "scheduled_list",
+    "chat_capabilities_get",
     "updates_poll",
     "search_messages",
     "folders_list",
@@ -138,7 +139,7 @@ requireCloudScopes(
   "telegram.read",
 );
 requireCloudScopes(
-  ["contacts_count", "contacts_list", "members_list"],
+  ["contacts_count", "contacts_list", "members_list", "member_get"],
   "telegram.contacts.read",
 );
 requireCloudScopes(["media_info", "media_download"], "telegram.media.read");
