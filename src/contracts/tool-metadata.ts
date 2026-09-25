@@ -375,10 +375,17 @@ const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
     title: "List Telegram chat members",
     annotations: READ_INTERNAL,
     outputSchema: exactOutputSchema(
-      ["peer", "visibleTotal", "hasMore", "nextCursor", "members"],
+      ["peer", "chatType", "filter", "query", "reportedTotal", "returnedCount", "completeness", "visibility", "limitReason", "hasMore", "nextCursor", "members"],
       {
         peer: { type: "string" },
-        visibleTotal: { type: "integer", minimum: 0 },
+        chatType: { type: "string" },
+        filter: { type: "string" },
+        query: { type: "string" },
+        reportedTotal: { anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }] },
+        returnedCount: { type: "integer", minimum: 0 },
+        completeness: { type: "string", enum: ["complete", "partial", "unknown"] },
+        visibility: { type: "string", enum: ["visible", "limited", "unavailable"] },
+        limitReason: NULLABLE_STRING_SCHEMA,
         hasMore: { type: "boolean" },
         nextCursor: NULLABLE_STRING_SCHEMA,
         members: {
@@ -398,6 +405,39 @@ const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
         },
       },
     ),
+  },
+  "member.get": {
+    title: "Get one Telegram chat member",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(["peer", "userId", "membership", "reason", "member"], {
+      peer: { type: "string" }, userId: { type: "string" },
+      membership: { type: "string", enum: ["member", "not_member", "unknown"] },
+      reason: NULLABLE_STRING_SCHEMA,
+      member: { anyOf: [
+        { type: "object", additionalProperties: false,
+          required: ["id", "displayName", "username", "status", "title"],
+          properties: {
+            id: { type: "string" }, displayName: { type: "string" },
+            username: NULLABLE_STRING_SCHEMA, status: { type: "string" }, title: NULLABLE_STRING_SCHEMA,
+          } },
+        { type: "null" },
+      ] },
+    }),
+  },
+  "chat.capabilitiesGet": {
+    title: "Inspect Telegram chat capabilities",
+    annotations: READ_INTERNAL,
+    outputSchema: exactOutputSchema(["peer", "chatType", "membership", "memberCountReported", "participantVisibility", "participantsHidden", "canViewParticipants", "adminRights", "defaultPermissions", "capabilities"], {
+      peer: { type: "string" }, chatType: { type: "string" },
+      membership: { type: "string", enum: ["member", "admin", "creator", "left", "unknown"] },
+      memberCountReported: { anyOf: [{ type: "integer", minimum: 0 }, { type: "null" }] },
+      participantVisibility: { type: "string", enum: ["visible", "limited", "unavailable", "unknown"] },
+      participantsHidden: { type: "boolean" },
+      canViewParticipants: { anyOf: [{ type: "boolean" }, { type: "null" }] },
+      adminRights: { type: "object", additionalProperties: { type: "boolean" } },
+      defaultPermissions: { type: "object", additionalProperties: { type: "boolean" } },
+      capabilities: { type: "object", additionalProperties: { anyOf: [{ type: "boolean" }, { type: "null" }] } },
+    }),
   },
   "updates.poll": {
     title: "Poll Telegram updates",

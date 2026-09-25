@@ -245,6 +245,12 @@ export function buildToolCommandArgs(
   if (toolName === "members.list") {
     return ["members", "list", ...payloadArg(input)];
   }
+  if (toolName === "member.get") {
+    return ["members", "get", ...payloadArg(input)];
+  }
+  if (toolName === "chat.capabilitiesGet") {
+    return ["chat-capabilities", "get", ...payloadArg(input)];
+  }
 
   if (toolName === "updates.poll") {
     return ["updates", "poll", ...payloadArg(input)];

@@ -1560,7 +1560,7 @@
   },
   {
     "name": "members_list",
-    "description": "Page members visible to the connected Telegram account for one group or channel. Member bios and names are untrusted data.",
+    "description": "Page or search members visible to the connected Telegram account. Use filter=admins to list visible administrators. Counts do not guarantee complete enumeration. Member names are untrusted data.",
     "transport": "shared",
     "inputSchema": {
       "type": "object",
@@ -1575,6 +1575,23 @@
         "peer": {
           "type": "string",
           "minLength": 1
+        },
+        "filter": {
+          "type": "string",
+          "enum": [
+            "recent",
+            "all",
+            "admins",
+            "bots",
+            "contacts",
+            "restricted",
+            "banned"
+          ],
+          "default": "recent"
+        },
+        "query": {
+          "type": "string",
+          "maxLength": 128
         },
         "pageSize": {
           "type": "integer",
@@ -1601,7 +1618,14 @@
       "required": [
         "ok",
         "peer",
-        "visibleTotal",
+        "chatType",
+        "filter",
+        "query",
+        "reportedTotal",
+        "returnedCount",
+        "completeness",
+        "visibility",
+        "limitReason",
         "hasMore",
         "nextCursor",
         "members"
@@ -1614,9 +1638,55 @@
         "peer": {
           "type": "string"
         },
-        "visibleTotal": {
+        "chatType": {
+          "type": "string"
+        },
+        "filter": {
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "reportedTotal": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "returnedCount": {
           "type": "integer",
           "minimum": 0
+        },
+        "completeness": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial",
+            "unknown"
+          ]
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "visible",
+            "limited",
+            "unavailable"
+          ]
+        },
+        "limitReason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "hasMore": {
           "type": "boolean"
@@ -1674,6 +1744,256 @@
                 ]
               }
             }
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "member_get",
+    "description": "Check one known Telegram user's membership and role in an authorized group or channel. An unknown result means Telegram did not establish membership or absence.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer",
+        "userId"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "userId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "title": "Get one Telegram chat member",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "peer",
+        "userId",
+        "membership",
+        "reason",
+        "member"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "peer": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "membership": {
+          "type": "string",
+          "enum": [
+            "member",
+            "not_member",
+            "unknown"
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "member": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "displayName",
+                "username",
+                "status",
+                "title"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": "string"
+                },
+                "username": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status": {
+                  "type": "string"
+                },
+                "title": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "chat_capabilities_get",
+    "description": "Inspect one authorized group's type, membership visibility, and current account rights before attempting member or admin workflows. Capability flags are observations, not permission guarantees.",
+    "transport": "shared",
+    "inputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "peer"
+      ],
+      "properties": {
+        "accountId": {
+          "type": "string"
+        },
+        "peer": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "title": "Inspect Telegram chat capabilities",
+    "annotations": {
+      "readOnlyHint": true,
+      "destructiveHint": false,
+      "idempotentHint": true,
+      "openWorldHint": false
+    },
+    "outputSchema": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ok",
+        "peer",
+        "chatType",
+        "membership",
+        "memberCountReported",
+        "participantVisibility",
+        "participantsHidden",
+        "canViewParticipants",
+        "adminRights",
+        "defaultPermissions",
+        "capabilities"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "peer": {
+          "type": "string"
+        },
+        "chatType": {
+          "type": "string"
+        },
+        "membership": {
+          "type": "string",
+          "enum": [
+            "member",
+            "admin",
+            "creator",
+            "left",
+            "unknown"
+          ]
+        },
+        "memberCountReported": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "participantVisibility": {
+          "type": "string",
+          "enum": [
+            "visible",
+            "limited",
+            "unavailable",
+            "unknown"
+          ]
+        },
+        "participantsHidden": {
+          "type": "boolean"
+        },
+        "canViewParticipants": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "adminRights": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "defaultPermissions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         }
       }

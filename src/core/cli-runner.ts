@@ -3,7 +3,9 @@ import { normalizeCliError } from "../app/errors.js";
 import { runArchive, runUnarchive } from "../commands/archive.js";
 import { runGroups, runMembers, runMessage, runOutbox } from "../commands/agentWrites.js";
 import {
+  runChatCapabilitiesGet,
   runMedia,
+  runMemberGet,
   runMembersList,
   runMessageClientTools,
   runScheduled,
@@ -133,7 +135,13 @@ export async function executeCli(argv: string[]): Promise<void> {
     if (command === "members") {
       return rest[0] === "list"
         ? await runMembersList(ctx, rest.slice(1))
+        : rest[0] === "get"
+        ? await runMemberGet(ctx, rest.slice(1))
         : await runMembers(ctx, rest);
+    }
+    if (command === "chat-capabilities") {
+      if (rest[0] !== "get") throw new Error("Usage: tgchats chat-capabilities get --payload JSON");
+      return await runChatCapabilitiesGet(ctx, rest.slice(1));
     }
     if (command === "updates") {
       if (rest[0] !== "poll") throw new Error("Usage: tgchats updates poll --payload JSON");
