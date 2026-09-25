@@ -143,6 +143,8 @@ describe("TOOL_CONTRACT_DEFINITIONS", () => {
       "media.info": [true, false, true, false],
       "media.download": [true, false, true, false],
       "members.list": [true, false, true, false],
+      "member.get": [true, false, true, false],
+      "chat.capabilitiesGet": [true, false, true, false],
       "updates.poll": [true, false, true, false],
       "message.actionPreview": [false, false, false, false],
       "message.actionApproved": [false, true, true, true],
