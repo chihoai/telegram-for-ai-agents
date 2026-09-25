@@ -60,7 +60,12 @@ describe("persisted CRM dialog pagination", () => {
 
   it("rejects continuation after a newer inventory snapshot is committed", async () => {
     await runCrm(context(), ["dialogs", "list", "--page-size", "1"]);
-    const firstPage = JSON.parse(logs.at(-1) ?? "");
+    const firstPage = logs
+      .map((line) => {
+        try { return JSON.parse(line); } catch { return null; }
+      })
+      .find((value) => value?.source === "chiho-crm" && value.hasMore === true);
+    expect(firstPage?.nextCursor).toEqual(expect.any(String));
 
     dependencies.listPersistedDialogs.mockResolvedValueOnce({
       total: 2,
