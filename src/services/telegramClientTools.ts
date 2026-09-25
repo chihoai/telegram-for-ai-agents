@@ -204,7 +204,7 @@ export async function getMemberPage(
       visibility: 'visible' as const, limitReason: null, hasMore: nextOffset !== null, nextOffset };
   }
   if (!full.canViewParticipants && filter !== 'admins') {
-    return { members: [], reportedTotal: full.membersCount || null, chatType: full.chatType,
+    return { members: [], reportedTotal: full.membersCount ?? null, chatType: full.chatType,
       completeness: 'unknown' as const, visibility: 'unavailable' as const,
       limitReason: 'participants_hidden', hasMore: false, nextOffset: null };
   }
@@ -213,7 +213,7 @@ export async function getMemberPage(
   const nextOffset = page.length > 0 && next < page.total && next < 200 ? next : null;
   return { members: [...page], reportedTotal: page.total, chatType: full.chatType,
     completeness: 'unknown' as const, visibility: full.hasHiddenParticipants ? 'limited' as const : 'visible' as const,
-    limitReason: nextOffset === null && next < page.total ? 'telegram_participant_retrieval_limit' : null,
+    limitReason: nextOffset === null && next < page.total ? (page.length === 0 ? 'telegram_returned_empty_page' : 'telegram_participant_retrieval_limit') : null,
     hasMore: nextOffset !== null, nextOffset };
 }
 
@@ -223,6 +223,9 @@ export async function getMember(client: TelegramClient, peer: string, userId: st
   const full = await client.getFullChat(chat);
   if (full.chatType === 'group' && (full.full as { participants?: { _: string } }).participants?._ === 'chatParticipantsForbidden') {
     return { membership: 'unknown' as const, reason: 'participants_unavailable', member: null };
+  }
+  if (full.chatType !== 'group' && !full.canViewParticipants) {
+    return { membership: 'unknown' as const, reason: 'participants_hidden', member: null };
   }
   try {
     const member = await client.getChatMember({ chatId: chat, userId: normalizePeerRef(userId) });
@@ -249,7 +252,7 @@ export async function getChatCapabilities(client: TelegramClient, peer: string) 
   return {
     chatType: full.chatType,
     membership: full.isCreator ? 'creator' : full.isAdmin ? 'admin' : full.isMember ? 'member' : 'left',
-    memberCountReported: full.membersCount || null,
+    memberCountReported: full.membersCount ?? null,
     participantVisibility: memberVisible ? (full.hasHiddenParticipants ? 'limited' : 'visible') : 'unavailable',
     participantsHidden: full.hasHiddenParticipants,
     canViewParticipants: memberVisible,
