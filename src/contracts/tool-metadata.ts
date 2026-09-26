@@ -198,6 +198,37 @@ function metadata(
   };
 }
 
+const COMMUNITY_TOPIC_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["id", "title", "isClosed", "isPinned", "unreadCount", "unreadMentionsCount", "unreadReactionsCount"],
+  properties: { id: { type: "integer" }, title: { type: "string" }, isClosed: { type: "boolean" }, isPinned: { type: "boolean" }, unreadCount: { type: "integer" }, unreadMentionsCount: { type: "integer" }, unreadReactionsCount: { type: "integer" } },
+} as const;
+const COMMUNITY_INVITE_LINK_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["link", "isMyLink", "isPrimary", "isRevoked", "createdAt", "usage", "pendingApprovals", "approvalNeeded"],
+  properties: { link: { type: "string" }, isMyLink: { type: "boolean" }, isPrimary: { type: "boolean" }, isRevoked: { type: "boolean" }, createdAt: { type: "string", format: "date-time" }, usage: { type: "integer" }, pendingApprovals: { type: "integer" }, approvalNeeded: { type: "boolean" } },
+} as const;
+const COMMUNITY_INVITE_MEMBER_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["userId", "displayName", "username", "joinedAt", "isPendingRequest", "approvedByUserId"],
+  properties: { userId: { type: "string" }, displayName: { type: "string" }, username: NULLABLE_STRING_SCHEMA, joinedAt: { type: "string", format: "date-time" }, isPendingRequest: { type: "boolean" }, approvedByUserId: NULLABLE_STRING_SCHEMA },
+} as const;
+const COMMUNITY_ADMIN_EVENT_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["id", "occurredAt", "actorUserId", "actorDisplayName", "actionType"],
+  properties: { id: { type: "string" }, occurredAt: { type: "string", format: "date-time" }, actorUserId: { type: "string" }, actorDisplayName: { type: "string" }, actionType: { type: "string" } },
+} as const;
+const COMMUNITY_PERSON_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["userId", "displayName", "username", "isContact", "isMutualContact", "commonChatsReported"],
+  properties: { userId: { type: "string" }, displayName: { type: "string" }, username: NULLABLE_STRING_SCHEMA, isContact: { type: "boolean" }, isMutualContact: { type: "boolean" }, commonChatsReported: { type: "integer" } },
+} as const;
+const COMMUNITY_COMMON_CHAT_SCHEMA = {
+  type: "object", additionalProperties: false,
+  required: ["peer", "title"],
+  properties: { peer: { type: "string" }, title: { type: "string" } },
+} as const;
+
 const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
   "auth.status": metadata("Check local Telegram connection", READ_INTERNAL),
   "account.whoami": metadata("Show the local Telegram account", READ_EXTERNAL),
@@ -439,6 +470,42 @@ const TOOL_METADATA: Record<string, McpToolClientMetadata> = {
       capabilities: { type: "object", additionalProperties: { anyOf: [{ type: "boolean" }, { type: "null" }] } },
     }),
   },
+  "attention.list": { title: "List selected chat attention", annotations: READ_INTERNAL, outputSchema: exactOutputSchema(
+    ["peers", "hasMore", "nextCursor", "chats"],
+    { peers: { type: "array", items: { type: "string" } }, hasMore: { type: "boolean" }, nextCursor: NULLABLE_STRING_SCHEMA, chats: { type: "array", items: { type: "object", additionalProperties: false, required: ["peer", "unreadCount", "unreadMentionsCount", "unreadReactionsCount", "isManuallyUnread"], properties: { peer: { type: "string" }, unreadCount: { type: "integer" }, unreadMentionsCount: { type: "integer" }, unreadReactionsCount: { type: "integer" }, isManuallyUnread: { type: "boolean" } } } } },
+  ) },
+  "drafts.list": { title: "List selected native drafts", annotations: READ_INTERNAL, outputSchema: exactOutputSchema(
+    ["peers", "hasMore", "nextCursor", "drafts"],
+    { peers: { type: "array", items: { type: "string" } }, hasMore: { type: "boolean" }, nextCursor: NULLABLE_STRING_SCHEMA, drafts: { type: "array", items: { type: "object", additionalProperties: false, required: ["peer", "text", "updatedAt"], properties: { peer: { type: "string" }, text: { type: "string" }, updatedAt: { type: "string" } } } } },
+  ) },
+  "draft.save": { title: "Save a native Telegram draft", annotations: { ...WRITE_EXTERNAL, destructiveHint: true }, outputSchema: exactOutputSchema(
+    ["peer", "saved", "cleared"],
+    { peer: { type: "string" }, saved: { type: "boolean" }, cleared: { type: "boolean" } },
+  ) },
+  "forumTopics.list": { title: "List forum topics", annotations: READ_INTERNAL, outputSchema: exactOutputSchema(
+    ["peer", "hasMore", "nextCursor", "topics"],
+    { peer: { type: "string" }, hasMore: { type: "boolean" }, nextCursor: NULLABLE_STRING_SCHEMA, topics: { type: "array", items: COMMUNITY_TOPIC_SCHEMA } },
+  ) },
+  "joinRequests.list": { title: "List join requests", annotations: READ_INTERNAL, outputSchema: exactOutputSchema(
+    ["peer", "hasMore", "nextCursor", "requests"],
+    { peer: { type: "string" }, hasMore: { type: "boolean" }, nextCursor: NULLABLE_STRING_SCHEMA, requests: { type: "array", items: COMMUNITY_INVITE_MEMBER_SCHEMA } },
+  ) },
+  "inviteLinks.list": { title: "List invite links", annotations: READ_INTERNAL, outputSchema: exactOutputSchema(
+    ["peer", "hasMore", "nextCursor", "links"],
+    { peer: { type: "string" }, hasMore: { type: "boolean" }, nextCursor: NULLABLE_STRING_SCHEMA, links: { type: "array", items: COMMUNITY_INVITE_LINK_SCHEMA } },
+  ) },
+  "inviteLinkMembers.list": { title: "List invite link members", annotations: READ_INTERNAL, outputSchema: exactOutputSchema(
+    ["peer", "hasMore", "nextCursor", "members"],
+    { peer: { type: "string" }, hasMore: { type: "boolean" }, nextCursor: NULLABLE_STRING_SCHEMA, members: { type: "array", items: COMMUNITY_INVITE_MEMBER_SCHEMA } },
+  ) },
+  "chat.adminLog": { title: "Read recent chat admin actions", annotations: READ_INTERNAL, outputSchema: exactOutputSchema(
+    ["peer", "hasMore", "nextCursor", "events"],
+    { peer: { type: "string" }, hasMore: { type: "boolean" }, nextCursor: NULLABLE_STRING_SCHEMA, events: { type: "array", items: COMMUNITY_ADMIN_EVENT_SCHEMA } },
+  ) },
+  "person.contextGet": { title: "Get authorized person context", annotations: READ_INTERNAL, outputSchema: exactOutputSchema(
+    ["peer", "person", "commonChats"],
+    { peer: { type: "string" }, person: COMMUNITY_PERSON_SCHEMA, commonChats: { type: "array", items: COMMUNITY_COMMON_CHAT_SCHEMA } },
+  ) },
   "updates.poll": {
     title: "Poll Telegram updates",
     annotations: READ_INTERNAL,

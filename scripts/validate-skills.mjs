@@ -61,6 +61,7 @@ const supportedCloudScopes = new Set([
   "telegram.read",
   "telegram.contacts.read",
   "telegram.media.read",
+  "telegram.drafts.write",
   "crm.write",
   "telegram.message.preview",
   "telegram.message.send",
@@ -107,6 +108,8 @@ requireCloudScopes(
     "thread_read",
     "scheduled_list",
     "chat_capabilities_get",
+    "attention_list", "drafts_list", "draft_save", "forum_topics_list", "join_requests_list",
+    "invite_links_list", "invite_link_members_list", "chat_admin_log", "person_context_get",
     "updates_poll",
     "search_messages",
     "folders_list",
@@ -139,10 +142,11 @@ requireCloudScopes(
   "telegram.read",
 );
 requireCloudScopes(
-  ["contacts_count", "contacts_list", "members_list", "member_get"],
+  ["contacts_count", "contacts_list", "members_list", "member_get", "join_requests_list", "invite_link_members_list", "chat_admin_log", "person_context_get"],
   "telegram.contacts.read",
 );
 requireCloudScopes(["media_info", "media_download"], "telegram.media.read");
+requireCloudScopes(["draft_save"], "telegram.drafts.write");
 requireCloudScopes(
   [
     "tags_set",

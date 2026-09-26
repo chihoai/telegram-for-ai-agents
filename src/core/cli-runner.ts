@@ -13,6 +13,7 @@ import {
   runUpdatesPoll,
 } from "../commands/clientTools.js";
 import { runAuth } from "../commands/auth.js";
+import { runCommunityTool } from "../commands/communityTools.js";
 import { runChat } from "../commands/chat.js";
 import { runContacts } from "../commands/contacts.js";
 import { runCompany } from "../commands/company.js";
@@ -142,6 +143,12 @@ export async function executeCli(argv: string[]): Promise<void> {
     if (command === "chat-capabilities") {
       if (rest[0] !== "get") throw new Error("Usage: tgchats chat-capabilities get --payload JSON");
       return await runChatCapabilitiesGet(ctx, rest.slice(1));
+    }
+    if (["attention", "drafts", "draft", "forum-topics", "join-requests", "invite-links", "invite-link-members", "chat-admin-log", "person-context"].includes(command)) {
+      const names: Record<string, string> = { attention: "attention.list", drafts: "drafts.list", draft: "draft.save", "forum-topics": "forumTopics.list", "join-requests": "joinRequests.list", "invite-links": "inviteLinks.list", "invite-link-members": "inviteLinkMembers.list", "chat-admin-log": "chat.adminLog", "person-context": "person.contextGet" };
+      const expected = command === "draft" ? "save" : command === "person-context" ? "get" : "list";
+      if (rest[0] !== expected) throw new Error(`Usage: tgchats ${command} ${expected} --payload JSON`);
+      return await runCommunityTool(ctx, names[command], rest.slice(1));
     }
     if (command === "updates") {
       if (rest[0] !== "poll") throw new Error("Usage: tgchats updates poll --payload JSON");
