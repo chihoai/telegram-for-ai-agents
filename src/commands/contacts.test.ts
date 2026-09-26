@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AppContext } from "../app/context.js";
 
+const printJson = vi.hoisted(() => vi.fn());
+vi.mock("../output.js", () => ({ printJson }));
+
 const telegram = vi.hoisted(() => ({
   ensureAuthorized: vi.fn(),
   getTelegramContacts: vi.fn(),
@@ -33,7 +36,7 @@ describe("Telegram contact commands", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     logs = [];
-    vi.spyOn(console, "log").mockImplementation((value: string) => logs.push(value));
+    printJson.mockImplementation((value: unknown) => logs.push(JSON.stringify(value)));
     telegram.ensureAuthorized.mockResolvedValue(undefined);
     telegram.getTelegramContacts.mockResolvedValue(
       Array.from({ length: 913 }, (_, index) => ({
@@ -71,6 +74,7 @@ describe("Telegram contact commands", () => {
   it("rejects continuation after the Telegram contact snapshot changes", async () => {
     await runContacts(context(), ["list", "--page-size", "29"]);
     const firstPage = JSON.parse(logs.at(-1) ?? "");
+    expect(firstPage).toMatchObject({ contactTotal: 913, hasMore: true, nextCursor: expect.any(String) });
 
     telegram.getTelegramContacts.mockResolvedValueOnce(
       Array.from({ length: 912 }, (_, index) => ({
