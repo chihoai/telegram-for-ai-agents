@@ -2,10 +2,19 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   executeTelegramMessageAction,
   getExactMessage,
+  getChatCapabilities,
   safeMediaInfo,
 } from './telegramClientTools.js';
 
 describe('Telegram client tool primitives', () => {
+  it('counts basic-group participants instead of mtcute\'s unavailable membersCount', async () => {
+    const client = { getFullChat: vi.fn().mockResolvedValue({ chatType: 'group', membersCount: 0,
+      full: { participants: { _: 'chatParticipants', participants: [{ userId: 1 }, { userId: 2 }] } },
+    }) };
+    const result = await getChatCapabilities(client as any, '-42');
+    expect(result).toMatchObject({ memberCountReported: 2, canViewParticipants: true,
+      capabilities: { canManageJoinRequests: false } });
+  });
   it('requires peer-scoped exact message lookup', async () => {
     const getMessages = vi.fn().mockResolvedValue([{ id: 7 }]);
     await expect(getExactMessage({ getMessages } as any, '123', 7)).resolves.toMatchObject({ id: 7 });

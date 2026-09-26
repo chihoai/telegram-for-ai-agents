@@ -19,7 +19,9 @@ import {
 import {
   downloadableMediaLocation,
   executeTelegramMessageAction,
+  getChatCapabilities,
   getExactMessage,
+  getMember,
   getMemberPage,
   getScheduledMessagePage,
   getThreadPage,
@@ -242,21 +244,31 @@ export async function runMembersList(ctx: AppContext, args: string[]) {
   const payload = payloadFromArgs(args);
   const peer = requiredString(payload.peer, 'peer');
   const pageSize = boundedPageSize(payload.pageSize);
+  const filters = ['recent', 'all', 'admins', 'bots', 'contacts', 'restricted', 'banned'] as const;
+  const query = payload.query === undefined ? '' : String(payload.query).trim();
+  const filter = payload.filter === undefined ? (query ? 'all' : 'recent') : requiredString(payload.filter, 'filter');
+  if (!filters.includes(filter as typeof filters[number])) throw new Error('Unsupported member filter.');
+  if (query.length > 128) throw new Error('query is too long.');
+  if (query && !['all', 'contacts', 'restricted', 'banned'].includes(filter)) {
+    throw new Error('query is unsupported with this member filter.');
+  }
   const codec = cursorCodecForContext(ctx);
-  const binding = accountCursorBinding(ctx, `members:${peer}`);
+  const binding = accountCursorBinding(ctx, `members:${JSON.stringify({ peer, filter, query: query.toLocaleLowerCase(), pageSize })}`);
   const state = payload.cursor
     ? codec.decode<{ offset: number }>(requiredString(payload.cursor, 'cursor'), 'members', binding)
     : { offset: 0 };
   await ensureAuthorized(ctx.telegram);
-  const page = await getMemberPage(ctx.telegram, { peer, pageSize, offset: state.offset });
-  const nextOffset = state.offset + page.length < page.total ? state.offset + page.length : null;
+  const page = await getMemberPage(ctx.telegram, { peer, pageSize, offset: state.offset,
+    filter: filter as typeof filters[number], query });
   printJson({
     ok: true,
     peer,
-    visibleTotal: page.total,
-    hasMore: nextOffset !== null,
-    nextCursor: nextOffset === null ? null : codec.encode('members', binding, { offset: nextOffset }),
-    members: page.map((member) => ({
+    chatType: page.chatType, filter, query,
+    reportedTotal: page.reportedTotal, returnedCount: page.members.length,
+    completeness: page.completeness, visibility: page.visibility, limitReason: page.limitReason,
+    hasMore: page.hasMore,
+    nextCursor: page.nextOffset === null ? null : codec.encode('members', binding, { offset: page.nextOffset }),
+    members: page.members.map((member) => ({
       id: String(member.user.id),
       displayName: member.user.displayName,
       username: member.user.username ?? null,
@@ -264,6 +276,24 @@ export async function runMembersList(ctx: AppContext, args: string[]) {
       title: member.title,
     })),
   });
+}
+
+export async function runMemberGet(ctx: AppContext, args: string[]) {
+  const payload = payloadFromArgs(args);
+  const peer = requiredString(payload.peer, 'peer');
+  const userId = requiredString(payload.userId, 'userId');
+  await ensureAuthorized(ctx.telegram);
+  const result = await getMember(ctx.telegram, peer, userId);
+  printJson({ ok: true, peer, userId, membership: result.membership, reason: result.reason,
+    member: result.member ? { id: String(result.member.user.id), displayName: result.member.user.displayName,
+      username: result.member.user.username ?? null, status: result.member.status, title: result.member.title } : null });
+}
+
+export async function runChatCapabilitiesGet(ctx: AppContext, args: string[]) {
+  const payload = payloadFromArgs(args);
+  const peer = requiredString(payload.peer, 'peer');
+  await ensureAuthorized(ctx.telegram);
+  printJson({ ok: true, peer, ...await getChatCapabilities(ctx.telegram, peer) });
 }
 
 export async function runUpdatesPoll(ctx: AppContext, args: string[]) {

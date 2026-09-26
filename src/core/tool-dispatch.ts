@@ -245,7 +245,21 @@ export function buildToolCommandArgs(
   if (toolName === "members.list") {
     return ["members", "list", ...payloadArg(input)];
   }
+  if (toolName === "member.get") {
+    return ["members", "get", ...payloadArg(input)];
+  }
+  if (toolName === "chat.capabilitiesGet") {
+    return ["chat-capabilities", "get", ...payloadArg(input)];
+  }
 
+  const communityCommands: Record<string, [string, string]> = {
+    "attention.list": ["attention", "list"], "drafts.list": ["drafts", "list"],
+    "draft.save": ["draft", "save"], "forumTopics.list": ["forum-topics", "list"],
+    "joinRequests.list": ["join-requests", "list"], "inviteLinks.list": ["invite-links", "list"],
+    "inviteLinkMembers.list": ["invite-link-members", "list"], "chat.adminLog": ["chat-admin-log", "list"],
+    "person.contextGet": ["person-context", "get"],
+  };
+  if (communityCommands[toolName]) return [...communityCommands[toolName], ...payloadArg(input)];
   if (toolName === "updates.poll") {
     return ["updates", "poll", ...payloadArg(input)];
   }
