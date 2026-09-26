@@ -36,11 +36,11 @@ function cursor(ctx: AppContext, name: string, input: Record<string, unknown>, b
 function member(user: { id: number; displayName: string; username: string | null }) {
   return { userId: String(user.id), displayName: user.displayName, username: user.username };
 }
-function encodedOffset(value: { date: number; user: Record<string, unknown> } | null | undefined) {
+export function encodedOffset(value: { date: number; user: Record<string, unknown> } | null | undefined) {
   if (!value) return null;
-  return { date: value.date, user: JSON.parse(JSON.stringify(value.user, (_key, entry) => typeof entry === 'bigint' ? entry.toString() : entry)) };
+  return { date: value.date, user: JSON.parse(JSON.stringify(value.user, (_key, entry) => Long.isLong(entry) || typeof entry === 'bigint' ? entry.toString() : entry)) };
 }
-function decodedOffset(value: any) {
+export function decodedOffset(value: any) {
   if (!value) return undefined;
   const user = { ...value.user };
   if (typeof user.accessHash === 'string') user.accessHash = Long.fromString(user.accessHash);
