@@ -245,9 +245,9 @@ export async function runMembersList(ctx: AppContext, args: string[]) {
   const peer = requiredString(payload.peer, 'peer');
   const pageSize = boundedPageSize(payload.pageSize);
   const filters = ['recent', 'all', 'admins', 'bots', 'contacts', 'restricted', 'banned'] as const;
-  const filter = payload.filter === undefined ? 'recent' : requiredString(payload.filter, 'filter');
-  if (!filters.includes(filter as typeof filters[number])) throw new Error('Unsupported member filter.');
   const query = payload.query === undefined ? '' : String(payload.query).trim();
+  const filter = payload.filter === undefined ? (query ? 'all' : 'recent') : requiredString(payload.filter, 'filter');
+  if (!filters.includes(filter as typeof filters[number])) throw new Error('Unsupported member filter.');
   if (query.length > 128) throw new Error('query is too long.');
   if (query && !['all', 'contacts', 'restricted', 'banned'].includes(filter)) {
     throw new Error('query is unsupported with this member filter.');
