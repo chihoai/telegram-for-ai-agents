@@ -1,11 +1,11 @@
 ---
 name: telegram-for-agents
-description: Route Telegram work to either Chiho's hosted OAuth MCP or the separate self-hosted tgchats local runtime. Use when an agent must select the correct Telegram product before reading, searching, organizing, summarizing, or acting on chats.
+description: Route Telegram work to Chiho CRM, Unofficial Telegram MCP, or the separate self-hosted tgchats runtime.
 ---
 
 # Telegram for agents
 
-Choose one runtime and avoid duplicate tool registrations.
+Choose one product and avoid duplicate Telegram tool registrations.
 
 ## Chiho Telegram
 
@@ -18,6 +18,10 @@ Use the hosted package by default when the user has or wants a Chiho account.
 - Use the same canonical URL as a custom connector in Claude.ai, Claude Desktop, or Cowork.
 
 Start with `auth_status`, then call the narrowest tool for the user's request. Respect client write prompts and Chiho's preview/approval controls.
+
+## Unofficial Telegram MCP
+
+For personal Telegram client reads and message actions without Chiho CRM or team workflows, use the `unofficial-telegram-mcp` plugin and its exact OAuth resource `https://telegram-mcp.chiho.ai/mcp/v2`. Do not reuse a grant from the CRM resource.
 
 ## tgchats local
 

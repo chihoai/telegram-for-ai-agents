@@ -21,6 +21,19 @@
       "tags": ["telegram", "crm", "mcp", "oauth"]
     },
     {
+      "name": "unofficial-telegram-mcp",
+      "source": "./plugins/unofficial-telegram-mcp",
+      "description": "Hosted personal Telegram tools through browser OAuth.",
+      "author": {
+        "name": "Chiho.ai"
+      },
+      "homepage": "https://github.com/chihoai/telegram-for-ai-agents/tree/main/plugins/unofficial-telegram-mcp",
+      "repository": "https://github.com/chihoai/telegram-for-ai-agents",
+      "license": "MIT",
+      "category": "Productivity",
+      "tags": ["telegram", "mcp", "oauth"]
+    },
+    {
       "name": "tgchats-local",
       "source": "./plugins/tgchats-local",
       "description": "Self-hosted local Telegram MCP runtime.",

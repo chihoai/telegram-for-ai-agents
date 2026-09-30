@@ -1,15 +1,15 @@
 ---
 name: chiho-telegram
-description: Choose and configure either Chiho's hosted OAuth Telegram MCP or the separate self-hosted tgchats local runtime. Trigger when a user asks to connect Claude, Codex, ChatGPT, or another MCP client to Telegram and needs the correct hosted-versus-local product path.
+description: Choose the Chiho CRM, Unofficial Telegram MCP, or self-hosted tgchats package when connecting an AI client to Telegram.
 ---
 
 # Chiho Telegram
 
-Choose exactly one runtime. Never configure both packages implicitly because duplicate Telegram tools make client behavior ambiguous.
+Choose the product the user intends. Do not configure multiple Telegram packages implicitly because their tools overlap.
 
 ## Hosted: Chiho Telegram
 
-Prefer the hosted package unless the user explicitly wants to self-host.
+Use this package for Chiho CRM or shared team workflows.
 
 - MCP URL: `https://api.chiho.ai/mcp`
 - Authentication: browser OAuth discovered from the server
@@ -22,6 +22,10 @@ Connect Telegram at `https://chiho.ai`, install or add the hosted connector, aut
 Claude.ai, Claude Desktop, and Cowork users can add `https://api.chiho.ai/mcp` as a custom connector. Claude Code and Codex users can install the hosted package from this repository's `chiho` marketplace.
 
 Advanced service tokens belong only to explicitly requested headless automation. Do not offer them as an alternative when interactive OAuth needs troubleshooting.
+
+## Hosted: Unofficial Telegram MCP
+
+Use `plugins/unofficial-telegram-mcp` for personal Telegram client work without Chiho CRM or team tools. Its OAuth resource is `https://telegram-mcp.chiho.ai/mcp/v2`. Complete a separate browser consent for this exact resource. Do not copy an OAuth grant from the Chiho CRM connection.
 
 ## Self-hosted: tgchats local
 
