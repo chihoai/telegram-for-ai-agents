@@ -10,7 +10,7 @@ The plugin declares one remote HTTP MCP server at `https://telegram-mcp.chiho.ai
 2. Add and enable this plugin in Claude, then connect `telegram-cloud` through browser OAuth. Review the requested permissions and the personal account before consenting.
 3. Ask Claude to check `auth_status` and `account_whoami`, then try a read-only request such as listing five recent dialogs.
 
-You can also add the [remote MCP endpoint](https://telegram-mcp.chiho.ai/mcp/v2) as a custom connector in Claude. Adding both the connector and this plugin should reference the same endpoint, so Claude can deduplicate the tool set.
+You can also add the [remote MCP endpoint](https://telegram-mcp.chiho.ai/mcp/v2) as a custom connector in Claude. The connector and this plugin reference the same endpoint so Anthropic can pair their directory listings; enable only the connection you intend to use.
 
 ## Capabilities and safety
 
