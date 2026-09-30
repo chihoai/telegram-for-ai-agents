@@ -161,11 +161,12 @@ After build:
 
 ## Agent packages
 
-The repository marketplace exposes two packages. Installing one never configures the other server.
+The repository marketplace exposes three packages. Choose the one that matches the intended product; installing one does not configure another server.
 
 | Package | Runtime | Authentication | MCP configuration |
 | --- | --- | --- | --- |
 | **Chiho Telegram** (`chiho-telegram`) | Hosted by Chiho | Browser OAuth | `https://api.chiho.ai/mcp` |
+| **Unofficial Telegram MCP** (`unofficial-telegram-mcp`) | Hosted personal Telegram client | Browser OAuth | `https://telegram-mcp.chiho.ai/mcp/v2` |
 | **tgchats local** (`tgchats-local`) | Local stdio process | Local Telegram login | `tgchats-mcp` |
 
 ### Codex
@@ -213,6 +214,8 @@ claude plugin install chiho-telegram@chiho
 
 Open `/mcp`, select `chiho-cloud`, and complete browser OAuth. For the self-hosted package, run the same build and `npm link` steps above, then install `tgchats-local@chiho` instead.
 
+For the separate personal Telegram client, install `unofficial-telegram-mcp@chiho`, open `/mcp`, select `telegram-cloud`, and complete OAuth for the exact `/mcp/v2` resource. This package does not include Chiho CRM or team tools.
+
 ### Claude.ai, Claude Desktop, and Cowork
 
 Add a custom connector with this exact URL:
@@ -220,6 +223,8 @@ Add a custom connector with this exact URL:
 ```text
 https://api.chiho.ai/mcp
 ```
+
+For Unofficial Telegram MCP, use `https://telegram-mcp.chiho.ai/mcp/v2` instead.
 
 Select **Connect** and complete OAuth in the browser. Do not enter a personal
 access token, custom bearer header, or OAuth client secret. Free, Pro, and Max
@@ -234,8 +239,7 @@ Advanced service tokens remain available only for explicitly requested headless 
 
 Direct custom-connector and marketplace testing does not require directory approval.
 
-- **Anthropic Connectors Directory:** this is separate from the plugin directory and uses its own connector review process.
-- **Claude Plugin Directory:** individual authors can create a free Console organization and submit at `https://platform.claude.com/plugins/submit`. The Claude.ai form at `https://claude.ai/admin-settings/directory/submissions/plugins/new` requires a Team or Enterprise organization plus directory-management access.
+- **Claude directory:** submit a hosted MCP server as a connector and its skill-bearing plugin folder as a separate bundle at `https://claude.ai/directory/manage`. A paid Claude plan can submit both; Anthropic reviews them before publication. A skill is bundled with the plugin rather than submitted on its own.
 - **OpenAI Plugins Directory:** complete business verification for the publishing OpenAI Platform organization, use an Owner or a role with Apps Management write access, then create a **With MCP** submission at `https://platform.openai.com/plugins` for `https://api.chiho.ai/mcp`.
 
 OpenAI does not require an existing ChatGPT app ID for a new MCP-backed submission. Both directories require production documentation, privacy and support details, accurate tool metadata, reviewer test instructions, and a production-ready OAuth flow.

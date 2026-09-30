@@ -258,12 +258,18 @@ assert(
   packageManifest.scripts?.prepare === "npm run build",
   "Package installs and release packing must build the declared dist binaries",
 );
-for (const marketplace of [codexMarketplace, claudeMarketplace]) {
+for (const [kind, marketplace] of [
+  ["codex", codexMarketplace],
+  ["claude", claudeMarketplace],
+]) {
   assert(marketplace.name === "chiho", "Marketplace name must be chiho");
+  const expectedPackages = kind === "claude"
+    ? ["chiho-telegram", "unofficial-telegram-mcp", "tgchats-local"]
+    : ["chiho-telegram", "tgchats-local"];
   assert(
     JSON.stringify(marketplace.plugins.map((entry) => entry.name)) ===
-      JSON.stringify(["chiho-telegram", "tgchats-local"]),
-    "Marketplace must expose exactly the hosted and local packages",
+      JSON.stringify(expectedPackages),
+    `${kind} marketplace must expose its declared hosted and local packages`,
   );
 }
 for (const [kind, marketplace] of [
@@ -350,6 +356,28 @@ assert(localCodexServer.cwd === ".", "Local Codex MCP cwd must be plugin root");
 
 const hostedClaudeManifest = JSON.parse(
   await fs.readFile(hostedClaudeManifestPath, "utf8"),
+);
+const personalClaudeRoot = path.join(projectRoot, "plugins", "unofficial-telegram-mcp");
+const personalClaudeManifest = JSON.parse(
+  await fs.readFile(path.join(personalClaudeRoot, ".claude-plugin", "plugin.json"), "utf8"),
+);
+const personalClaudeMcp = JSON.parse(
+  await fs.readFile(path.join(personalClaudeRoot, ".mcp.json"), "utf8"),
+);
+const personalClaudeServer = personalClaudeManifest.mcpServers?.["telegram-cloud"];
+const personalMcpServer = personalClaudeMcp.mcpServers?.["telegram-cloud"];
+assert(
+  personalClaudeManifest.name === "unofficial-telegram-mcp" &&
+    personalClaudeServer?.type === "http" &&
+    personalClaudeServer?.url === "https://telegram-mcp.chiho.ai/mcp/v2" &&
+    personalMcpServer?.url === personalClaudeServer.url,
+  "Personal Telegram plugin and connector must use the same versioned resource",
+);
+assert(
+  personalMcpServer.auth === "oauth" &&
+    personalMcpServer.default_tools_approval_mode === "writes" &&
+    !personalClaudeServer.command && !personalClaudeServer.headers,
+  "Personal Telegram plugin must use OAuth discovery and write approvals",
 );
 const hostedReadme = await fs.readFile(hostedReadmePath, "utf8");
 const hostedSecurity = await fs.readFile(hostedSecurityPath, "utf8");
@@ -923,7 +951,7 @@ try {
           authStatus,
           cliHelp: true,
           codexPlugins: [hostedCodexManifest.name, localCodexManifest.name],
-          claudePlugins: [hostedClaudeManifest.name, localClaudeManifest.name],
+          claudePlugins: claudeMarketplace.plugins.map((entry) => entry.name),
           contracts: contractNames.length,
           mcpInitialize: mcpConnection.serverInfo,
           pluginMcpInitialize: pluginConnection.serverInfo,
