@@ -60,7 +60,7 @@ Client notes:
 - OpenClaw: install the skill directory and configure the Chiho.ai Cloud MCP server or local `tgchats-mcp`.
 - Codex: add the repository marketplace and install either `chiho-telegram@chiho` or `tgchats-local@chiho`.
 - Claude Code: add the same repository marketplace and install the matching hosted or local package.
-- Claude.ai / Desktop / Cowork: add `https://api.chiho.ai/mcp` as a custom connector and complete browser OAuth.
+- Claude.ai / Desktop / Cowork: add `https://api.chiho.ai/mcp/v8` as a custom connector and complete browser OAuth.
 - Interactive hosted setup never requires an Agent Access token, bearer header, client secret, or token in the URL.
 - Local execution requires the separately installed `tgchats-local` package and a built or installed `tgchats-mcp` binary.
 

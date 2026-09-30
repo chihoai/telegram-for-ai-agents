@@ -11,7 +11,7 @@ Choose one product and avoid duplicate Telegram tool registrations.
 
 Use the hosted package by default when the user has or wants a Chiho account.
 
-- Connect to `https://api.chiho.ai/mcp` through browser OAuth.
+- Connect to `https://api.chiho.ai/mcp/v8` through browser OAuth.
 - Never ask an interactive user to mint or paste a personal access token.
 - Keep hosted sessions and CRM data in Chiho.
 - Use the `chiho-telegram` plugin package for Claude Code and Codex.

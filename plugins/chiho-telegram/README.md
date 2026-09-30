@@ -9,12 +9,28 @@ personal access token, Telegram API hash, or Telegram session into Claude.
 - Inspect dialogs, search messages, and read chat history.
 - Organize chats with folders, tags, companies, tasks, and summaries.
 - Review follow-ups and run CRM workflows.
+- Discover authorized teams and manage shared conversations, assignments, tasks,
+  templates, opportunities, and review queues.
 - Prepare guarded Telegram actions with an explicit preview, approval, and
   execution flow.
 
 Chiho.ai Telegram CRM is the hosted package. It does not install a local
 Telegram client, database, or background process. Use the separate
 `tgchats-local` plugin if you want to self-host the runtime.
+
+## Upgrade to CRM v8
+
+Version 1.1.0 connects to `https://api.chiho.ai/mcp/v8`. Existing users must
+reconnect `chiho-cloud` and approve access for this exact resource; grants for
+`https://api.chiho.ai/mcp` cannot be reused. Your Chiho data and connected
+Telegram account stay in Chiho. A new Telegram login is needed only if that
+session is already stale.
+
+For a connector installed from Claude’s directory, an endpoint update leaves
+the existing connection on its original URL, shown under **Custom**. Remove
+that connector, re-add Chiho from the directory after its v8 update is approved,
+and sign in again. Updating a plugin and updating its directory connector are
+separate release steps. See [Claude’s endpoint migration guide](https://claude.com/docs/connectors/directory#recognize-when-a-connectors-endpoint-changes).
 
 ## Requirements
 
@@ -47,7 +63,7 @@ select **Connect** for the bundled `chiho-cloud` connector. Complete Chiho
 sign-in and consent in the browser.
 
 Until the directory submission is approved, use a direct plugin upload or add
-the MCP connector at `https://api.chiho.ai/mcp` for testing.
+the MCP connector at `https://api.chiho.ai/mcp/v8` for testing.
 
 ## Example prompts
 
@@ -71,7 +87,8 @@ That should call `tasks_today` without performing a write.
   consenting.
 - Batch sends, member invitations, and group leaves use a preview, user review,
   approval, and execution flow.
-- Approval records consent but does not itself execute the Telegram action.
+- When a preview returns `approvalUrl`, the user must approve its exact details
+  in Chiho before the executor runs. Approval does not itself execute the action.
 - `message_send_draft` sends or schedules one message directly without creating
   a Chiho preview record. Use it only when the user explicitly asks to send or
   schedule one message to a specific chat and approves the client tool call.

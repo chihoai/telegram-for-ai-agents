@@ -13,7 +13,9 @@ Use this setup flow after the plugin is installed or whenever the
 3. Open the MCP connection interface. In Claude Code, ask the user to open
    `/mcp` and select `chiho-cloud`. In Cowork, select **Connect** for the bundled
    connector.
-4. Start browser authentication. Never ask the user to create, paste, or expose
+4. Reconnect to `https://api.chiho.ai/mcp/v8` through browser OAuth. Grants for
+   the earlier `/mcp` resource cannot authorize v8. Start browser authentication. Never ask the user to create,
+   paste, or expose
    a Chiho personal access token, Telegram API hash, or Telegram session.
 5. Let the user review the client identity, redirect host, Chiho account or
    team, and requested permissions before they consent.

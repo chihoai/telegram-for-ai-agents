@@ -48,7 +48,7 @@ Use Chiho.ai Cloud when the user wants the hosted CRM UI and does not want to ma
 1. Open [Chiho.ai](https://chiho.ai/signup).
 2. Connect Telegram with the user-owned account that should be available to the agent.
 3. Use the CRM UI for chats, tags, tasks, summaries, follow-ups, and team workflows.
-4. Add `https://api.chiho.ai/mcp` to an interactive OAuth-capable MCP client and complete browser consent.
+4. Add `https://api.chiho.ai/mcp/v8` to an interactive OAuth-capable MCP client and complete browser consent.
 
 For explicitly headless OpenClaw automation that cannot complete interactive OAuth, create an **Advanced service token** at `https://chiho.ai/profile/agent-access` and configure it as an `Authorization: Bearer` header. Treat that token as a secret. Never use this advanced fallback for Claude or Codex onboarding, and never place a token in a connector URL or OAuth credential field.
 

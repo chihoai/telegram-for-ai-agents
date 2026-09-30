@@ -8,7 +8,7 @@ The repository is a marketplace containing two separate plugin roots:
 
 | Package | Path | MCP server | Authentication |
 | --- | --- | --- | --- |
-| `chiho-telegram` | `plugins/chiho-telegram` | `https://api.chiho.ai/mcp` | Browser OAuth |
+| `chiho-telegram` | `plugins/chiho-telegram` | `https://api.chiho.ai/mcp/v8` | Browser OAuth |
 | `tgchats-local` | `plugins/tgchats-local` | Local stdio `tgchats-mcp` | Local Telegram session |
 
 Both packages have independent Codex and Claude manifests, MCP configuration, and one focused entry skill. Neither package references the other package's server.

@@ -44,7 +44,7 @@ ${release === "v8" ? "2. This is a personal connection. Use teams_list to discov
 4. Use team_conversation_get before changing ownership or task assignments. Preserve accountId as part of conversation identity. Read again on revision conflicts. Use team_tasks_list for my, unassigned and overdue work, and continue cursors even on empty filtered pages.
 5. Team administrators can rename, invite, remove members and set review policy with the corresponding team tools. Confirm the exact email before inviting and the exact target before destructive actions. ${release === "v8" ? "Accepting an invitation does not itself authorize this connection for the new team; confirm access with teams_list before using that teamId." : "Invitation acceptance uses a personal account-management connection; separately reconnect to the team afterward."} Never confuse Chiho membership invitations with Telegram group invitations.
 6. Use team_activity_list for recorded team history. Do not infer unrecorded historical actions. Explain unavailable plan capabilities neutrally; do not insert subscription advertisements or checkout links.
-7. Preview sends with outbox_preview, review the exact recipients/content/schedule, record initiating consent using write_approve_preview, and then call outbox_send_approved. A queued result is not a sent message. message_send_draft is only for an explicitly approved single send and still obeys server review policy.
+7. Preview sends with outbox_preview, review the exact recipients/content/schedule, ask the user to complete any returned approvalUrl in Chiho, and then call outbox_send_approved. A queued result is not a sent message. message_send_draft is only for an explicitly approved single send and still obeys server review policy.
 8. For mandatory team review, an administrator reads team_queue_list and obtains explicit approval of the exact saved content, account, recipient and schedule before team_queue_approve with its reviewId/contentHash. The initiating member's approval never substitutes for administrator approval. Use team_queue_cancel before execution. Preserve idempotency keys across retries. Check Telegram before resubmitting an unknown delivery outcome, and honor returned retry times.
 9. Deterministic stored CRM reads, assignments, tasks and team administration consume no Chiho AI credits. Tools that explicitly ask Chiho to run AI processing retain their existing credit behavior.
 10. C1 tools message_get, thread_read, scheduled_list and members_list use the authorized conversation scope. This release never exposes updates_poll.
@@ -57,7 +57,7 @@ Local validation is not proof of live client support. Record the client, install
   for (const filename of ["README.md", "SETUP.md", "skills/chiho-telegram/agents/openai.yaml"]) {
     const file = path.join(destination, filename);
     const text = await fs.readFile(file, "utf8");
-    await fs.writeFile(file, text.replaceAll("https://api.chiho.ai/mcp", resourceUrl));
+    await fs.writeFile(file, text.replace(/https:\/\/api\.chiho\.ai\/mcp(?:\/v[0-9]+)?/g, resourceUrl));
   }
   const record = { formatVersion: 1, release, environment, resourceUrl, version, companionCommit, backend: manifest, qualification: "pending", review: "not-submitted" };
   await fs.writeFile(path.join(destination, "candidate-release.json"), `${JSON.stringify(record, null, 2)}\n`);

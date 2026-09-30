@@ -319,9 +319,10 @@ assert(
   "Local Codex manifest MCP path changed",
 );
 
+assert(hostedCodexManifest.version === "1.1.0", "Hosted Codex package version must be 1.1.0");
 const hostedCodexServer = hostedCodexMcp?.mcpServers?.["chiho-cloud"];
 assert(
-  hostedCodexServer?.url === "https://api.chiho.ai/mcp",
+  hostedCodexServer?.url === "https://api.chiho.ai/mcp/v8",
   "Hosted Codex package must use the canonical MCP URL",
 );
 assert(
@@ -397,8 +398,8 @@ assert(
   "Hosted Claude package display name changed",
 );
 assert(
-  hostedClaudeManifest.version === "1.0.2",
-  "Hosted Claude package version must be 1.0.2",
+  hostedClaudeManifest.version === "1.1.0",
+  "Hosted Claude package version must be 1.1.0",
 );
 assert(
   hostedClaudeManifest.homepage === "https://chiho.ai/telegram-mcp",
@@ -445,11 +446,20 @@ assert(
 const hostedClaudeServer =
   hostedClaudeManifest.mcpServers?.["chiho-cloud"];
 assert(
+  hostedClaudeServer?.url === hostedCodexServer.url,
+  "Both hosted clients must use the same OAuth resource",
+);
+assert(
+  hostedReadme.includes("Existing users must") && hostedReadme.includes("reconnect"),
+  "The v8 release must explain reconnecting an existing installation",
+);
+
+assert(
   hostedClaudeServer?.type === "http",
   "Hosted Claude MCP transport must be HTTP",
 );
 assert(
-  hostedClaudeServer?.url === "https://api.chiho.ai/mcp",
+  hostedClaudeServer?.url === "https://api.chiho.ai/mcp/v8",
   "Hosted Claude package must use the canonical MCP URL",
 );
 assert(
@@ -586,7 +596,8 @@ for (const requiredTool of [
   "account_whoami",
   "dialogs_list",
   "sync_peer",
-  "write_approve_preview",
+  "team_dialogs_list",
+  "approvalUrl",
   "outbox_send_approved",
   "members_invite_approved",
   "groups_leave_approved",
