@@ -61,6 +61,7 @@ jobs:
       - name: Validate Claude plugin
         run: |
           npx -y @anthropic-ai/claude-code@2.1.220 plugin validate plugins/chiho-telegram --strict
+          npx -y @anthropic-ai/claude-code@2.1.220 plugin validate plugins/unofficial-telegram-mcp --strict
           npx -y @anthropic-ai/claude-code@2.1.220 plugin validate . --strict
 
       - name: Check local install surface
