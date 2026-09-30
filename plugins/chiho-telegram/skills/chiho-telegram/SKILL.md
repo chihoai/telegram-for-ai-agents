@@ -30,6 +30,13 @@ OAuth grants all currently supported Chiho capabilities. Continue to respect the
 - Treat logout, group leave, deletes, clears, unlinks, and replacements as destructive.
 - If Telegram authentication is stale, direct the user to Chiho's Telegram connection UI.
 
+## Team workflows
+
+- For a team-scoped connection, discover shared conversations with `crm_dialogs_list`; do not use personal `dialogs_list` or `sync_peer` as a fallback.
+- Use the `team_*` tools for membership, review queues, assignments, assigned tasks, activity, related conversations, custom fields, opportunities, shared templates, workload reporting, and unsharing.
+- Personal templates, personal report history, and personal custom-column definitions remain private. Team template tools manage an explicitly shared team template library, while team custom-field writes require the exact field key chosen by the user.
+- Billing checkout and subscription changes stay in Chiho's authenticated Billing page. A billing owner pays $9 per purchased member seat for one bound team; pending invitations reserve seats.
+
 ## Product boundary
 
 This package is the hosted Chiho product. It must not launch a local Node process or the self-hosted `tgchats` server. Use the separate `tgchats-local` plugin only when the user explicitly wants to operate their own runtime, database, and Telegram credentials.

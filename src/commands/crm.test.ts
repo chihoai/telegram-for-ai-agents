@@ -5,6 +5,7 @@ const dependencies = vi.hoisted(() => ({
   listPersistedDialogs: vi.fn(),
   migrate: vi.fn(),
   requireAccountId: vi.fn(),
+  printJson: vi.fn(),
 }));
 
 vi.mock("../db/inventory.js", () => ({
@@ -14,6 +15,7 @@ vi.mock("../db/migrate.js", () => ({ migrate: dependencies.migrate }));
 vi.mock("../app/account.js", () => ({
   requireAccountId: dependencies.requireAccountId,
 }));
+vi.mock("../output.js", () => ({ printJson: dependencies.printJson }));
 
 import { runCrm } from "./crm.js";
 
@@ -30,12 +32,8 @@ function context(): AppContext {
 }
 
 describe("persisted CRM dialog pagination", () => {
-  let logs: string[];
-
   beforeEach(() => {
     vi.clearAllMocks();
-    logs = [];
-    vi.spyOn(console, "log").mockImplementation((value: string) => logs.push(value));
     dependencies.migrate.mockResolvedValue(undefined);
     dependencies.requireAccountId.mockResolvedValue(1n);
     dependencies.listPersistedDialogs.mockResolvedValue({
@@ -60,7 +58,10 @@ describe("persisted CRM dialog pagination", () => {
 
   it("rejects continuation after a newer inventory snapshot is committed", async () => {
     await runCrm(context(), ["dialogs", "list", "--page-size", "1"]);
-    const firstPage = JSON.parse(logs.at(-1) ?? "");
+    const firstPage = dependencies.printJson.mock.calls[0]?.[0];
+    expect(firstPage).toMatchObject({ source: "chiho-crm", hasMore: true });
+    expect(firstPage?.nextCursor).toEqual(expect.any(String));
+    expect(firstPage.nextCursor.length).toBeGreaterThan(0);
 
     dependencies.listPersistedDialogs.mockResolvedValueOnce({
       total: 2,

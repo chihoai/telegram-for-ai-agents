@@ -9,6 +9,7 @@
     "tgchats-mcp": "dist/mcp/stdio.js"
   },
   "scripts": {
+    "build:chiho-crm-candidate": "node scripts/build-chiho-crm-candidate.mjs",
     "build": "tsc -p tsconfig.json",
     "check:local-install": "npm run build && npm run export:contracts && node scripts/check-local-install.mjs",
     "dev": "tsx src/cli.ts",

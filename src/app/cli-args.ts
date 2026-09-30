@@ -33,7 +33,9 @@ export function parseCommandArgs(
     if (arg.startsWith('-')) {
       if (valueOptions.has(arg)) {
         const value = args[index + 1];
-        if (!value || (value.startsWith('-') && !isNegativeIntegerToken(value))) {
+        // Opaque base64url cursors may legitimately begin with one or more "-".
+        const cursorValue = arg === '--cursor' && value !== '--' && !valueOptions.has(value);
+        if (!value || (value.startsWith('-') && !isNegativeIntegerToken(value) && !cursorValue)) {
           throw new Error(`Missing value for ${arg}`);
         }
         values.set(arg, value);
