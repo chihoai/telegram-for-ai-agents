@@ -11,7 +11,7 @@ Choose the product the user intends. Do not configure multiple Telegram packages
 
 Use this package for Chiho CRM or shared team workflows.
 
-- MCP URL: `https://api.chiho.ai/mcp`
+- MCP URL: `https://api.chiho.ai/mcp/v8`
 - Authentication: browser OAuth discovered from the server
 - Telegram session and CRM: hosted by Chiho
 - Package: `plugins/chiho-telegram`
@@ -19,7 +19,7 @@ Use this package for Chiho CRM or shared team workflows.
 
 Connect Telegram at `https://chiho.ai`, install or add the hosted connector, authenticate in the browser, and start with `auth_status`.
 
-Claude.ai, Claude Desktop, and Cowork users can add `https://api.chiho.ai/mcp` as a custom connector. Claude Code and Codex users can install the hosted package from this repository's `chiho` marketplace.
+Claude.ai, Claude Desktop, and Cowork users can add `https://api.chiho.ai/mcp/v8` as a custom connector. Claude Code and Codex users can install the hosted package from this repository's `chiho` marketplace.
 
 Advanced service tokens belong only to explicitly requested headless automation. Do not offer them as an alternative when interactive OAuth needs troubleshooting.
 

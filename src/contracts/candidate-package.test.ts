@@ -18,6 +18,12 @@ describe("isolated Chiho candidate packages", () => {
       const manifest = JSON.parse(await fs.readFile(path.join(output, filename), "utf8"));
       expect(manifest.mcpServers["chiho-cloud"].url).toBe(`https://stagingapi.chiho.ai/mcp/${release}`);
     }
+    for (const filename of ["README.md", "SETUP.md"]) {
+      const instructions = await fs.readFile(path.join(output, filename), "utf8");
+      expect(instructions).toContain(`https://stagingapi.chiho.ai/mcp/${release}`);
+      expect(instructions).not.toContain("https://api.chiho.ai/mcp");
+      expect(instructions).not.toContain(`/mcp/${release}/v8`);
+    }
     const skill = await fs.readFile(path.join(output, "skills/chiho-telegram/SKILL.md"), "utf8");
     expect(skill).toContain(release === "v8" ? "team_dialogs_list" : "crm_dialogs_list"); expect(skill).toContain("team_queue_approve");
     expect(skill.includes("Media tools require")).toBe(release !== "v2");
