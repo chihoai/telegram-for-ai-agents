@@ -22,7 +22,7 @@ async function fixture(name = "app-6a6991cf8748819194345fca1c8d7516", version = 
   return { publishedZip, output: path.join(dir, "replacement"), version: "2.0.1" };
 }
 describe("OpenAI replacement package", () => {
-  it("preserves the listing identity and assets and declares the v9 URL without app references", async () => {
+  it("preserves the listing identity and assets and declares the stable URL without app references", async () => {
     const args = await fixture();
     const result = await buildOpenAiReplacement(args);
     expect(result.endpointConfigurationVerified).toBe(false);
@@ -35,14 +35,17 @@ describe("OpenAI replacement package", () => {
     expect(manifest.interface.composerIcon).toBe("./assets/logo.svg");
     expect(manifest.apps).toBeUndefined();
     const mcp = JSON.parse(await fs.readFile(path.join(args.output, ".mcp.json"), "utf8"));
-    expect(mcp.mcpServers["chiho-cloud"].url).toBe("https://api.chiho.ai/mcp/v9");
+    expect(mcp.mcpServers["chiho-cloud"].url).toBe("https://api.chiho.ai/mcp");
     await expect(fs.access(path.join(args.output, ".app.json"))).rejects.toThrow();
     expect(await fs.readFile(path.join(args.output, "assets/logo.svg"), "utf8")).toContain("64 64");
     const skill = await fs.readFile(path.join(args.output, "skills/chiho-telegram/SKILL.md"), "utf8");
     expect(skill).toContain("get_profile");
     expect(skill).toContain("on every run and stop on mismatch");
-    expect(skill).toContain("https://api.chiho.ai/mcp/v9");
-    expect(skill).not.toContain("/mcp/v8");
+    expect(skill).toContain("https://api.chiho.ai/mcp");
+    expect(skill).not.toMatch(/\/mcp\/v[89]/);
+    expect(skill).toContain("chiho.crm.extended");
+    expect(skill).toContain("outbox_preview_extended");
+    expect(skill).toContain("bound team");
     await expect(buildOpenAiReplacement(args)).rejects.toThrow();
   });
   it("rejects a different package identity instead of creating a duplicate listing", async () => {
