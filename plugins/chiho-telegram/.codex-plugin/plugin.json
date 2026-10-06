@@ -1,6 +1,6 @@
 {
   "name": "chiho-telegram",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Connect Codex to Chiho's hosted Telegram CRM through browser OAuth.",
   "author": {
     "name": "Chiho",

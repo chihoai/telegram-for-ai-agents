@@ -20,7 +20,7 @@ Telegram client, database, or background process. Use the separate
 
 ## Upgrade to the stable MCP endpoint
 
-Version 2.0.0 connects to `https://api.chiho.ai/mcp`. The stable endpoint adds
+Version 2.0.1 connects to `https://api.chiho.ai/mcp`. The stable endpoint adds
 connection identity checks and explicitly authorized extended Telegram, CRM,
 personal workflow and team tools. Existing connections on this stable endpoint
 retain their permissions and selected-team binding. Refresh cannot add access;
