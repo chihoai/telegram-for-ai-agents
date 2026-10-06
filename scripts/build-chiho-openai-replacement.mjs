@@ -69,10 +69,12 @@ another saved connection.
     skill = skill.replace("## Writes and Telegram approval", `## Discover a public chat
 
 If a requested public user or group is outside the synced Chiho inventory,
-direct the user to Chiho's **All Telegram chats** search. Telegram Search Results
-appear alongside existing results. Select only the intended result and use the
-existing **Sync** action. This imports that chat without sending a message or
-joining a group. Then rediscover its scoped account and peer in Chiho before
+direct the user to Chiho's **All Telegram chats** search. When their UI offers
+Telegram Search Results, select only the intended result and use the existing
+**Sync** action. This imports that chat without sending a message or joining
+a group. If this UI is not yet available, explain the manual workaround: the
+user can send the initial message themselves in Telegram, then selectively sync
+the resulting chat in Chiho. Then rediscover its scoped account and peer before
 preparing a message. Do not run an account-wide sync, import unrelated history,
 change sharing, or add contacts to work around a scope rejection.
 
