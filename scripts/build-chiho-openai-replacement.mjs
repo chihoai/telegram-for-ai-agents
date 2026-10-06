@@ -45,44 +45,13 @@ export async function buildOpenAiReplacement({ publishedZip, output, version, ic
     }
     manifest.interface.composerIcon ??= manifest.interface.logo;
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
-    await fs.writeFile(path.join(scratch, ".mcp.json"), JSON.stringify({ mcpServers: { "chiho-cloud": { url: "https://api.chiho.ai/mcp/v9" } } }, null, 2) + "\n");
+    await fs.writeFile(path.join(scratch, ".mcp.json"), JSON.stringify({ mcpServers: { "chiho-cloud": { url: "https://api.chiho.ai/mcp" } } }, null, 2) + "\n");
 
-    let skill = await fs.readFile(path.join(root, "plugins/chiho-telegram/skills/chiho-telegram/SKILL.md"), "utf8");
-    skill = skill.replaceAll("v8", "v9");
-    skill = skill.replace("## Connect and choose the scope", `## Verify the connected account
-
-Call \`get_profile\` first. Its opaque \`id\` identifies the Chiho user and scope
-authorized by this OAuth connection. Confirm it is the intended profile before
-reading CRM data or acting. If an expected profile differs, stop and ask the user
-to select the correct saved connection. An \`accountId\` argument cannot switch
-Chiho connections. Names and emails may help identify a profile; do not copy
-them into unrelated outputs.
-
-For scheduled work, retain the user-verified expected profile ID and selected
-Telegram account ID in the existing task's instructions. Check \`get_profile\`
-on every run and stop on mismatch. Selection in another chat does not verify
-the existing task's binding. If this tool is unavailable, explain that the
-connection still needs the v9 update; do not guess the account or disconnect
-another saved connection.
-
-## Connect and choose the scope`);
-    skill = skill.replace("## Writes and Telegram approval", `## Discover a public chat
-
-If a requested public user or group is outside the synced Chiho inventory,
-direct the user to Chiho's **All Telegram chats** search. When their UI offers
-Telegram Search Results, select only the intended result and use the existing
-**Sync** action. This imports that chat without sending a message or joining
-a group. If this UI is not yet available, explain the manual workaround: the
-user can send the initial message themselves in Telegram, then selectively sync
-the resulting chat in Chiho. Then rediscover its scoped account and peer before
-preparing a message. Do not run an account-wide sync, import unrelated history,
-change sharing, or add contacts to work around a scope rejection.
-
-## Writes and Telegram approval`);
+    const skill = await fs.readFile(path.join(root, "scripts/templates/chiho-stable-openai-skill.md"), "utf8");
     await fs.writeFile(path.join(scratch, "skills/chiho-telegram/SKILL.md"), skill);
     await fs.mkdir(destination); // Never overwrite a previously reviewed package.
     await fs.cp(scratch, destination, { recursive: true });
-    return { name: manifest.name, version, appId, requiredResource: "https://api.chiho.ai/mcp/v9", endpointDeclaredByPackage: true, endpointConfigurationVerified: false };
+    return { name: manifest.name, version, appId, requiredResource: "https://api.chiho.ai/mcp", endpointDeclaredByPackage: true, endpointConfigurationVerified: false };
   } finally {
     await fs.rm(scratch, { recursive: true, force: true });
   }
