@@ -22,15 +22,21 @@ async function fixture(name = "app-6a6991cf8748819194345fca1c8d7516", version = 
   return { publishedZip, output: path.join(dir, "replacement"), version: "2.0.1" };
 }
 describe("OpenAI replacement package", () => {
-  it("preserves the listing identity and assets while adding profile checks without an endpoint override", async () => {
+  it("preserves the listing identity and assets and declares the v9 URL without app references", async () => {
     const args = await fixture();
     const result = await buildOpenAiReplacement(args);
-    expect(result.endpointConfiguredByPackage).toBe(false);
+    expect(result.endpointConfigurationVerified).toBe(false);
+    expect(result.endpointDeclaredByPackage).toBe(true);
     expect(result.appId).toBe("asdk_app_6a6991cf8748819194345fca1c8d7516");
     const manifest = JSON.parse(await fs.readFile(path.join(args.output, ".codex-plugin/plugin.json"), "utf8"));
     expect(manifest.name).toBe("app-6a6991cf8748819194345fca1c8d7516");
     expect(manifest.version).toBe("2.0.1");
     expect(manifest.interface.logo).toBe("./assets/logo.svg");
+    expect(manifest.interface.composerIcon).toBe("./assets/logo.svg");
+    expect(manifest.apps).toBeUndefined();
+    const mcp = JSON.parse(await fs.readFile(path.join(args.output, ".mcp.json"), "utf8"));
+    expect(mcp.mcpServers["chiho-cloud"].url).toBe("https://api.chiho.ai/mcp/v9");
+    await expect(fs.access(path.join(args.output, ".app.json"))).rejects.toThrow();
     expect(await fs.readFile(path.join(args.output, "assets/logo.svg"), "utf8")).toContain("64 64");
     const skill = await fs.readFile(path.join(args.output, "skills/chiho-telegram/SKILL.md"), "utf8");
     expect(skill).toContain("get_profile");
@@ -44,5 +50,17 @@ describe("OpenAI replacement package", () => {
   });
   it("rejects a version downgrade", async () => {
     await expect(buildOpenAiReplacement(await fixture(undefined, "3.0.0"))).rejects.toThrow("Increment");
+  });
+  it("requires a bundled icon when the old release ZIP does not contain one", async () => {
+    const args = await fixture();
+    const src = path.join(path.dirname(args.publishedZip), "source");
+    const p = path.join(src, ".codex-plugin/plugin.json");
+    const m = JSON.parse(await fs.readFile(p, "utf8"));
+    delete m.interface.logo;
+    await fs.writeFile(p, JSON.stringify(m));
+    execFileSync("zip", ["-qr", args.publishedZip, "."], { cwd: src });
+    await expect(buildOpenAiReplacement(args)).rejects.toThrow("existing Chiho icon");
+    await buildOpenAiReplacement({ ...args, icon: path.join(src, "assets/logo.svg") });
+    expect(await fs.readFile(path.join(args.output, "assets/chiho-logo.svg"), "utf8")).toContain("64 64");
   });
 });
