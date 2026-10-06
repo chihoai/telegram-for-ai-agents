@@ -165,7 +165,7 @@ The repository marketplace exposes three packages. Choose the one that matches t
 
 | Package | Runtime | Authentication | MCP configuration |
 | --- | --- | --- | --- |
-| **Chiho Telegram** (`chiho-telegram`) | Hosted by Chiho | Browser OAuth | `https://api.chiho.ai/mcp/v8` |
+| **Chiho Telegram** (`chiho-telegram`) | Hosted by Chiho | Browser OAuth | `https://api.chiho.ai/mcp` |
 | **Unofficial Telegram MCP** (`unofficial-telegram-mcp`) | Hosted personal Telegram client | Browser OAuth | `https://telegram-mcp.chiho.ai/mcp/v2` |
 | **tgchats local** (`tgchats-local`) | Local stdio process | Local Telegram login | `tgchats-mcp` |
 
@@ -193,17 +193,14 @@ in the Codex IDE extension. In a supported plugin client, select
 browser. For the IDE extension, add the hosted MCP server directly:
 
 ```bash
-codex mcp add chiho --url https://api.chiho.ai/mcp/v8
+codex mcp add chiho --url https://api.chiho.ai/mcp
 ```
 
 The package asks Codex to prompt for tools not marked read-only.
 
-Known client issue, verified on 2026-07-23: Codex CLI 0.144.6 can reject a
-fresh OAuth callback with an issuer-validation error even though Chiho returns
-the required issuer. If that happens, run
-`npx -y @openai/codex@0.142.5 mcp login <server-name>` with the Chiho server
-name shown by `codex mcp list`, then return to the current Codex client. The
-current client can reuse that stored grant normally.
+After connecting, call `get_profile`, `auth_status`, and `account_whoami` to
+verify the intended Chiho profile and Telegram account. Extended tools require
+explicit `chiho.crm.extended` consent and their individual permissions.
 
 ### Claude Code
 
@@ -221,7 +218,7 @@ For the separate personal Telegram client, install `unofficial-telegram-mcp@chih
 Add a custom connector with this exact URL:
 
 ```text
-https://api.chiho.ai/mcp/v8
+https://api.chiho.ai/mcp
 ```
 
 For Unofficial Telegram MCP, use `https://telegram-mcp.chiho.ai/mcp/v2` instead.
@@ -240,7 +237,7 @@ Advanced service tokens remain available only for explicitly requested headless 
 Direct custom-connector and marketplace testing does not require directory approval.
 
 - **Claude directory:** submit a hosted MCP server as a connector and its skill-bearing plugin folder as a separate bundle at `https://claude.ai/directory/manage`. A paid Claude plan can submit both; Anthropic reviews them before publication. A skill is bundled with the plugin rather than submitted on its own.
-- **OpenAI Plugins Directory:** complete business verification for the publishing OpenAI Platform organization, use an Owner or a role with Apps Management write access, then create a **With MCP** submission at `https://platform.openai.com/plugins` for `https://api.chiho.ai/mcp/v8`.
+- **OpenAI Plugins Directory:** complete business verification for the publishing OpenAI Platform organization, use an Owner or a role with Apps Management write access, then create a **With MCP** submission at `https://platform.openai.com/plugins` for `https://api.chiho.ai/mcp`. For the existing Chiho listing, update its existing registration and package rather than creating a duplicate; see [the replacement release guide](./docs/OPENAI_REPLACEMENT_RELEASE.md).
 
 OpenAI does not require an existing ChatGPT app ID for a new MCP-backed submission. Both directories require production documentation, privacy and support details, accurate tool metadata, reviewer test instructions, and a production-ready OAuth flow.
 
