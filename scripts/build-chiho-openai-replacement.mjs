@@ -6,7 +6,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-// Public submission requires an MCP URL; .app.json is for installed packages.
+// Legacy listings keep their MCP connection in the portal. Preserve the
+// published package's server declarations; adding one changes its identity.
 export async function buildOpenAiReplacement({ publishedZip, output, version, icon }) {
   if (!/^\d+\.\d+\.\d+$/.test(version || "")) throw new Error("Supply a stable package version.");
   const destination = path.resolve(output);
@@ -29,7 +30,15 @@ export async function buildOpenAiReplacement({ publishedZip, output, version, ic
     manifest.version = version;
     delete manifest.apps;
     await fs.rm(path.join(scratch, ".app.json"), { force: true });
-    manifest.mcpServers = "./.mcp.json";
+    const endpointDeclaredByPackage = manifest.mcpServers !== undefined;
+    if (endpointDeclaredByPackage) {
+      if (typeof manifest.mcpServers !== "string") throw new Error("Supply the published MCP configuration file reference.");
+      const configPath = path.resolve(scratch, manifest.mcpServers);
+      if (!configPath.startsWith(scratch + path.sep)) throw new Error("Invalid MCP configuration path.");
+      const config = JSON.parse(await fs.readFile(configPath, "utf8"));
+      const servers = Object.values(config.mcpServers || {});
+      if (servers.length !== 1 || servers[0]?.url !== "https://api.chiho.ai/mcp") throw new Error("The published MCP server must already use the stable endpoint; do not migrate it through a ZIP.");
+    }
     manifest.skills = "./skills";
     manifest.description = "Chiho AI connects your authorized Telegram accounts, personal conversation workflows, and shared Chiho team work. Verify the connected Chiho profile, inspect chats, search messages, organize CRM records and follow-ups, and preview consequential Telegram actions for approval.";
     manifest.interface.shortDescription = "Telegram CRM and workflows";
@@ -45,13 +54,12 @@ export async function buildOpenAiReplacement({ publishedZip, output, version, ic
     }
     manifest.interface.composerIcon ??= manifest.interface.logo;
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
-    await fs.writeFile(path.join(scratch, ".mcp.json"), JSON.stringify({ mcpServers: { "chiho-cloud": { url: "https://api.chiho.ai/mcp" } } }, null, 2) + "\n");
 
     const skill = await fs.readFile(path.join(root, "scripts/templates/chiho-stable-openai-skill.md"), "utf8");
     await fs.writeFile(path.join(scratch, "skills/chiho-telegram/SKILL.md"), skill);
     await fs.mkdir(destination); // Never overwrite a previously reviewed package.
     await fs.cp(scratch, destination, { recursive: true });
-    return { name: manifest.name, version, appId, requiredResource: "https://api.chiho.ai/mcp", endpointDeclaredByPackage: true, endpointConfigurationVerified: false };
+    return { name: manifest.name, version, appId, requiredResource: "https://api.chiho.ai/mcp", endpointDeclaredByPackage, endpointConfigurationVerified: false };
   } finally {
     await fs.rm(scratch, { recursive: true, force: true });
   }

@@ -22,11 +22,11 @@ async function fixture(name = "app-6a6991cf8748819194345fca1c8d7516", version = 
   return { publishedZip, output: path.join(dir, "replacement"), version: "2.0.1" };
 }
 describe("OpenAI replacement package", () => {
-  it("preserves the listing identity and assets and declares the stable URL without app references", async () => {
+  it("preserves the legacy managed connection without adding a bundled MCP server", async () => {
     const args = await fixture();
     const result = await buildOpenAiReplacement(args);
     expect(result.endpointConfigurationVerified).toBe(false);
-    expect(result.endpointDeclaredByPackage).toBe(true);
+    expect(result.endpointDeclaredByPackage).toBe(false);
     expect(result.appId).toBe("asdk_app_6a6991cf8748819194345fca1c8d7516");
     const manifest = JSON.parse(await fs.readFile(path.join(args.output, ".codex-plugin/plugin.json"), "utf8"));
     expect(manifest.name).toBe("app-6a6991cf8748819194345fca1c8d7516");
@@ -34,8 +34,8 @@ describe("OpenAI replacement package", () => {
     expect(manifest.interface.logo).toBe("./assets/logo.svg");
     expect(manifest.interface.composerIcon).toBe("./assets/logo.svg");
     expect(manifest.apps).toBeUndefined();
-    const mcp = JSON.parse(await fs.readFile(path.join(args.output, ".mcp.json"), "utf8"));
-    expect(mcp.mcpServers["chiho-cloud"].url).toBe("https://api.chiho.ai/mcp");
+    expect(manifest.mcpServers).toBeUndefined();
+    await expect(fs.access(path.join(args.output, ".mcp.json"))).rejects.toThrow();
     await expect(fs.access(path.join(args.output, ".app.json"))).rejects.toThrow();
     expect(await fs.readFile(path.join(args.output, "assets/logo.svg"), "utf8")).toContain("64 64");
     const skill = await fs.readFile(path.join(args.output, "skills/chiho-telegram/SKILL.md"), "utf8");
@@ -47,6 +47,31 @@ describe("OpenAI replacement package", () => {
     expect(skill).toContain("outbox_preview_extended");
     expect(skill).toContain("bound team");
     await expect(buildOpenAiReplacement(args)).rejects.toThrow();
+  });
+  it("preserves an already declared stable MCP server name and configuration", async () => {
+    const args = await fixture();
+    const src = path.join(path.dirname(args.publishedZip), "source");
+    const manifestPath = path.join(src, ".codex-plugin/plugin.json");
+    const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    manifest.mcpServers = "./.mcp.json";
+    await fs.writeFile(manifestPath, JSON.stringify(manifest));
+    const config = JSON.stringify({ mcpServers: { "original-server-name": { url: "https://api.chiho.ai/mcp" } } });
+    await fs.writeFile(path.join(src, ".mcp.json"), config);
+    execFileSync("zip", ["-qr", args.publishedZip, "."], { cwd: src });
+    const result = await buildOpenAiReplacement(args);
+    expect(result.endpointDeclaredByPackage).toBe(true);
+    expect(await fs.readFile(path.join(args.output, ".mcp.json"), "utf8")).toBe(config);
+  });
+  it("rejects a bundled versioned server instead of silently replacing it", async () => {
+    const args = await fixture();
+    const src = path.join(path.dirname(args.publishedZip), "source");
+    const manifestPath = path.join(src, ".codex-plugin/plugin.json");
+    const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    manifest.mcpServers = "./.mcp.json";
+    await fs.writeFile(manifestPath, JSON.stringify(manifest));
+    await fs.writeFile(path.join(src, ".mcp.json"), JSON.stringify({ mcpServers: { "original-server-name": { url: "https://api.chiho.ai/mcp/v9" } } }));
+    execFileSync("zip", ["-qr", args.publishedZip, "."], { cwd: src });
+    await expect(buildOpenAiReplacement(args)).rejects.toThrow("must already use the stable endpoint");
   });
   it("rejects a different package identity instead of creating a duplicate listing", async () => {
     await expect(buildOpenAiReplacement(await fixture("chiho-preview-v9"))).rejects.toThrow("existing published Chiho app ZIP");
