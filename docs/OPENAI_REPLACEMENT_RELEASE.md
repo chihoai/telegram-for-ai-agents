@@ -9,12 +9,16 @@ package as a replacement for that listing.
 node scripts/build-chiho-openai-replacement.mjs \
   --published-zip=/absolute/path/to/published-release.zip \
   --output=/absolute/path/to/new-package \
-  --version=2.0.1 \
+  --version=2.0.3 \
   --icon=/absolute/path/to/chiho-logo.svg
 ```
 
 This preserves the registered listing name, branding, assets and existing
-skills, updates the CRM skill for v9, and declares the production v9 MCP URL. Public submission rejects the
+skills, and updates the CRM skill for the stable production MCP endpoint. It
+preserves the published package's MCP declarations and server names. The
+legacy published ZIP has no MCP declaration because its connection is managed
+in the portal. Adding a declaration is rejected as adding or replacing a server,
+even when the URL matches. Public submission rejects the
 `.app.json` mapping used by installed OpenAI packages, so the builder removes
 it. Supply the existing square Chiho logo if the downloaded ZIP lacks one. It does not update the Claude
 package, its marketplace release, or any user's OAuth configuration.
@@ -24,8 +28,11 @@ backend source SHA, immutable image digest, contract digest and actual
 staging/production qualification evidence in a separate release record.
 Never include credentials or private customer evidence in the ZIP.
 
-The manifest and generated skill require `https://api.chiho.ai/mcp/v9`.
-A URL declaration alone does not establish the portal’s resulting configuration. OpenAI's current documented
+The generated skill requires `https://api.chiho.ai/mcp` and explicit
+`chiho.crm.extended` consent for new tools. Verify that the existing portal
+registration uses this exact URL. A package with an existing server declaration
+must already use this URL; the builder refuses versioned endpoint migrations.
+A URL declaration alone does not establish the portal's resulting configuration. OpenAI's current documented
 flow requires Support for an existing MCP URL change. A legacy review form
 can retain a different submitted URL from the published configuration shown
 in the new management page. Verify both before replacement, and verify the
