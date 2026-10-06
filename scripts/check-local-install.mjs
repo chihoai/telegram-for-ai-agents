@@ -319,7 +319,7 @@ assert(
   "Local Codex manifest MCP path changed",
 );
 
-assert(hostedCodexManifest.version === "2.0.0", "Hosted Codex package version must be 2.0.0");
+assert(hostedCodexManifest.version === "2.0.1", "Hosted Codex package version must be 2.0.1");
 const hostedCodexServer = hostedCodexMcp?.mcpServers?.["chiho-cloud"];
 assert(
   hostedCodexServer?.url === "https://api.chiho.ai/mcp",

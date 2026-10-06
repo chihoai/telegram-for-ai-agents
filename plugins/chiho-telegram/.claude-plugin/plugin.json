@@ -1,7 +1,7 @@
 {
   "name": "chiho-telegram",
   "displayName": "Chiho.ai Telegram CRM",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Connect Claude to Chiho's hosted Telegram CRM through browser OAuth.",
   "author": {
     "name": "Chiho",
@@ -11,6 +11,11 @@
   "repository": "https://github.com/chihoai/telegram-for-ai-agents",
   "license": "MIT",
   "keywords": ["telegram", "crm", "mcp", "oauth", "follow-up"],
+  "icon": "./.claude-plugin/icon.png",
+  "documentationUrl": "https://www.chiho.ai/telegram-mcp",
+  "supportUrl": "https://t.me/chihoai",
+  "privacyPolicyUrl": "https://www.chiho.ai/privacy",
+  "termsOfServiceUrl": "https://www.chiho.ai/terms",
   "defaultEnabled": false,
   "mcpServers": {
     "chiho-cloud": {
