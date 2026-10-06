@@ -13,17 +13,23 @@ Use this setup flow after the plugin is installed or whenever the
 3. Open the MCP connection interface. In Claude Code, ask the user to open
    `/mcp` and select `chiho-cloud`. In Cowork, select **Connect** for the bundled
    connector.
-4. Reconnect to `https://api.chiho.ai/mcp/v8` through browser OAuth. Grants for
-   the earlier `/mcp` resource cannot authorize v8. Start browser authentication. Never ask the user to create,
-   paste, or expose
-   a Chiho personal access token, Telegram API hash, or Telegram session.
+4. Connect to `https://api.chiho.ai/mcp` through browser OAuth. An existing stable
+   connection keeps its scope; reconnect only when required permissions are
+   missing. Grants for versioned resources such as `/mcp/v8` cannot authorize
+   this stable resource. Never ask the user to create, paste, or expose a Chiho
+   personal access token, Telegram API hash, or Telegram session.
 5. Let the user review the client identity, redirect host, Chiho account or
-   team, and requested permissions before they consent.
-6. After the browser returns to Claude, call `auth_status` and then
-   `account_whoami`.
-7. If both calls succeed, optionally run a read-only smoke test with
-   `dialogs_list` limited to five dialogs. Do not perform a write as part of
-   setup.
+   team, and requested permissions before they consent. Extended tools require
+   explicit `chiho.crm.extended` consent as well as their individual permissions.
+6. After the browser returns to Claude, call `get_profile`, confirm the intended
+   profile, then call `auth_status` and `account_whoami`. Stop on an unexpected
+   profile; selecting a Telegram account cannot switch Chiho connections.
+7. If the identity and account checks succeed, optionally run a read-only smoke
+   test with `dialogs_list` limited to five dialogs. Do not perform a write as
+   part of setup.
+
+For scheduled work, retain the expected profile ID and selected Telegram account
+ID in the task itself. Verify `get_profile` on every run and stop on mismatch.
 
 If authentication fails, reopen the MCP connection and retry browser OAuth. If
 the user previously revoked the grant, reconnect instead of falling back to a

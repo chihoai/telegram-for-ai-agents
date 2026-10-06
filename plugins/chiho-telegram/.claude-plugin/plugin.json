@@ -1,7 +1,7 @@
 {
   "name": "chiho-telegram",
   "displayName": "Chiho.ai Telegram CRM",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Connect Claude to Chiho's hosted Telegram CRM through browser OAuth.",
   "author": {
     "name": "Chiho",
@@ -15,7 +15,7 @@
   "mcpServers": {
     "chiho-cloud": {
       "type": "http",
-      "url": "https://api.chiho.ai/mcp/v8"
+      "url": "https://api.chiho.ai/mcp"
     }
   }
 }

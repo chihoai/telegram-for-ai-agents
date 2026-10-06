@@ -319,10 +319,10 @@ assert(
   "Local Codex manifest MCP path changed",
 );
 
-assert(hostedCodexManifest.version === "1.1.0", "Hosted Codex package version must be 1.1.0");
+assert(hostedCodexManifest.version === "2.0.0", "Hosted Codex package version must be 2.0.0");
 const hostedCodexServer = hostedCodexMcp?.mcpServers?.["chiho-cloud"];
 assert(
-  hostedCodexServer?.url === "https://api.chiho.ai/mcp/v8",
+  hostedCodexServer?.url === "https://api.chiho.ai/mcp",
   "Hosted Codex package must use the canonical MCP URL",
 );
 assert(
@@ -398,8 +398,8 @@ assert(
   "Hosted Claude package display name changed",
 );
 assert(
-  hostedClaudeManifest.version === "1.1.0",
-  "Hosted Claude package version must be 1.1.0",
+  hostedClaudeManifest.version === hostedCodexManifest.version,
+  "Hosted Claude and Codex package versions must agree",
 );
 assert(
   hostedClaudeManifest.homepage === "https://chiho.ai/telegram-mcp",
@@ -415,7 +415,7 @@ assert(
   "Hosted Claude README must document the disabled-by-default version boundary",
 );
 assert(
-  hostedReadme.includes("`message_send_draft` sends or schedules") &&
+  hostedReadme.includes("`message_send_draft_extended` sends or schedules") &&
     hostedReadme.includes("Chiho preview record"),
   "Hosted Claude README must document the direct-send exception",
 );
@@ -450,8 +450,11 @@ assert(
   "Both hosted clients must use the same OAuth resource",
 );
 assert(
-  hostedReadme.includes("Existing users must") && hostedReadme.includes("reconnect"),
-  "The v8 release must explain reconnecting an existing installation",
+  hostedReadme.includes("Users upgrading from the versioned") &&
+    hostedReadme.includes("reconnect") &&
+    hostedReadme.includes("Versioned grants cannot") &&
+    hostedReadme.includes("retain their permissions and selected-team binding"),
+  "The stable release must distinguish versioned migrations from retained stable grants",
 );
 
 assert(
@@ -459,7 +462,7 @@ assert(
   "Hosted Claude MCP transport must be HTTP",
 );
 assert(
-  hostedClaudeServer?.url === "https://api.chiho.ai/mcp/v8",
+  hostedClaudeServer?.url === "https://api.chiho.ai/mcp",
   "Hosted Claude package must use the canonical MCP URL",
 );
 assert(
@@ -592,6 +595,8 @@ for (const instructionPath of publicInstructionPaths) {
 }
 const hostedSkill = await fs.readFile(hostedSkillPath, "utf8");
 for (const requiredTool of [
+  "get_profile",
+  "chiho.crm.extended",
   "auth_status",
   "account_whoami",
   "dialogs_list",
@@ -602,6 +607,9 @@ for (const requiredTool of [
   "members_invite_approved",
   "groups_leave_approved",
   "message_send_draft",
+  "outbox_preview_extended",
+  "outbox_send_approved_extended",
+  "message_send_draft_extended",
 ]) {
   assert(
     hostedSkill.includes(requiredTool),

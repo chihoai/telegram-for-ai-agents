@@ -18,17 +18,23 @@ Chiho.ai Telegram CRM is the hosted package. It does not install a local
 Telegram client, database, or background process. Use the separate
 `tgchats-local` plugin if you want to self-host the runtime.
 
-## Upgrade to CRM v8
+## Upgrade to the stable MCP endpoint
 
-Version 1.1.0 connects to `https://api.chiho.ai/mcp/v8`. Existing users must
-reconnect `chiho-cloud` and approve access for this exact resource; grants for
-`https://api.chiho.ai/mcp` cannot be reused. Your Chiho data and connected
-Telegram account stay in Chiho. A new Telegram login is needed only if that
-session is already stale.
+Version 2.0.0 connects to `https://api.chiho.ai/mcp`. The stable endpoint adds
+connection identity checks and explicitly authorized extended Telegram, CRM,
+personal workflow and team tools. Existing connections on this stable endpoint
+retain their permissions and selected-team binding. Refresh cannot add access;
+new tools require explicit `chiho.crm.extended` consent and their individual
+permissions.
+
+Users upgrading from the versioned `/mcp/v8` or `/mcp/v9` endpoints must
+reconnect `chiho-cloud` for the stable resource. Versioned grants cannot
+authorize the stable endpoint. Your Chiho data and connected Telegram accounts
+stay in Chiho. A new Telegram login is needed only if that session is stale.
 
 For a connector installed from Claude’s directory, an endpoint update leaves
 the existing connection on its original URL, shown under **Custom**. Remove
-that connector, re-add Chiho from the directory after its v8 update is approved,
+that connector, re-add Chiho from the directory after its stable endpoint update is approved,
 and sign in again. Updating a plugin and updating its directory connector are
 separate release steps. See [Claude’s endpoint migration guide](https://claude.com/docs/connectors/directory#recognize-when-a-connectors-endpoint-changes).
 
@@ -63,7 +69,7 @@ select **Connect** for the bundled `chiho-cloud` connector. Complete Chiho
 sign-in and consent in the browser.
 
 Until the directory submission is approved, use a direct plugin upload or add
-the MCP connector at `https://api.chiho.ai/mcp/v8` for testing.
+the MCP connector at `https://api.chiho.ai/mcp` for testing.
 
 ## Example prompts
 
@@ -71,7 +77,8 @@ Start with these read-only checks:
 
 > Check my Chiho connection and tell me which Telegram account is connected.
 
-Claude should call `auth_status` and then `account_whoami`.
+Claude should call `get_profile`, `auth_status`, and then `account_whoami`.
+It must stop if the returned profile differs from the expected saved connection.
 
 > List my five most recent Telegram dialogs. Do not change anything.
 
@@ -85,11 +92,18 @@ That should call `tasks_today` without performing a write.
 
 - Review the Chiho account or team and the requested permissions before
   consenting.
+- For scheduled work, retain the intended profile and Telegram account IDs in
+  that task's instructions. Check `get_profile` on every run and stop on a
+  mismatch. A selection in another chat does not verify the task's connection.
 - Batch sends, member invitations, and group leaves use a preview, user review,
   approval, and execution flow.
 - When a preview returns `approvalUrl`, the user must approve its exact details
   in Chiho before the executor runs. Approval does not itself execute the action.
-- `message_send_draft` sends or schedules one message directly without creating
+- Use `outbox_preview_extended` and `outbox_send_approved_extended` for expanded
+  previews and team-review results. Keep each preview and executor in the same
+  tool family and saved connection. Original tool schemas remain available to
+  existing stable connections.
+- `message_send_draft_extended` sends or schedules one message directly without creating
   a Chiho preview record. Use it only when the user explicitly asks to send or
   schedule one message to a specific chat and approves the client tool call.
 - Treat logout, group leave, deletes, clears, unlinks, and replacements as
