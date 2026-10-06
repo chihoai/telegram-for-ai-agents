@@ -9,12 +9,14 @@ package as a replacement for that listing.
 node scripts/build-chiho-openai-replacement.mjs \
   --published-zip=/absolute/path/to/published-release.zip \
   --output=/absolute/path/to/new-package \
-  --version=2.0.1
+  --version=2.0.1 \
+  --icon=/absolute/path/to/chiho-logo.svg
 ```
 
 This preserves the registered listing name, branding, assets and existing
-skills, updates the CRM skill for v9, and includes the same registered MCP app
-mapping used by installed OpenAI packages. It does not update the Claude
+skills, updates the CRM skill for v9, and declares the production v9 MCP URL. Public submission rejects the
+`.app.json` mapping used by installed OpenAI packages, so the builder removes
+it. Supply the existing square Chiho logo if the downloaded ZIP lacks one. It does not update the Claude
 package, its marketplace release, or any user's OAuth configuration.
 
 ZIP the contents of the new directory, including hidden files. Keep the
@@ -22,8 +24,8 @@ backend source SHA, immutable image digest, contract digest and actual
 staging/production qualification evidence in a separate release record.
 Never include credentials or private customer evidence in the ZIP.
 
-The generated skill requires `https://api.chiho.ai/mcp/v9`. The app mapping
-does not configure or retarget that endpoint. OpenAI's current documented
+The manifest and generated skill require `https://api.chiho.ai/mcp/v9`.
+A URL declaration alone does not establish the portal’s resulting configuration. OpenAI's current documented
 flow requires Support for an existing MCP URL change. A legacy review form
 can retain a different submitted URL from the published configuration shown
 in the new management page. Verify both before replacement, and verify the
