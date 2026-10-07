@@ -11,3 +11,5 @@ export function buildOpenAiReplacement(options: {
   endpointDeclaredByPackage: boolean;
   endpointConfigurationVerified: boolean;
 }>;
+
+export const buildUnofficialTelegramOpenAiReplacement: typeof buildOpenAiReplacement;

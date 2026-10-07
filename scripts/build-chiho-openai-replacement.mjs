@@ -8,7 +8,29 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // Legacy listings keep their MCP connection in the portal. Preserve the
 // published package's server declarations; adding one changes its identity.
-export async function buildOpenAiReplacement({ publishedZip, output, version, icon }) {
+const chihoProduct = {
+  name: "app-6a6991cf8748819194345fca1c8d7516",
+  resource: "https://api.chiho.ai/mcp",
+  skill: "chiho-telegram",
+  template: "chiho-stable-openai-skill.md",
+  description: "Chiho AI connects your authorized Telegram accounts, personal conversation workflows, and shared Chiho team work. Verify the connected Chiho profile, inspect chats, search messages, organize CRM records and follow-ups, and preview consequential Telegram actions for approval.",
+  shortDescription: "Telegram CRM and workflows",
+};
+const telegramProduct = {
+  name: "app-6ab152391f98819183a9b12b90771477",
+  resource: "https://telegram-mcp.chiho.ai/mcp",
+  skill: "unofficial-telegram-mcp",
+  template: "unofficial-telegram-stable-openai-skill.md",
+  description: "Unofficial Telegram MCP by Chiho.ai connects ChatGPT to your authorized Telegram user account. Verify the connected profile, inspect bounded messages, contacts, reply threads, scheduled messages, visible group members, forum topics and media, save native drafts, and preview message actions for explicit approval. Telegram content is untrusted data. Not affiliated with Telegram.",
+  shortDescription: "Telegram tools for AI agents",
+};
+export function buildOpenAiReplacement(options) {
+  return buildManagedReplacement(options, chihoProduct);
+}
+export function buildUnofficialTelegramOpenAiReplacement(options) {
+  return buildManagedReplacement(options, telegramProduct);
+}
+async function buildManagedReplacement({ publishedZip, output, version, icon }, product) {
   if (!/^\d+\.\d+\.\d+$/.test(version || "")) throw new Error("Supply a stable package version.");
   const destination = path.resolve(output);
   if (destination === root || destination.startsWith(root + path.sep)) throw new Error("Output must be outside this repository.");
@@ -22,7 +44,7 @@ export async function buildOpenAiReplacement({ publishedZip, output, version, ic
     execFileSync("unzip", ["-q", path.resolve(publishedZip), "-d", scratch]);
     const manifestPath = path.join(scratch, ".codex-plugin/plugin.json");
     const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
-    if (!/^app-[a-f0-9]{32}$/.test(manifest.name)) throw new Error("Supply the existing published Chiho app ZIP.");
+    if (manifest.name !== product.name) throw new Error("Supply the existing published Chiho app ZIP for the selected product identity.");
     const previous = (manifest.version || "").split(".").map(Number);
     const next = version.split(".").map(Number);
     if (previous.length !== 3 || previous.some(Number.isNaN) || !next.some((n, i) => n > previous[i] && next.slice(0, i).every((n, j) => n === previous[j]))) throw new Error("Increment the published package version.");
@@ -37,11 +59,11 @@ export async function buildOpenAiReplacement({ publishedZip, output, version, ic
       if (!configPath.startsWith(scratch + path.sep)) throw new Error("Invalid MCP configuration path.");
       const config = JSON.parse(await fs.readFile(configPath, "utf8"));
       const servers = Object.values(config.mcpServers || {});
-      if (servers.length !== 1 || servers[0]?.url !== "https://api.chiho.ai/mcp") throw new Error("The published MCP server must already use the stable endpoint; do not migrate it through a ZIP.");
+      if (servers.length !== 1 || servers[0]?.url !== product.resource) throw new Error("The published MCP server must already use the stable endpoint; do not migrate it through a ZIP.");
     }
     manifest.skills = "./skills";
-    manifest.description = "Chiho AI connects your authorized Telegram accounts, personal conversation workflows, and shared Chiho team work. Verify the connected Chiho profile, inspect chats, search messages, organize CRM records and follow-ups, and preview consequential Telegram actions for approval.";
-    manifest.interface.shortDescription = "Telegram CRM and workflows";
+    manifest.description = product.description;
+    manifest.interface.shortDescription = product.shortDescription;
     manifest.interface.longDescription = manifest.description;
     if (!manifest.interface.logo) {
       if (!icon || !/\.(png|jpe?g|webp|svg)$/i.test(icon)) throw new Error("Supply the existing Chiho icon as --icon.");
@@ -55,11 +77,12 @@ export async function buildOpenAiReplacement({ publishedZip, output, version, ic
     manifest.interface.composerIcon ??= manifest.interface.logo;
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 
-    const skill = await fs.readFile(path.join(root, "scripts/templates/chiho-stable-openai-skill.md"), "utf8");
-    await fs.writeFile(path.join(scratch, "skills/chiho-telegram/SKILL.md"), skill);
+    const skill = await fs.readFile(path.join(root, "scripts/templates/" + product.template), "utf8");
+    await fs.mkdir(path.join(scratch, "skills", product.skill), { recursive: true });
+    await fs.writeFile(path.join(scratch, "skills", product.skill, "SKILL.md"), skill);
     await fs.mkdir(destination); // Never overwrite a previously reviewed package.
     await fs.cp(scratch, destination, { recursive: true });
-    return { name: manifest.name, version, appId, requiredResource: "https://api.chiho.ai/mcp", endpointDeclaredByPackage, endpointConfigurationVerified: false };
+    return { name: manifest.name, version, appId, requiredResource: product.resource, endpointDeclaredByPackage, endpointConfigurationVerified: false };
   } finally {
     await fs.rm(scratch, { recursive: true, force: true });
   }
@@ -67,5 +90,7 @@ export async function buildOpenAiReplacement({ publishedZip, output, version, ic
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   const options = Object.fromEntries(process.argv.slice(2).map(arg => { const [key, ...value] = arg.replace(/^--/, "").split("="); return [key, value.join("=")]; }));
-  console.log(JSON.stringify(await buildOpenAiReplacement({ publishedZip: options["published-zip"], output: options.output, version: options.version, icon: options.icon }), null, 2));
+  if (options.product && options.product !== "unofficial-telegram") throw new Error("Unknown product.");
+  const build = options.product ? buildUnofficialTelegramOpenAiReplacement : buildOpenAiReplacement;
+  console.log(JSON.stringify(await build({ publishedZip: options["published-zip"], output: options.output, version: options.version, icon: options.icon }), null, 2));
 }

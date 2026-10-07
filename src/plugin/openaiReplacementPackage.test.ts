@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { afterEach, describe, expect, it } from "vitest";
-import { buildOpenAiReplacement } from "../../scripts/build-chiho-openai-replacement.mjs";
+import { buildOpenAiReplacement, buildUnofficialTelegramOpenAiReplacement } from "../../scripts/build-chiho-openai-replacement.mjs";
 
 const scratch: string[] = [];
 afterEach(async () => { await Promise.all(scratch.splice(0).map(p => fs.rm(p, { recursive: true, force: true }))); });
@@ -90,5 +90,32 @@ describe("OpenAI replacement package", () => {
     await expect(buildOpenAiReplacement(args)).rejects.toThrow("existing Chiho icon");
     await buildOpenAiReplacement({ ...args, icon: path.join(src, "assets/logo.svg") });
     expect(await fs.readFile(path.join(args.output, "assets/chiho-logo.svg"), "utf8")).toContain("64 64");
+  });
+});
+
+
+describe("Unofficial Telegram OpenAI replacement", () => {
+  it("preserves the exact unpublished app identity and portal-managed server while adding its stable skill and bundled icon", async () => {
+    const args = await fixture("app-6ab152391f98819183a9b12b90771477", "1.0.0");
+    const source = path.join(path.dirname(args.publishedZip), "source");
+    await fs.rm(path.join(source, "skills"), { recursive: true });
+    execFileSync("zip", ["-qr", args.publishedZip, "."], { cwd: source });
+    const result = await buildUnofficialTelegramOpenAiReplacement(args);
+    expect(result).toMatchObject({ appId: "asdk_app_6ab152391f98819183a9b12b90771477", requiredResource: "https://telegram-mcp.chiho.ai/mcp", endpointDeclaredByPackage: false, endpointConfigurationVerified: false });
+    const manifest = JSON.parse(await fs.readFile(path.join(args.output, ".codex-plugin/plugin.json"), "utf8"));
+    expect(manifest.name).toBe("app-6ab152391f98819183a9b12b90771477");
+    expect(manifest.mcpServers).toBeUndefined();
+    expect(manifest.apps).toBeUndefined();
+    const skill = await fs.readFile(path.join(args.output, "skills/unofficial-telegram-mcp/SKILL.md"), "utf8");
+    expect(skill).toContain("https://telegram-mcp.chiho.ai/mcp");
+    expect(skill).toContain("get_profile");
+    expect(skill).toContain("on every run; stop on mismatch");
+    expect(skill).toContain("explicitly reconnects");
+    expect(skill).toContain("does not require `chiho.crm.extended`");
+    expect(skill).not.toContain("https://api.chiho.ai/mcp");
+  });
+  it("rejects the separate Chiho AI package instead of changing its product", async () => {
+    await expect(buildUnofficialTelegramOpenAiReplacement(await fixture())).rejects.toThrow("selected product identity");
+    await expect(buildOpenAiReplacement(await fixture("app-6ab152391f98819183a9b12b90771477"))).rejects.toThrow("selected product identity");
   });
 });
