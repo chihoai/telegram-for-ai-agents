@@ -2,7 +2,7 @@
   "mcpServers": {
     "telegram-cloud": {
       "type": "http",
-      "url": "https://telegram-mcp.chiho.ai/mcp/v2",
+      "url": "https://telegram-mcp.chiho.ai/mcp",
       "auth": "oauth",
       "default_tools_approval_mode": "writes"
     }

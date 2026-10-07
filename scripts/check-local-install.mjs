@@ -370,9 +370,9 @@ const personalMcpServer = personalClaudeMcp.mcpServers?.["telegram-cloud"];
 assert(
   personalClaudeManifest.name === "unofficial-telegram-mcp" &&
     personalClaudeServer?.type === "http" &&
-    personalClaudeServer?.url === "https://telegram-mcp.chiho.ai/mcp/v2" &&
+    personalClaudeServer?.url === "https://telegram-mcp.chiho.ai/mcp" &&
     personalMcpServer?.url === personalClaudeServer.url,
-  "Personal Telegram plugin and connector must use the same versioned resource",
+  "Personal Telegram plugin and connector must use the same stable resource",
 );
 assert(
   personalMcpServer.auth === "oauth" &&
