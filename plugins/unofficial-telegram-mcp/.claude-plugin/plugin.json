@@ -1,7 +1,7 @@
 {
   "name": "unofficial-telegram-mcp",
   "displayName": "Unofficial Telegram MCP",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Use your connected Telegram account in Claude through Chiho.ai's hosted OAuth MCP.",
   "author": {
     "name": "Chiho.ai",
@@ -11,11 +11,16 @@
   "repository": "https://github.com/chihoai/telegram-for-ai-agents",
   "license": "MIT",
   "keywords": ["telegram", "mcp", "oauth", "messaging"],
+  "icon": "./assets/chiho-logo.png",
+  "documentationUrl": "https://www.chiho.ai/telegram-mcp",
+  "supportUrl": "https://www.chiho.ai/contact",
+  "privacyPolicyUrl": "https://www.chiho.ai/privacy",
+  "termsOfServiceUrl": "https://www.chiho.ai/terms",
   "defaultEnabled": false,
   "mcpServers": {
     "telegram-cloud": {
       "type": "http",
-      "url": "https://telegram-mcp.chiho.ai/mcp/v2"
+      "url": "https://telegram-mcp.chiho.ai/mcp"
     }
   }
 }
