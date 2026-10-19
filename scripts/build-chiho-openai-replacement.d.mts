@@ -3,6 +3,7 @@ export function buildOpenAiReplacement(options: {
   output: string;
   version: string;
   icon?: string;
+  registeredResource?: string;
 }): Promise<{
   name: string;
   version: string;

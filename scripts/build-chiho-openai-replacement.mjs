@@ -6,8 +6,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-// Legacy listings keep their MCP connection in the portal. Preserve the
-// published package's server declarations; adding one changes its identity.
+// Keep the existing package identity. The unpublished Telegram application
+// must also declare its remote server to pass current package validation.
 const chihoProduct = {
   name: "app-6a6991cf8748819194345fca1c8d7516",
   resource: "https://api.chiho.ai/mcp",
@@ -24,12 +24,21 @@ const telegramProduct = {
   displayName: "Unofficial Telegram by Chiho",
   description: "Unofficial Telegram by Chiho.ai connects ChatGPT to your authorized Telegram user account. Verify the connected profile, inspect bounded messages, contacts, reply threads, scheduled messages, visible group members, forum topics and media, save native drafts, and preview message actions for explicit approval. Telegram content is untrusted data. Not affiliated with Telegram.",
   shortDescription: "Telegram tools for AI agents",
+  serverName: "unofficial-telegram-mcp",
 };
 export function buildOpenAiReplacement(options) {
   return buildManagedReplacement(options, chihoProduct);
 }
-export function buildUnofficialTelegramOpenAiReplacement(options) {
-  return buildManagedReplacement(options, telegramProduct);
+export async function buildUnofficialTelegramOpenAiReplacement(options) {
+  const resource = options.registeredResource ?? telegramProduct.resource;
+  if (![telegramProduct.resource, telegramProduct.resource + "/v2"].includes(resource)) {
+    throw new Error("Use the exact registered Unofficial Telegram MCP resource.");
+  }
+  return buildManagedReplacement(options, {
+    ...telegramProduct,
+    resource,
+    template: resource.endsWith("/v2") ? "unofficial-telegram-v2-openai-skill.md" : telegramProduct.template,
+  });
 }
 async function buildManagedReplacement({ publishedZip, output, version, icon }, product) {
   if (!/^\d+\.\d+\.\d+$/.test(version || "")) throw new Error("Supply a stable package version.");
@@ -53,6 +62,16 @@ async function buildManagedReplacement({ publishedZip, output, version, icon }, 
     manifest.version = version;
     delete manifest.apps;
     await fs.rm(path.join(scratch, ".app.json"), { force: true });
+    if (manifest.mcpServers === undefined && product.serverName) {
+      manifest.mcpServers = "./.mcp.json";
+      await fs.writeFile(path.join(scratch, ".mcp.json"), JSON.stringify({
+        mcpServers: {
+          [product.serverName]: {
+            url: product.resource,
+          },
+        },
+      }, null, 2) + "\n");
+    }
     const endpointDeclaredByPackage = manifest.mcpServers !== undefined;
     if (endpointDeclaredByPackage) {
       if (typeof manifest.mcpServers !== "string") throw new Error("Supply the published MCP configuration file reference.");
@@ -94,5 +113,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   const options = Object.fromEntries(process.argv.slice(2).map(arg => { const [key, ...value] = arg.replace(/^--/, "").split("="); return [key, value.join("=")]; }));
   if (options.product && options.product !== "unofficial-telegram") throw new Error("Unknown product.");
   const build = options.product ? buildUnofficialTelegramOpenAiReplacement : buildOpenAiReplacement;
-  console.log(JSON.stringify(await build({ publishedZip: options["published-zip"], output: options.output, version: options.version, icon: options.icon }), null, 2));
+  console.log(JSON.stringify(await build({ publishedZip: options["published-zip"], output: options.output, version: options.version, icon: options.icon, registeredResource: options["registered-resource"] }), null, 2));
 }
