@@ -95,16 +95,22 @@ describe("OpenAI replacement package", () => {
 
 
 describe("Unofficial Telegram OpenAI replacement", () => {
-  it("preserves the exact unpublished app identity and portal-managed server while adding its stable skill and bundled icon", async () => {
+  it("preserves the unpublished app identity and declares its stable OAuth MCP server", async () => {
     const args = await fixture("app-6ab152391f98819183a9b12b90771477", "1.0.0");
     const source = path.join(path.dirname(args.publishedZip), "source");
     await fs.rm(path.join(source, "skills"), { recursive: true });
     execFileSync("zip", ["-qr", args.publishedZip, "."], { cwd: source });
     const result = await buildUnofficialTelegramOpenAiReplacement(args);
-    expect(result).toMatchObject({ appId: "asdk_app_6ab152391f98819183a9b12b90771477", requiredResource: "https://telegram-mcp.chiho.ai/mcp", endpointDeclaredByPackage: false, endpointConfigurationVerified: false });
+    expect(result).toMatchObject({ appId: "asdk_app_6ab152391f98819183a9b12b90771477", requiredResource: "https://telegram-mcp.chiho.ai/mcp", endpointDeclaredByPackage: true, endpointConfigurationVerified: false });
     const manifest = JSON.parse(await fs.readFile(path.join(args.output, ".codex-plugin/plugin.json"), "utf8"));
     expect(manifest.name).toBe("app-6ab152391f98819183a9b12b90771477");
-    expect(manifest.mcpServers).toBeUndefined();
+    expect(manifest.mcpServers).toBe("./.mcp.json");
+    const config = JSON.parse(await fs.readFile(path.join(args.output, ".mcp.json"), "utf8"));
+    expect(config.mcpServers).toEqual({
+      "unofficial-telegram-mcp": {
+        url: "https://telegram-mcp.chiho.ai/mcp",
+      },
+    });
     expect(manifest.apps).toBeUndefined();
     const skill = await fs.readFile(path.join(args.output, "skills/unofficial-telegram-mcp/SKILL.md"), "utf8");
     expect(skill).toContain("https://telegram-mcp.chiho.ai/mcp");
@@ -117,5 +123,20 @@ describe("Unofficial Telegram OpenAI replacement", () => {
   it("rejects the separate Chiho AI package instead of changing its product", async () => {
     await expect(buildUnofficialTelegramOpenAiReplacement(await fixture())).rejects.toThrow("selected product identity");
     await expect(buildOpenAiReplacement(await fixture("app-6ab152391f98819183a9b12b90771477"))).rejects.toThrow("selected product identity");
+  });
+  it("declares an explicitly registered v2 resource with instructions matching its actual catalog", async () => {
+    const args = await fixture("app-6ab152391f98819183a9b12b90771477", "1.1.0");
+    const result = await buildUnofficialTelegramOpenAiReplacement({ ...args, registeredResource: "https://telegram-mcp.chiho.ai/mcp/v2" });
+    expect(result.requiredResource).toBe("https://telegram-mcp.chiho.ai/mcp/v2");
+    const config = JSON.parse(await fs.readFile(path.join(args.output, ".mcp.json"), "utf8"));
+    expect(config.mcpServers["unofficial-telegram-mcp"].url).toBe(result.requiredResource);
+    const skill = await fs.readFile(path.join(args.output, "skills/unofficial-telegram-mcp/SKILL.md"), "utf8");
+    expect(skill).toContain("message_action_preview");
+    expect(skill).toContain("message_action_approved");
+    expect(skill).not.toContain("get_profile");
+    expect(skill).not.toContain("message_edit_preview");
+  });
+  it("rejects a resource belonging to another product", async () => {
+    await expect(buildUnofficialTelegramOpenAiReplacement({ ...await fixture("app-6ab152391f98819183a9b12b90771477"), registeredResource: "https://api.chiho.ai/mcp" })).rejects.toThrow("exact registered");
   });
 });

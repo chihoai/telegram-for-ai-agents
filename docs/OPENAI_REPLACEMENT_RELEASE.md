@@ -53,3 +53,40 @@ connection; the customer's interactive chat and existing scheduled task
 still need verification after publication.
 
 Official procedure: https://developers.openai.com/plugins/deploy/submission
+
+## Unofficial Telegram application
+
+Use `--product=unofficial-telegram` with the existing application ZIP. This
+preserves `app-6ab152391f98819183a9b12b90771477`, its icon and listing copy,
+and declares one remote MCP in `.mcp.json`, reusing the existing app's OAuth
+configuration without an authentication override. Omitting the declaration
+causes the current portal to classify this unpublished application as skills-only.
+The separate Chiho AI package behavior above remains unchanged.
+
+The default target is the stable `https://telegram-mcp.chiho.ai/mcp` endpoint,
+whose catalog exposes separate message-action operations and `get_profile`.
+An upload cannot migrate an existing registration: the portal rejects a URL
+that differs from its current server, and the connection form's URL is read-only.
+Request the registered URL change from OpenAI support before uploading the
+stable-target package. Do not overwrite or redirect the pinned v2 service.
+
+To repair packaging while the application is still registered to v2, explicitly
+pass `--registered-resource=https://telegram-mcp.chiho.ai/mcp/v2`. That package
+declares the existing URL and uses instructions matching its actual v2 catalog.
+It does not claim to fix v2's generic-operation review findings. Only the two
+known Unofficial Telegram resources are accepted; arbitrary hosts or another
+product's resource are rejected.
+
+```sh
+node scripts/build-chiho-openai-replacement.mjs \
+  --product=unofficial-telegram \
+  --published-zip=/absolute/path/to/existing-telegram-draft.zip \
+  --registered-resource=https://telegram-mcp.chiho.ai/mcp/v2 \
+  --output=/absolute/path/to/telegram-package \
+  --version=1.1.1
+```
+
+After support migrates the registration, build an incremented stable package
+without the v2 override, reconnect with explicit consent, and verify a fresh
+authenticated stable scan. Inspect the four generic list-tool review holds
+separately; correct packaging and endpoint discovery do not constitute approval.
