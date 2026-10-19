@@ -37,7 +37,6 @@ export async function buildUnofficialTelegramOpenAiReplacement(options) {
   return buildManagedReplacement(options, {
     ...telegramProduct,
     resource,
-    template: resource.endsWith("/v2") ? "unofficial-telegram-v2-openai-skill.md" : telegramProduct.template,
   });
 }
 async function buildManagedReplacement({ publishedZip, output, version, icon }, product) {
@@ -98,7 +97,8 @@ async function buildManagedReplacement({ publishedZip, output, version, icon }, 
     manifest.interface.composerIcon ??= manifest.interface.logo;
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
 
-    const skill = await fs.readFile(path.join(root, "scripts/templates/" + product.template), "utf8");
+    const skill = (await fs.readFile(path.join(root, "scripts/templates/" + product.template), "utf8"))
+      .replaceAll("{{MCP_RESOURCE_URL}}", product.resource);
     await fs.mkdir(path.join(scratch, "skills", product.skill), { recursive: true });
     await fs.writeFile(path.join(scratch, "skills", product.skill, "SKILL.md"), skill);
     await fs.mkdir(destination); // Never overwrite a previously reviewed package.

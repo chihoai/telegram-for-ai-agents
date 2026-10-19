@@ -5,7 +5,7 @@ description: Use Unofficial Telegram MCP by Chiho.ai for the user's authorized T
 
 # Unofficial Telegram MCP
 
-Use the existing managed connection at `https://telegram-mcp.chiho.ai/mcp` through browser OAuth. Never copy tokens across resources or request Telegram sessions, API hashes or passwords in chat. A connection to `/mcp/v2` remains on that independent OAuth resource until the user explicitly reconnects to stable root. A package update or token refresh cannot expand permissions or change its identity.
+Use the existing managed connection at `{{MCP_RESOURCE_URL}}` through browser OAuth. Never copy tokens across resources or request Telegram sessions, API hashes or passwords in chat. Each connection remains on its independent OAuth resource until the user explicitly reconnects. A package update or token refresh cannot expand permissions or change its identity.
 
 Run `get_profile` first. Verify the expected profile ID before scheduled or consequential work and on every run; stop on mismatch. This profile comes only from the connection's authenticated credentials. `accountId` selects an authorized Telegram account within this profile and cannot switch people, connections, grants or teams. Check `auth_status` and `account_whoami`, then preserve the intended scoped account ID. Reject ambiguous account selection.
 
