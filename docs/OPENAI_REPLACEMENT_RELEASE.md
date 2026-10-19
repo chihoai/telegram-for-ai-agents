@@ -70,12 +70,14 @@ that differs from its current server, and the connection form's URL is read-only
 Request the registered URL change from OpenAI support before uploading the
 stable-target package. Do not overwrite or redirect the pinned v2 service.
 
-To repair packaging while the application is still registered to v2, explicitly
-pass `--registered-resource=https://telegram-mcp.chiho.ai/mcp/v2`. That package
-declares the existing URL and uses instructions matching its actual v2 catalog.
-It does not claim to fix v2's generic-operation review findings. Only the two
-known Unofficial Telegram resources are accepted; arbitrary hosts or another
-product's resource are rejected.
+For the application registered to v2, explicitly pass
+`--registered-resource=https://telegram-mcp.chiho.ai/mcp/v2`. After the v2
+backend repair is deployed, both resources expose profile discovery and the
+same independently named message-operation tools. They share one instruction
+template with the exact selected resource inserted at build time. The obsolete
+generic-dispatch skill is removed. Only the two known Unofficial Telegram
+resources are accepted; arbitrary hosts or another product's resource are
+rejected. An instruction update must follow its matching backend deployment.
 
 ```sh
 node scripts/build-chiho-openai-replacement.mjs \
@@ -83,7 +85,7 @@ node scripts/build-chiho-openai-replacement.mjs \
   --published-zip=/absolute/path/to/existing-telegram-draft.zip \
   --registered-resource=https://telegram-mcp.chiho.ai/mcp/v2 \
   --output=/absolute/path/to/telegram-package \
-  --version=1.1.1
+  --version=1.2.0
 ```
 
 After support migrates the registration, build an incremented stable package

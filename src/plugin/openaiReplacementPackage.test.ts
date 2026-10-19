@@ -131,10 +131,13 @@ describe("Unofficial Telegram OpenAI replacement", () => {
     const config = JSON.parse(await fs.readFile(path.join(args.output, ".mcp.json"), "utf8"));
     expect(config.mcpServers["unofficial-telegram-mcp"].url).toBe(result.requiredResource);
     const skill = await fs.readFile(path.join(args.output, "skills/unofficial-telegram-mcp/SKILL.md"), "utf8");
-    expect(skill).toContain("message_action_preview");
-    expect(skill).toContain("message_action_approved");
-    expect(skill).not.toContain("get_profile");
-    expect(skill).not.toContain("message_edit_preview");
+    expect(skill).toContain("https://telegram-mcp.chiho.ai/mcp/v2");
+    expect(skill).toContain("get_profile");
+    expect(skill).toContain("message_edit_preview");
+    expect(skill).toContain("message_reaction_remove_approved");
+    expect(skill).not.toContain("message_action_preview");
+    expect(skill).not.toContain("message_action_approved");
+    expect(skill).not.toContain("{{MCP_RESOURCE_URL}}");
   });
   it("rejects a resource belonging to another product", async () => {
     await expect(buildUnofficialTelegramOpenAiReplacement({ ...await fixture("app-6ab152391f98819183a9b12b90771477"), registeredResource: "https://api.chiho.ai/mcp" })).rejects.toThrow("exact registered");
