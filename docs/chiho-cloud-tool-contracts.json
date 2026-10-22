@@ -1051,7 +1051,7 @@
   {
     "name": "team.opportunities.create",
     "title": "Create a team opportunity",
-    "description": "Create a manual team opportunity with a title. This creates stored CRM data only and does not contact anyone or consume AI credits.",
+    "description": "Create a manual team opportunity with a title. Reuse idempotencyKey when retrying: the same key and title return the opportunity it created, and the same key with another title is a conflict. Opportunities are never matched by title. This creates stored CRM data only and does not contact anyone or consume AI credits.",
     "transport": "cloud",
     "inputSchema": {
       "type": "object",
@@ -1061,10 +1061,16 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 500
+        },
+        "idempotencyKey": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
         }
       },
       "required": [
-        "title"
+        "title",
+        "idempotencyKey"
       ]
     },
     "outputSchema": {
@@ -1083,7 +1089,7 @@
     "annotations": {
       "readOnlyHint": false,
       "destructiveHint": false,
-      "idempotentHint": false,
+      "idempotentHint": true,
       "openWorldHint": false
     }
   },
