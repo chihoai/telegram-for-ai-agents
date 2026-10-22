@@ -23,4 +23,11 @@ describe("hosted Chiho team contracts", () => {
     expect(tool.inputSchema.required).toEqual(["title", "idempotencyKey"]);
     expect(tool.annotations.idempotentHint).toBe(true);
   });
+  it("makes opportunity and template edits name the revision they were read at", () => {
+    for (const name of ["team.opportunities.update", "team.templates.upsert"]) {
+      const tool = CHIHO_CLOUD_TOOL_CONTRACTS.find((tool) => tool.name === name)!;
+      expect(tool.inputSchema.required).toContain("expectedRevision");
+      expect(tool.inputSchema.properties.expectedRevision).toEqual({ type: "integer", minimum: 0 });
+    }
+  });
 });

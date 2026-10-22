@@ -1020,7 +1020,7 @@
   {
     "name": "team.opportunities.list",
     "title": "List team opportunities",
-    "description": "List manual opportunity records shared with this team and their stored CRM fields.",
+    "description": "List manual opportunity records shared with this team, with their stored CRM fields and fieldsRevision. Pass fieldsRevision as expectedRevision to update one.",
     "transport": "cloud",
     "inputSchema": {
       "type": "object",
@@ -1096,7 +1096,7 @@
   {
     "name": "team.opportunities.update",
     "title": "Update a team opportunity",
-    "description": "Update note, goal, status, priority, company, or label fields on a manual team opportunity.",
+    "description": "Update note, goal, status, priority, company, or label fields on a manual team opportunity. Pass its fieldsRevision from team_opportunities_list or the previous update as expectedRevision. If a teammate changed it since, the update is refused with the current revision; read it again before retrying.",
     "transport": "cloud",
     "inputSchema": {
       "type": "object",
@@ -1105,6 +1105,10 @@
         "opportunityId": {
           "type": "string",
           "minLength": 1
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
         },
         "fields": {
           "type": "object",
@@ -1140,7 +1144,8 @@
       },
       "required": [
         "opportunityId",
-        "fields"
+        "fields",
+        "expectedRevision"
       ]
     },
     "outputSchema": {
@@ -1209,7 +1214,7 @@
   {
     "name": "team.templates.list",
     "title": "List shared team templates",
-    "description": "List reusable message templates explicitly stored for this team. Personal templates remain private.",
+    "description": "List reusable message templates explicitly stored for this team, with each template's ID and revision. Personal templates remain private.",
     "transport": "cloud",
     "inputSchema": {
       "type": "object",
@@ -1240,12 +1245,16 @@
   {
     "name": "team.templates.upsert",
     "title": "Save a shared team template",
-    "description": "Create or replace a shared team template by title. This stores text only and does not send it.",
+    "description": "Create a shared team template, or change the text of one. To create one, pass an unused title and expectedRevision 0. To change one, pass its templateId and its revision from team_templates_list as expectedRevision; its title cannot change. If a teammate changed it since, the save is refused with the current revision; read it again before retrying. This stores text only and does not send it.",
     "transport": "cloud",
     "inputSchema": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "templateId": {
+          "type": "string",
+          "minLength": 1
+        },
         "title": {
           "type": "string",
           "minLength": 1,
@@ -1255,11 +1264,15 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 10000
+        },
+        "expectedRevision": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "required": [
-        "title",
-        "text"
+        "text",
+        "expectedRevision"
       ]
     },
     "outputSchema": {
