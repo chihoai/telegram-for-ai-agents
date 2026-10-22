@@ -18,4 +18,9 @@ describe("hosted Chiho team contracts", () => {
       expect(tool.inputSchema.required).toContain("confirmed");
     }
   });
+  it("makes opportunity creation safe to retry with a caller key", () => {
+    const tool = CHIHO_CLOUD_TOOL_CONTRACTS.find((tool) => tool.name === "team.opportunities.create")!;
+    expect(tool.inputSchema.required).toEqual(["title", "idempotencyKey"]);
+    expect(tool.annotations.idempotentHint).toBe(true);
+  });
 });
