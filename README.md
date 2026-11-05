@@ -19,6 +19,17 @@ Start with [SKILL.md](./SKILL.md).
 That is the public entry point for both Chiho.ai Cloud and the self-hosted path.
 Use [AGENTS.md](./AGENTS.md) only for coding and contributing inside this repo.
 
+## Install
+
+| Where you work | How to add Chiho Telegram |
+| --- | --- |
+| ChatGPT | Install [Chiho AI from the ChatGPT plugins directory](https://chatgpt.com/plugins/plugin_asdk_app_6a6991cf8748819194345fca1c8d7516) and sign in to Chiho. |
+| Claude.ai, Claude Desktop, and Cowork | Add [Chiho Telegram from the Claude directory](https://claude.ai/directory/chiho-telegram) and select **Connect**. |
+| Claude Code and Codex | Install a package from this repository's marketplace; see [Agent packages](#agent-packages). |
+| Your own machine or server | Run the self-hosted `tgchats` runtime; see [Self-Hosted Setup](#self-hosted-setup). |
+
+Both directory listings connect to `https://api.chiho.ai/mcp` through browser OAuth. They need a Chiho account with Telegram connected at [chiho.ai](https://chiho.ai/).
+
 ## Features
 
 - One-time Telegram login for full account-level agent access
@@ -167,13 +178,17 @@ After build:
 
 ## Agent packages
 
-The repository marketplace exposes three packages. Choose the one that matches the intended product; installing one does not configure another server.
+This repository is also a plugin marketplace. Claude Code can install all three packages; the Codex marketplace offers `chiho-telegram` and `tgchats-local`. Choose the one that matches the intended product; installing one does not configure another server.
 
 | Package | Runtime | Authentication | MCP configuration |
 | --- | --- | --- | --- |
 | **Chiho Telegram** (`chiho-telegram`) | Hosted by Chiho | Browser OAuth | `https://api.chiho.ai/mcp` |
 | **Unofficial Telegram MCP** (`unofficial-telegram-mcp`) | Hosted personal Telegram client | Browser OAuth | `https://telegram-mcp.chiho.ai/mcp` |
 | **tgchats local** (`tgchats-local`) | Local stdio process | Local Telegram login | `tgchats-mcp` |
+
+### ChatGPT
+
+Install [Chiho AI](https://chatgpt.com/plugins/plugin_asdk_app_6a6991cf8748819194345fca1c8d7516) from the ChatGPT plugins directory and sign in to Chiho when ChatGPT asks to connect. The plugin bundles the `chiho-cloud` MCP server at `https://api.chiho.ai/mcp` and the Chiho AI skill.
 
 ### Codex
 
@@ -202,6 +217,8 @@ browser. For the IDE extension, add the hosted MCP server directly:
 codex mcp add chiho --url https://api.chiho.ai/mcp
 ```
 
+If Codex does not start the browser sign-in itself, run `codex mcp login chiho`.
+
 The package asks Codex to prompt for tools not marked read-only.
 
 After connecting, call `get_profile`, `auth_status`, and `account_whoami` to
@@ -222,31 +239,32 @@ For the separate personal Telegram client, install and enable `unofficial-telegr
 
 ### Claude.ai, Claude Desktop, and Cowork
 
-Add a custom connector with this exact URL:
+Add [Chiho Telegram from the Claude directory](https://claude.ai/directory/chiho-telegram), select **Connect**,
+and complete OAuth in the browser. The directory lists the connector; the
+plugin with its bundled skill comes from this repository's marketplace.
+
+To add Chiho manually instead, add a custom connector with this exact URL:
 
 ```text
 https://api.chiho.ai/mcp
 ```
 
-For Unofficial Telegram MCP, use `https://telegram-mcp.chiho.ai/mcp` instead.
+Unofficial Telegram MCP is not in the directory. Add it as a custom connector
+with `https://telegram-mcp.chiho.ai/mcp`.
 
-Select **Connect** and complete OAuth in the browser. Do not enter a personal
-access token, custom bearer header, or OAuth client secret. Free, Pro, and Max
-users can add Chiho directly as a custom connector; Claude Free currently
-permits one custom connector. Team and Enterprise permissions are required for
-organization-wide connector installation and the Claude.ai submission route;
-individual plugin authors can use Console as described below.
+Do not enter a personal access token, custom bearer header, or OAuth client
+secret. Free, Pro, and Max users can add custom connectors; Claude Free
+currently permits one. Team and Enterprise permissions are required for
+organization-wide connector installation.
 
 Advanced service tokens remain available only for explicitly requested headless automation and are not part of Claude or Codex onboarding.
 
-### Directory publication
+### Directory listings
 
-Direct custom-connector and marketplace testing does not require directory approval.
+- **Claude:** [Chiho Telegram](https://claude.ai/directory/chiho-telegram) is a community connector for `https://api.chiho.ai/mcp`. Manage it at `https://claude.ai/directory/manage`, where the plugin folder with its skill can be submitted as a separate bundle. Anthropic reviews each submission before publication.
+- **ChatGPT:** [Chiho AI](https://chatgpt.com/plugins/plugin_asdk_app_6a6991cf8748819194345fca1c8d7516) is the published plugin for `https://api.chiho.ai/mcp`. Update its existing registration and package at `https://platform.openai.com/plugins` rather than creating a duplicate; see [the replacement release guide](./docs/OPENAI_REPLACEMENT_RELEASE.md). Publishing requires a verified OpenAI Platform organization and an Owner or a role with Apps Management write access.
 
-- **Claude directory:** submit a hosted MCP server as a connector and its skill-bearing plugin folder as a separate bundle at `https://claude.ai/directory/manage`. A paid Claude plan can submit both; Anthropic reviews them before publication. A skill is bundled with the plugin rather than submitted on its own.
-- **OpenAI Plugins Directory:** complete business verification for the publishing OpenAI Platform organization, use an Owner or a role with Apps Management write access, then create a **With MCP** submission at `https://platform.openai.com/plugins` for `https://api.chiho.ai/mcp`. For the existing Chiho listing, update its existing registration and package rather than creating a duplicate; see [the replacement release guide](./docs/OPENAI_REPLACEMENT_RELEASE.md).
-
-OpenAI does not require an existing ChatGPT app ID for a new MCP-backed submission. Both directories require production documentation, privacy and support details, accurate tool metadata, reviewer test instructions, and a production-ready OAuth flow.
+Direct custom-connector and marketplace testing does not require directory approval. Both directories require production documentation, privacy and support details, accurate tool metadata, reviewer test instructions, and a production-ready OAuth flow.
 
 Machine-readable surfaces:
 
@@ -345,7 +363,7 @@ npx skills add https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group
 For docs-only agents or manual inspection, fetch the skill instructions directly:
 
 ```bash
-curl -fsSL https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group/SKILL.md
+curl -fsSL https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group/skill.md
 ```
 
 - Catalog guide: [docs/SKILL_CATALOG.md](./docs/SKILL_CATALOG.md)
