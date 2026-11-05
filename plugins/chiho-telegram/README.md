@@ -32,11 +32,12 @@ reconnect `chiho-cloud` for the stable resource. Versioned grants cannot
 authorize the stable endpoint. Your Chiho data and connected Telegram accounts
 stay in Chiho. A new Telegram login is needed only if that session is stale.
 
-For a connector installed from Claude’s directory, an endpoint update leaves
-the existing connection on its original URL, shown under **Custom**. Remove
-that connector, re-add Chiho from the directory after its stable endpoint update is approved,
-and sign in again. Updating a plugin and updating its directory connector are
-separate release steps. See [Claude’s endpoint migration guide](https://claude.com/docs/connectors/directory#recognize-when-a-connectors-endpoint-changes).
+Chiho Telegram is listed in [Claude’s directory](https://claude.ai/directory/chiho-telegram)
+with the stable endpoint. A connector added from the directory earlier keeps
+its original URL, shown under **Custom**. If that URL is versioned, remove the
+connector, re-add Chiho Telegram from the directory, and sign in again.
+Updating a plugin and updating its directory connector are separate release
+steps. See [Claude’s endpoint migration guide](https://claude.com/docs/connectors/directory#recognize-when-a-connectors-endpoint-changes).
 
 ## Requirements
 
@@ -64,12 +65,11 @@ Complete Chiho sign-in and review the requested access in the browser.
 
 ## Install in Cowork
 
-Install **Chiho.ai Telegram CRM** from the plugin directory, enable it, and
-select **Connect** for the bundled `chiho-cloud` connector. Complete Chiho
-sign-in and consent in the browser.
-
-Until the directory submission is approved, use a direct plugin upload or add
-the MCP connector at `https://api.chiho.ai/mcp` for testing.
+Add the [Chiho Telegram connector](https://claude.ai/directory/chiho-telegram)
+from Claude’s directory and select **Connect**. The plugin, which adds the
+bundled skill, is not in the directory yet: upload this plugin folder directly,
+enable it, and select **Connect** for its `chiho-cloud` connector. Use one or
+the other, not both. Complete Chiho sign-in and consent in the browser.
 
 ## Example prompts
 
@@ -121,5 +121,7 @@ That should call `tasks_today` without performing a write.
 - Terms: [chiho.ai/terms](https://chiho.ai/terms)
 - Source and issues:
   [chihoai/telegram-for-ai-agents](https://github.com/chihoai/telegram-for-ai-agents)
+- ChatGPT:
+  [Chiho AI in the ChatGPT plugins directory](https://chatgpt.com/plugins/plugin_asdk_app_6a6991cf8748819194345fca1c8d7516)
 
 This plugin is licensed under the [MIT License](./LICENSE).

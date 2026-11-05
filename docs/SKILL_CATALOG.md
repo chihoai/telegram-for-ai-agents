@@ -46,7 +46,7 @@ npx skills add https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group
 - Docs-only/manual inspection: fetch the skill instructions directly:
 
 ```bash
-curl -fsSL https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group/SKILL.md
+curl -fsSL https://chiho.ai/telegram-skills/telegram-add-colleagues-to-group/skill.md
 ```
 
 - Whole catalog: install or copy `skills/` into the client skill workspace.
