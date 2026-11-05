@@ -8,7 +8,7 @@ metadata:
   chiho.risk: high
   chiho.requiresApproval: "true"
   chiho.cloudScopes: telegram.read, crm.write, telegram.message.preview, telegram.message.send, telegram.batch.write
-allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(tags_set) mcp(tasks_add) mcp(outbox_preview) mcp(write_approve_preview) mcp(outbox_send_approved) mcp(message_send_draft)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(tags_set) mcp(tasks_add) mcp(outbox_preview) mcp(outbox_send_approved) mcp(message_send_draft)
 ---
 
 # telegram-human-verification-challenge
@@ -22,7 +22,7 @@ Use this skill to send a short reasoning challenge to a new, reopened, or suspic
 - Keep challenges simple, deterministic, and answerable in one short reply.
 - Do not ask for private information, account access, payment details, ID documents, or biometric proof.
 - Prefer `outbox_preview` so the user can approve or edit the message before it is sent.
-- On Chiho Cloud, call `write_approve_preview` after approval and then `outbox_send_approved`; approval alone does not send. On local tgchats, call `outbox_send_approved` after approval. Use `message_send_draft` only when the user explicitly requests immediate sending to one specific chat.
+- On Chiho Cloud, if `outbox_preview` returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho, then call `outbox_send_approved`; approval alone does not send. On local tgchats, call `outbox_send_approved` after approval. Use `message_send_draft` only when the user explicitly requests immediate sending to one specific chat.
 - If the contact fails, ignores, or evades the challenge, tag or task the chat for manual verification instead of accusing them of being a bot.
 - Do not repeatedly challenge a contact who already passed unless the user asks or the risk context changed.
 

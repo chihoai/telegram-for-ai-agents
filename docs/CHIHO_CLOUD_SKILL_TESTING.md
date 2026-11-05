@@ -75,6 +75,10 @@ completed on 2026-07-23:
    preview received an `approvedAt` timestamp, and no executor or scheduling
    tool ran; zero messages were sent.
 
+   The hosted server retired `write_approve_preview` on 2026-09-26. A preview
+   that needs approval now returns `approvalUrl`; the user approves it in
+   Chiho, and only then does the matching `*_approved` executor run.
+
 Codex CLI 0.144.6 currently fails a fresh OAuth callback with an upstream
 issuer-validation error even though the callback contains the correct
 `iss=https://api.chiho.ai`. Codex CLI 0.142.5 completes the same login, after

@@ -13,10 +13,21 @@ const publicToolContractsPath = path.join(
   "public-mcp-tool-contracts.json",
 );
 
+const pluginsDir = path.join(repoRoot, "plugins");
+const templatesDir = path.join(repoRoot, "scripts", "templates");
+const rootSkillPath = path.join(repoRoot, "SKILL.md");
+
 const cloudOnlyTools = new Set([
   "folders_delete",
   "sync_peer",
-  "write_approve_preview",
+]);
+// Tools that no MCP surface serves any more. Instructions that name them
+// send agents to a tool they cannot call.
+const retiredTools = new Map([
+  [
+    "write_approve_preview",
+    "hosted approval uses the preview's approvalUrl in Chiho",
+  ],
 ]);
 const localOnlyTools = new Set([
   "folders_update",
@@ -31,31 +42,20 @@ const directSendTools = new Set([
   "media_send_approved",
   "outbox_send_approved",
 ]);
+// Hosted executors run only a preview the user approved through its
+// approvalUrl, so every hosted executor example starts from its preview.
 const hostedApprovalFlows = new Map([
-  [
-    "outbox_send_approved",
-    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
-  ],
+  ["outbox_send_approved", ["outbox_preview", "outbox_send_approved"]],
   [
     "members_invite_approved",
-    [
-      "members_invite_preview",
-      "write_approve_preview",
-      "members_invite_approved",
-    ],
+    ["members_invite_preview", "members_invite_approved"],
   ],
-  [
-    "groups_leave_approved",
-    ["groups_leave_preview", "write_approve_preview", "groups_leave_approved"],
-  ],
+  ["groups_leave_approved", ["groups_leave_preview", "groups_leave_approved"]],
   [
     "message_action_approved",
-    ["message_action_preview", "write_approve_preview", "message_action_approved"],
+    ["message_action_preview", "message_action_approved"],
   ],
-  [
-    "media_send_approved",
-    ["media_send_preview", "write_approve_preview", "media_send_approved"],
-  ],
+  ["media_send_approved", ["media_send_preview", "media_send_approved"]],
 ]);
 const supportedCloudScopes = new Set([
   "telegram.read",
@@ -75,16 +75,7 @@ const supportedCloudScopes = new Set([
   "automation.rules.write",
 ]);
 const cloudToolRequiredScopes = new Map();
-const cloudToolRequiredAnyScopes = new Map([
-  [
-    "write_approve_preview",
-    [
-      "telegram.message.preview",
-      "telegram.members.invite",
-      "telegram.groups.leave",
-    ],
-  ],
-]);
+const cloudToolRequiredAnyScopes = new Map();
 const cloudScopeFreeTools = new Set(["auth_status"]);
 
 function requireCloudScopes(toolNames, ...requiredScopes) {
@@ -494,6 +485,73 @@ function validateSurfaceToolReferences(
   }
 }
 
+function validateRetiredToolReferences(filePath, body, report = fail) {
+  for (const [toolName, replacement] of retiredTools) {
+    if (new RegExp(`(?<![A-Za-z0-9_])${toolName}(?![A-Za-z0-9_])`).test(body)) {
+      report(`${filePath}: ${toolName} is retired; ${replacement}`);
+    }
+  }
+}
+
+// Plugin skills and published templates are not under skills/, so check the
+// tool names they tell agents to call. Portable MCP names are lowercase
+// snake_case; a mixed name such as message_actionPreview never exists.
+function validatePackagedSkillToolNames(
+  filePath,
+  body,
+  { surfaceTools, internalNames },
+  report = fail,
+) {
+  validateRetiredToolReferences(filePath, body, report);
+  for (const internalName of internalNames) {
+    if (body.includes(`\`${internalName}\``)) {
+      report(
+        `${filePath}: packaged skill instructions must use the portable MCP name for ${internalName}`,
+      );
+    }
+  }
+  for (const match of body.matchAll(/`([a-z][a-z0-9]*(?:_[A-Za-z0-9]+)+)`/g)) {
+    const toolName = match[1];
+    if (/[A-Z]/.test(toolName)) {
+      report(`${filePath}: ${toolName} is not a portable MCP tool name`);
+    } else if (surfaceTools && !surfaceTools.has(toolName)) {
+      report(`${filePath}: ${toolName} is not served by this package's MCP server`);
+    }
+  }
+}
+
+function validatePackagedSkills(localTools, internalNames) {
+  const packagedSkills = [[rootSkillPath, null]];
+  if (fs.existsSync(pluginsDir)) {
+    for (const plugin of fs.readdirSync(pluginsDir, { withFileTypes: true })) {
+      if (!plugin.isDirectory()) continue;
+      const pluginSkillsDir = path.join(pluginsDir, plugin.name, "skills");
+      if (!fs.existsSync(pluginSkillsDir)) continue;
+      for (const skill of fs.readdirSync(pluginSkillsDir, { withFileTypes: true })) {
+        const skillPath = path.join(pluginSkillsDir, skill.name, "SKILL.md");
+        if (!skill.isDirectory() || !fs.existsSync(skillPath)) continue;
+        // Only the local package's tool list is known here; hosted tools are
+        // defined by the Chiho backend.
+        packagedSkills.push([skillPath, plugin.name === "tgchats-local" ? localTools : null]);
+      }
+    }
+  }
+  if (fs.existsSync(templatesDir)) {
+    for (const template of fs.readdirSync(templatesDir)) {
+      if (template.endsWith(".md")) {
+        packagedSkills.push([path.join(templatesDir, template), null]);
+      }
+    }
+  }
+  for (const [filePath, surfaceTools] of packagedSkills) {
+    validatePackagedSkillToolNames(filePath, fs.readFileSync(filePath, "utf8"), {
+      surfaceTools,
+      internalNames,
+    });
+  }
+  return packagedSkills.length;
+}
+
 function validateValidatorGuards(cloudTools, knownTools) {
   for (const toolName of cloudTools) {
     if (
@@ -534,19 +592,21 @@ function validateValidatorGuards(cloudTools, knownTools) {
   }
 
   for (const runtime of ["chiho-cloud", undefined]) {
-    const hostedApprovalErrors = [];
-    validateHostedApprovalExamples(
-      "hosted-approval-negative-fixture.json",
-      {
-        ...(runtime ? { runtime } : {}),
-        tools: ["outbox_preview", "outbox_send_approved"],
-      },
-      (message) => hostedApprovalErrors.push(message),
-    );
-    if (hostedApprovalErrors.length === 0) {
-      fail(
-        `hosted example validator must reject a missing approval step for runtime ${runtime || "unspecified"}`,
+    for (const tools of [
+      ["outbox_send_approved"],
+      ["outbox_send_approved", "outbox_preview"],
+    ]) {
+      const hostedApprovalErrors = [];
+      validateHostedApprovalExamples(
+        "hosted-approval-negative-fixture.json",
+        { ...(runtime ? { runtime } : {}), tools },
+        (message) => hostedApprovalErrors.push(message),
       );
+      if (hostedApprovalErrors.length === 0) {
+        fail(
+          `hosted example validator must reject an executor without its preview first for runtime ${runtime || "unspecified"}: ${tools.join(" -> ")}`,
+        );
+      }
     }
   }
 
@@ -575,17 +635,30 @@ function validateValidatorGuards(cloudTools, knownTools) {
     fail("cloud scope validator must reject omitted required scopes");
   }
 
-  const approvalScopeErrors = [];
-  validateCloudToolScopes(
-    "cloud-approval-scope-negative-fixture.md",
-    {
-      "allowed-tools": "mcp(write_approve_preview)",
-      "chiho.cloudScopes": "telegram.read",
-    },
-    (message) => approvalScopeErrors.push(message),
+  const retiredToolErrors = [];
+  validateRetiredToolReferences(
+    "retired-tool-negative-fixture.md",
+    "After approval, call `write_approve_preview`.",
+    (message) => retiredToolErrors.push(message),
   );
-  if (approvalScopeErrors.length === 0) {
-    fail("cloud scope validator must reject a missing approval scope");
+  if (retiredToolErrors.length === 0) {
+    fail("retired tool validator must reject write_approve_preview");
+  }
+
+  for (const [fixture, surfaceTools] of [
+    ["Use `message_actionPreview` first.", null],
+    ["Use `message_action_previews` first.", new Set(["message_action_preview"])],
+  ]) {
+    const packagedSkillErrors = [];
+    validatePackagedSkillToolNames(
+      "packaged-skill-negative-fixture.md",
+      fixture,
+      { surfaceTools, internalNames: [] },
+      (message) => packagedSkillErrors.push(message),
+    );
+    if (packagedSkillErrors.length === 0) {
+      fail(`packaged skill validator must reject: ${fixture}`);
+    }
   }
 
   const ruleScopeErrors = [];
@@ -779,6 +852,7 @@ function main() {
       frontmatterByName.set(frontmatter.name, frontmatter);
     }
     validateLinks(skillPath, body);
+    validateRetiredToolReferences(skillPath, body);
     validateAllowedTools(skillPath, frontmatter, knownTools);
     validateCloudToolScopes(skillPath, frontmatter);
     validatePortableToolNotation(skillPath, body);
@@ -804,6 +878,7 @@ function main() {
       );
       if (!fs.existsSync(referencePath)) continue;
       const referenceBody = fs.readFileSync(referencePath, "utf8");
+      validateRetiredToolReferences(referencePath, referenceBody);
       validatePortableToolNotation(referencePath, referenceBody);
       validateSurfaceToolReferences(
         referencePath,
@@ -821,9 +896,12 @@ function main() {
     }
   }
   validateCatalog(skillNames, frontmatterByName);
+  const packagedSkillCount = validatePackagedSkills(localTools, internalNames);
 
   if (!process.exitCode) {
-    console.log(`Validated ${entries.length} skill directories.`);
+    console.log(
+      `Validated ${entries.length} skill directories and ${packagedSkillCount} packaged skill files.`,
+    );
   }
 }
 

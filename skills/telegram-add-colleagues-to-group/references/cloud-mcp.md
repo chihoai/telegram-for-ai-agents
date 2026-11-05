@@ -10,7 +10,6 @@ Tools:
 - `dialogs_list`
 - `chat_read`
 - `members_invite_preview`
-- `write_approve_preview`
 - `members_invite_approved`
 
-Use `members_invite_preview` for every run. When approval is required, call `write_approve_preview` only after the user reviews the preview, then call `members_invite_approved`; approval alone does not invite anyone. Approval mode controls whether the user must confirm, not whether a preview is created.
+Use `members_invite_preview` for every run. When it returns `approvalUrl`, give that link to the user and wait for them to approve the exact preview in Chiho, then call `members_invite_approved`. Approval alone does not invite anyone, and a client tool prompt does not replace it. Approval mode controls whether an approval link is required, not whether a preview is created.
