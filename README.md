@@ -1,8 +1,9 @@
 # telegram-for-agents
 
-`telegram-for-agents` provides two deliberately separate ways to give an agent account-level Telegram access:
+`telegram-for-agents` provides three deliberately separate ways to give an agent account-level Telegram access:
 
-- **Chiho Telegram**: hosted MCP at `https://api.chiho.ai/mcp/v8` with browser OAuth.
+- **Chiho Telegram**: hosted CRM MCP at `https://api.chiho.ai/mcp` with browser OAuth.
+- **Unofficial Telegram MCP**: hosted Telegram client MCP at `https://telegram-mcp.chiho.ai/mcp` with browser OAuth, without Chiho CRM or team tools.
 - **tgchats local**: a self-hosted stdio MCP runtime using your own Telegram credentials and storage.
 
 This is not the limited-access Bot API flow where you add a bot to chats manually.
@@ -54,11 +55,16 @@ TELEGRAM_API_ID=123456
 TELEGRAM_API_HASH=your_api_hash_here
 ```
 
-The local runtime loads configuration from the current directory, the linked
-package root, or `~/.config/telegram-for-ai-agents/.env`. Set
-`TGCHATS_ENV_PATH` when you want an explicit location. This keeps the same
-credentials available when Claude or Codex launches the plugin from its own
-installed-plugin cache.
+The CLI loads configuration from `TGCHATS_ENV_PATH`, the current directory,
+the linked package root, or `~/.config/telegram-for-ai-agents/.env`, in that
+order. The MCP server (`tgchats-mcp`) skips the current directory: clients
+such as Claude Code start it in the open project, and a project's `.env` must
+not point it at another database or AI endpoint. Keep its settings in the
+linked package root, `~/.config/telegram-for-ai-agents/.env`, or
+`TGCHATS_ENV_PATH`.
+
+Session, preview, and media files are created readable by your user only, and
+an existing session file is tightened to owner-only on the next run.
 
 Recommended env:
 
@@ -166,7 +172,7 @@ The repository marketplace exposes three packages. Choose the one that matches t
 | Package | Runtime | Authentication | MCP configuration |
 | --- | --- | --- | --- |
 | **Chiho Telegram** (`chiho-telegram`) | Hosted by Chiho | Browser OAuth | `https://api.chiho.ai/mcp` |
-| **Unofficial Telegram MCP** (`unofficial-telegram-mcp`) | Hosted personal Telegram client | Browser OAuth | `https://telegram-mcp.chiho.ai/mcp/v2` |
+| **Unofficial Telegram MCP** (`unofficial-telegram-mcp`) | Hosted personal Telegram client | Browser OAuth | `https://telegram-mcp.chiho.ai/mcp` |
 | **tgchats local** (`tgchats-local`) | Local stdio process | Local Telegram login | `tgchats-mcp` |
 
 ### Codex
@@ -207,11 +213,12 @@ explicit `chiho.crm.extended` consent and their individual permissions.
 ```bash
 claude plugin marketplace add chihoai/telegram-for-ai-agents
 claude plugin install chiho-telegram@chiho
+claude plugin enable chiho-telegram@chiho
 ```
 
-Open `/mcp`, select `chiho-cloud`, and complete browser OAuth. For the self-hosted package, run the same build and `npm link` steps above, then install `tgchats-local@chiho` instead.
+The hosted packages install disabled, so enable them before connecting. Open `/mcp`, select `chiho-cloud`, and complete browser OAuth. For the self-hosted package, run the same build and `npm link` steps above, then install `tgchats-local@chiho` instead.
 
-For the separate personal Telegram client, install `unofficial-telegram-mcp@chiho`, open `/mcp`, select `telegram-cloud`, and complete OAuth for the exact `/mcp/v2` resource. This package does not include Chiho CRM or team tools.
+For the separate personal Telegram client, install and enable `unofficial-telegram-mcp@chiho`, open `/mcp`, select `telegram-cloud`, and complete OAuth for `https://telegram-mcp.chiho.ai/mcp`. An existing `/mcp/v2` connection is a separate resource and needs an explicit reconnect. This package does not include Chiho CRM or team tools.
 
 ### Claude.ai, Claude Desktop, and Cowork
 
@@ -221,7 +228,7 @@ Add a custom connector with this exact URL:
 https://api.chiho.ai/mcp
 ```
 
-For Unofficial Telegram MCP, use `https://telegram-mcp.chiho.ai/mcp/v2` instead.
+For Unofficial Telegram MCP, use `https://telegram-mcp.chiho.ai/mcp` instead.
 
 Select **Connect** and complete OAuth in the browser. Do not enter a personal
 access token, custom bearer header, or OAuth client secret. Free, Pro, and Max

@@ -4,14 +4,15 @@ Use `skills/catalog.json` as the machine-readable source for catalog discovery.
 
 ## Plugin packages
 
-The repository is a marketplace containing two separate plugin roots:
+The repository is a marketplace containing three separate plugin roots:
 
 | Package | Path | MCP server | Authentication |
 | --- | --- | --- | --- |
-| `chiho-telegram` | `plugins/chiho-telegram` | `https://api.chiho.ai/mcp/v8` | Browser OAuth |
+| `chiho-telegram` | `plugins/chiho-telegram` | `https://api.chiho.ai/mcp` | Browser OAuth |
+| `unofficial-telegram-mcp` | `plugins/unofficial-telegram-mcp` | `https://telegram-mcp.chiho.ai/mcp` | Browser OAuth |
 | `tgchats-local` | `plugins/tgchats-local` | Local stdio `tgchats-mcp` | Local Telegram session |
 
-Both packages have independent Codex and Claude manifests, MCP configuration, and one focused entry skill. Neither package references the other package's server.
+Each package has its own MCP configuration and one focused entry skill. `chiho-telegram` and `tgchats-local` have Codex and Claude manifests; `unofficial-telegram-mcp` ships a Claude manifest, and its OpenAI package is built from `scripts/templates`. No package references another package's server.
 
 - Codex marketplace: `.agents/plugins/marketplace.json`
 - Claude marketplace: `.claude-plugin/marketplace.json`

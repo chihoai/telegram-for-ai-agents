@@ -150,8 +150,10 @@ export async function runFolders(ctx: AppContext, args: string[]): Promise<void>
       throw new Error('Usage: tgchats folders rename <id|title> --title "Customers"');
     }
     await ensureAuthorized(ctx.telegram);
+    // mtcute matches a string folder by title only, so resolve IDs first.
+    const folder = await resolveFolderByRef(ctx.telegram, folderRef);
     await ctx.telegram.editFolder({
-      folder: folderRef,
+      folder: folder.id,
       modification: { title: toTextWithEntities(title) },
     });
     if (ctx.config.jsonOutput) {

@@ -11,21 +11,21 @@ Choose the product the user intends. Do not configure multiple Telegram packages
 
 Use this package for Chiho CRM or shared team workflows.
 
-- MCP URL: `https://api.chiho.ai/mcp/v8`
+- MCP URL: `https://api.chiho.ai/mcp`
 - Authentication: browser OAuth discovered from the server
 - Telegram session and CRM: hosted by Chiho
 - Package: `plugins/chiho-telegram`
 - Interactive onboarding: never uses a personal access token
 
-Connect Telegram at `https://chiho.ai`, install or add the hosted connector, authenticate in the browser, and start with `auth_status`.
+Connect Telegram at `https://chiho.ai`, install or add the hosted connector, and authenticate in the browser. Call `get_profile` first to confirm the intended Chiho profile, then `auth_status` and `account_whoami`.
 
-Claude.ai, Claude Desktop, and Cowork users can add `https://api.chiho.ai/mcp/v8` as a custom connector. Claude Code and Codex users can install the hosted package from this repository's `chiho` marketplace.
+Claude.ai, Claude Desktop, and Cowork users can add `https://api.chiho.ai/mcp` as a custom connector. Claude Code and Codex users can install the hosted package from this repository's `chiho` marketplace.
 
 Advanced service tokens belong only to explicitly requested headless automation. Do not offer them as an alternative when interactive OAuth needs troubleshooting.
 
 ## Hosted: Unofficial Telegram MCP
 
-Use `plugins/unofficial-telegram-mcp` for personal Telegram client work without Chiho CRM or team tools. Its OAuth resource is `https://telegram-mcp.chiho.ai/mcp/v2`. Complete a separate browser consent for this exact resource. Do not copy an OAuth grant from the Chiho CRM connection.
+Use `plugins/unofficial-telegram-mcp` for personal Telegram client work without Chiho CRM or team tools. Its OAuth resource is `https://telegram-mcp.chiho.ai/mcp`. Complete a separate browser consent for this exact resource, then call `get_profile` first. An existing `/mcp/v2` connection is a different resource and needs an explicit reconnect. Do not copy an OAuth grant from the Chiho CRM connection.
 
 ## Self-hosted: tgchats local
 

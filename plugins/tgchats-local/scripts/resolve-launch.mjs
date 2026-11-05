@@ -4,7 +4,6 @@ import { join } from "node:path";
 export function resolveTgchatsMcpLaunch({
   pluginRoot,
   repositoryRoot = join(pluginRoot, "..", ".."),
-  currentWorkingDirectory = process.cwd(),
   platform = process.platform,
   executablePath = process.execPath,
   commandInterpreter = process.env.ComSpec || "cmd.exe",
@@ -36,17 +35,21 @@ export function resolveTgchatsMcpLaunch({
     };
   }
 
+  // Installed plugins land here because clients copy only the plugin folder.
+  // Run from the plugin root, never the client's project directory: Claude
+  // Code ignores the configured cwd, and a project's .env must not configure
+  // the server.
   if (platform === "win32") {
     return {
       command: commandInterpreter,
       args: ["/d", "/s", "/c", "tgchats-mcp.cmd"],
-      cwd: currentWorkingDirectory,
+      cwd: pluginRoot,
     };
   }
 
   return {
     command: "tgchats-mcp",
     args: [],
-    cwd: currentWorkingDirectory,
+    cwd: pluginRoot,
   };
 }

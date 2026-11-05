@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type { AppConfig } from '../app/config.js';
+import { ensurePrivateDir, writePrivateFile } from '../app/privateFiles.js';
 import type { TelegramClient } from '@mtcute/node';
 import type { OpaqueCursorCodec } from './opaqueCursor.js';
 import { listDialogs } from './telegram.js';
@@ -55,8 +56,8 @@ async function loadState(config: AppConfig) {
 }
 
 async function saveState(config: AppConfig, state: UpdateStoreState) {
-  await mkdir(dirname(statePath(config)), { recursive: true });
-  await writeFile(statePath(config), JSON.stringify(state, null, 2));
+  await ensurePrivateDir(dirname(statePath(config)));
+  await writePrivateFile(statePath(config), JSON.stringify(state, null, 2));
 }
 
 async function sampleDialogChanges(client: TelegramClient, state: UpdateStoreState) {

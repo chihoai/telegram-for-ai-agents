@@ -8,7 +8,7 @@ metadata:
   chiho.risk: high
   chiho.requiresApproval: "true"
   chiho.cloudScopes: telegram.read, telegram.message.preview, telegram.message.send, telegram.batch.write
-allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(outbox_preview) mcp(write_approve_preview) mcp(outbox_send_approved)
+allowed-tools: mcp(dialogs_list) mcp(chat_read) mcp(outbox_preview) mcp(outbox_send_approved)
 ---
 
 # telegram-bulk-template-message
@@ -29,7 +29,7 @@ Use this skill to send one approved template to multiple Telegram chats.
 1. Use `dialogs_list` and `chat_read` as needed to resolve recipients.
 2. Call `outbox_preview` with recipients and template/message text.
 3. Show the preview summary: recipients, skipped targets, scheduled time, and risk.
-4. If approval is required, call `write_approve_preview` with the `previewId` after the user approves.
+4. If the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho. A client tool prompt does not replace this approval.
 5. Call `outbox_send_approved` with the approved `previewId`.
 6. Return the execution report and any failures.
 

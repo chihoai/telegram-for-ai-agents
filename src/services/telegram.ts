@@ -1,6 +1,7 @@
 import type { TelegramClient, Message, Peer, User } from '@mtcute/node';
 import { Dialog, Long, tl } from '@mtcute/node';
 import qrcodeTerminal from 'qrcode-terminal';
+import { CliError } from '../app/errors.js';
 
 const RATE_LIMIT_ERROR_PREFIX_RE = /^(FLOOD_WAIT|SLOWMODE_WAIT|FLOOD_TEST_PHONE_WAIT|FLOOD_PREMIUM_WAIT)$/;
 const RATE_LIMIT_ERROR_RE = /\b(FLOOD_WAIT|SLOWMODE_WAIT|FLOOD_TEST_PHONE_WAIT|FLOOD_PREMIUM_WAIT)_(\d+)\b/;
@@ -186,7 +187,34 @@ export function buildAiConversation(messages: Message[]): AiConversationMessage[
     }));
 }
 
-export async function ensureAuthorized(client: TelegramClient): Promise<void> {
+function isInteractiveTerminal() {
+  return Boolean(process.stdin.isTTY && process.stdout.isTTY);
+}
+
+function notAuthorized(): never {
+  throw new CliError(
+    'Telegram session is not authorized. Run `tgchats auth` in an interactive terminal.',
+    'TELEGRAM_AUTH_FAILED',
+  );
+}
+
+export async function ensureAuthorized(
+  client: TelegramClient,
+  options: { interactive?: boolean } = {},
+): Promise<void> {
+  // MCP stdio and piped JSON runs cannot answer a login prompt. An open QR
+  // login never returns and would block every queued tool call, and readline
+  // prompts would corrupt the MCP stream, so fail fast instead. Only the
+  // explicit `tgchats auth` command may start a login without a terminal.
+  if (!(options.interactive ?? isInteractiveTerminal())) {
+    await client.start({
+      phone: notAuthorized,
+      code: notAuthorized,
+      password: notAuthorized,
+    });
+    return;
+  }
+
   try {
     await client.start({
       qrCodeHandler: (url, expires) => {
@@ -599,10 +627,14 @@ export async function resolveFolderByRef(
   folderRef: string,
 ): Promise<tl.RawDialogFilter> {
   const folders = await listEditableFolders(client);
-  const asId = Number.parseInt(folderRef, 10);
-  const folder = Number.isInteger(asId)
-    ? folders.find((item) => item.id === asId)
-    : folders.find((item) => folderTitle(item).toLowerCase() === folderRef.toLowerCase());
+  const ref = folderRef.trim();
+  // Only an all-digit reference is an ID; a title such as "3 Leads" must not
+  // resolve to folder 3.
+  const byId = /^\d+$/.test(ref)
+    ? folders.find((item) => item.id === Number(ref))
+    : undefined;
+  const folder =
+    byId ?? folders.find((item) => folderTitle(item).toLowerCase() === ref.toLowerCase());
 
   if (!folder) {
     throw new Error(`Folder not found: ${folderRef}`);

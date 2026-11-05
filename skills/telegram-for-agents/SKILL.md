@@ -11,17 +11,17 @@ Choose one product and avoid duplicate Telegram tool registrations.
 
 Use the hosted package by default when the user has or wants a Chiho account.
 
-- Connect to `https://api.chiho.ai/mcp/v8` through browser OAuth.
+- Connect to `https://api.chiho.ai/mcp` through browser OAuth.
 - Never ask an interactive user to mint or paste a personal access token.
 - Keep hosted sessions and CRM data in Chiho.
 - Use the `chiho-telegram` plugin package for Claude Code and Codex.
 - Use the same canonical URL as a custom connector in Claude.ai, Claude Desktop, or Cowork.
 
-Start with `auth_status`, then call the narrowest tool for the user's request. Respect client write prompts and Chiho's preview/approval controls.
+Start with `get_profile` to confirm the intended Chiho profile, then `auth_status`, then call the narrowest tool for the user's request. Respect client write prompts and Chiho's preview/approval controls.
 
 ## Unofficial Telegram MCP
 
-For personal Telegram client reads and message actions without Chiho CRM or team workflows, use the `unofficial-telegram-mcp` plugin and its exact OAuth resource `https://telegram-mcp.chiho.ai/mcp/v2`. Do not reuse a grant from the CRM resource.
+For personal Telegram client reads and message actions without Chiho CRM or team workflows, use the `unofficial-telegram-mcp` plugin and its exact OAuth resource `https://telegram-mcp.chiho.ai/mcp`. Do not reuse a grant from the CRM resource or from the older `/mcp/v2` resource.
 
 ## tgchats local
 

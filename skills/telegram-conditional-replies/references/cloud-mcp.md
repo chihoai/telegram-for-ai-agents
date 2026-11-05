@@ -22,7 +22,6 @@ Write tools for message execution:
 
 - `message_send_draft`
 - `outbox_preview`
-- `write_approve_preview`
 - `outbox_send_approved`
 
-Chiho Cloud does not expose the local-only rule dry-run tool. Review the rule conditions and affected scope before calling `rules_run`. Use `outbox_preview` for a non-sending message preview, call `write_approve_preview` only after explicit approval, and then call `outbox_send_approved` to execute the approved preview. Approval alone does not send. `message_send_draft` sends directly.
+Chiho Cloud does not expose the local-only rule dry-run tool. Review the rule conditions and affected scope before calling `rules_run`. Use `outbox_preview` for a non-sending message preview. When it returns `approvalUrl`, give that link to the user and wait for them to approve the exact preview in Chiho, then call `outbox_send_approved` to execute the approved preview. Approval alone does not send. `message_send_draft` sends directly.

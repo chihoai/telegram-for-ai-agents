@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { copyFile, mkdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { copyFile, readFile, stat } from 'node:fs/promises';
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import type { AppConfig } from '../app/config.js';
+import { ensurePrivateDir, restrictFile, writePrivateFile } from '../app/privateFiles.js';
 
 const DOWNLOAD_TTL_MS = 10 * 60 * 1000;
 const UPLOAD_TTL_MS = 24 * 60 * 60 * 1000;
@@ -87,8 +88,9 @@ export async function stageManagedUpload(config: AppConfig, sourcePath: string) 
   const fileName = safeFileName(absoluteSource);
   const uploadsDir = join(storeRoot(config), 'uploads');
   const storedPath = join(uploadsDir, `${uploadRef}${extname(fileName).toLowerCase()}`);
-  await mkdir(uploadsDir, { recursive: true });
+  await ensurePrivateDir(uploadsDir);
   await copyFile(absoluteSource, storedPath);
+  await restrictFile(storedPath);
   const createdAt = new Date();
   const record: ManagedUploadRecord = {
     uploadRef,
@@ -101,7 +103,7 @@ export async function stageManagedUpload(config: AppConfig, sourcePath: string) 
     createdAt: createdAt.toISOString(),
     expiresAt: new Date(createdAt.getTime() + UPLOAD_TTL_MS).toISOString(),
   };
-  await writeFile(uploadRecordPath(config, uploadRef), JSON.stringify(record, null, 2));
+  await writePrivateFile(uploadRecordPath(config, uploadRef), JSON.stringify(record, null, 2));
   return record;
 }
 
@@ -143,8 +145,8 @@ export async function createMediaDownloadReference(
     createdAt: createdAt.toISOString(),
     expiresAt: new Date(createdAt.getTime() + DOWNLOAD_TTL_MS).toISOString(),
   };
-  await mkdir(join(storeRoot(config), 'downloads'), { recursive: true });
-  await writeFile(downloadRecordPath(config, downloadRef), JSON.stringify(record, null, 2));
+  await ensurePrivateDir(join(storeRoot(config), 'downloads'));
+  await writePrivateFile(downloadRecordPath(config, downloadRef), JSON.stringify(record, null, 2));
   return record;
 }
 

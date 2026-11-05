@@ -232,7 +232,6 @@ assert(
 const windowsCacheLaunch = resolveTgchatsMcpLaunch({
   pluginRoot: "C:\\codex-cache\\tgchats-local",
   repositoryRoot: "C:\\codex-cache\\missing-repository",
-  currentWorkingDirectory: "C:\\codex-cache\\tgchats-local",
   platform: "win32",
   executablePath: "C:\\Program Files\\nodejs\\node.exe",
   commandInterpreter: "C:\\Windows\\System32\\cmd.exe",
@@ -243,6 +242,17 @@ assert(
     JSON.stringify(windowsCacheLaunch.args) ===
       JSON.stringify(["/d", "/s", "/c", "tgchats-mcp.cmd"]),
   "Windows cache installs must launch the npm .cmd shim through cmd.exe",
+);
+const projectCacheLaunch = resolveTgchatsMcpLaunch({
+  pluginRoot: "/claude-cache/tgchats-local",
+  repositoryRoot: "/claude-cache/missing-repository",
+  platform: "darwin",
+  fileExists: () => false,
+});
+assert(
+  projectCacheLaunch.command === "tgchats-mcp" &&
+    projectCacheLaunch.cwd === "/claude-cache/tgchats-local",
+  "Cache installs must run tgchats-mcp from the plugin root, not the client's project directory",
 );
 
 const codexMarketplace = JSON.parse(
@@ -616,44 +626,45 @@ for (const requiredTool of [
     `Hosted skill must document ${requiredTool}`,
   );
 }
+// Hosted executors run only after the user approves the preview's
+// approvalUrl in Chiho, so each reference must say so in one instruction.
 for (const [relativePath, orderedTools] of [
   [
     "skills/telegram-conditional-replies/references/cloud-mcp.md",
-    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+    ["outbox_preview", "approvalUrl", "outbox_send_approved"],
   ],
   [
     "skills/telegram-bulk-template-message/references/cloud-mcp.md",
-    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+    ["outbox_preview", "approvalUrl", "outbox_send_approved"],
   ],
   [
     "skills/telegram-human-verification-challenge/references/cloud-mcp.md",
-    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+    ["outbox_preview", "approvalUrl", "outbox_send_approved"],
   ],
   [
     "skills/telegram-chat-identity-challenge/references/cloud-mcp.md",
-    ["outbox_preview", "write_approve_preview", "outbox_send_approved"],
+    ["outbox_preview", "approvalUrl", "outbox_send_approved"],
   ],
   [
     "skills/telegram-add-colleagues-to-group/references/cloud-mcp.md",
-    [
-      "members_invite_preview",
-      "write_approve_preview",
-      "members_invite_approved",
-    ],
+    ["members_invite_preview", "approvalUrl", "members_invite_approved"],
   ],
   [
     "skills/telegram-group-cleanup/references/cloud-mcp.md",
-    ["groups_leave_preview", "write_approve_preview", "groups_leave_approved"],
+    ["groups_leave_preview", "approvalUrl", "groups_leave_approved"],
   ],
 ]) {
   const workflowPath = path.join(projectRoot, relativePath);
   const workflow = await fs.readFile(workflowPath, "utf8");
-  const positions = orderedTools.map((toolName) => workflow.indexOf(toolName));
   assert(
-    positions.every(
-      (position, index) =>
-        position >= 0 && (index === 0 || position > positions[index - 1]),
-    ),
+    !workflow.includes("write_approve_preview") &&
+      workflow.split("\n").some((line) => {
+        const positions = orderedTools.map((step) => line.indexOf(step));
+        return positions.every(
+          (position, index) =>
+            position >= 0 && (index === 0 || position > positions[index - 1]),
+        );
+      }),
     `${relativePath} must document ${orderedTools.join(" -> ")} in execution order`,
   );
 }

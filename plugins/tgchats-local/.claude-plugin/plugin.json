@@ -1,6 +1,6 @@
 {
   "name": "tgchats-local",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Connect Claude to a self-hosted local tgchats Telegram MCP runtime.",
   "author": {
     "name": "Chiho",
