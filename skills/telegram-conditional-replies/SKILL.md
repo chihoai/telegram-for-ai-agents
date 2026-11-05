@@ -31,7 +31,7 @@ Use this skill for rule-driven reply workflows.
 4. On local tgchats, dry-run the rule with `rules_dry_run`. Chiho Cloud does not expose that local-only tool, so inspect the proposed conditions and affected scope without running the rule.
 5. Inspect outcomes with `rules_log`.
 6. Run the rule with `rules_run` only after the local dry-run or hosted review is acceptable and the user explicitly approves execution.
-7. For actual replies, create a non-sending preview with `outbox_preview`. On Chiho Cloud, if the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho, then call `outbox_send_approved`; local tgchats calls `outbox_send_approved` after the user approves in chat. `message_send_draft` is a direct-send tool and must only be used when the user explicitly asks to send immediately.
+7. For actual replies, create a non-sending preview with `outbox_preview`. On Chiho Cloud, if the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho, then call `outbox_send_approved`; without an approval link, call it only after the user's explicit approval in chat. Local tgchats calls `outbox_send_approved` after the user approves in chat. `message_send_draft` is a direct-send tool and must only be used when the user explicitly asks to send immediately.
 
 ## Execution Boundary
 

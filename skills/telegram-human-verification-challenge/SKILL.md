@@ -22,7 +22,7 @@ Use this skill to send a short reasoning challenge to a new, reopened, or suspic
 - Keep challenges simple, deterministic, and answerable in one short reply.
 - Do not ask for private information, account access, payment details, ID documents, or biometric proof.
 - Prefer `outbox_preview` so the user can approve or edit the message before it is sent.
-- On Chiho Cloud, if `outbox_preview` returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho, then call `outbox_send_approved`; approval alone does not send. On local tgchats, call `outbox_send_approved` after approval. Use `message_send_draft` only when the user explicitly requests immediate sending to one specific chat.
+- On Chiho Cloud, if `outbox_preview` returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho, then call `outbox_send_approved`; without an approval link, call it only after the user's explicit approval in chat. Approval alone does not send. On local tgchats, call `outbox_send_approved` after approval. Use `message_send_draft` only when the user explicitly requests immediate sending to one specific chat.
 - If the contact fails, ignores, or evades the challenge, tag or task the chat for manual verification instead of accusing them of being a bot.
 - Do not repeatedly challenge a contact who already passed unless the user asks or the risk context changed.
 
