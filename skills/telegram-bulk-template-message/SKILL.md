@@ -29,7 +29,7 @@ Use this skill to send one approved template to multiple Telegram chats.
 1. Use `dialogs_list` and `chat_read` as needed to resolve recipients.
 2. Call `outbox_preview` with recipients and template/message text.
 3. Show the preview summary: recipients, skipped targets, scheduled time, and risk.
-4. If the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho. A client tool prompt does not replace this approval.
+4. If the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho. A client tool prompt does not replace this approval. Without an approval link, continue only after the user's explicit approval in chat, unless team or token policy allows automatic execution.
 5. Call `outbox_send_approved` with the approved `previewId`.
 6. Return the execution report and any failures.
 

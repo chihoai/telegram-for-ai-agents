@@ -29,7 +29,7 @@ Use this skill to add or invite one Telegram user to one or more group chats.
 2. Use `chat_read` only when group context is needed for disambiguation.
 3. Call `members_invite_preview` with the target user and groups.
 4. Show the preview summary and ask for approval when policy requires it.
-5. On Chiho Cloud, if the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho. Local tgchats has no approval link; wait for the user's explicit approval in chat.
+5. On Chiho Cloud, if the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho. Without an approval link, wait for the user's explicit approval in chat, unless team or token policy allows automatic execution. Local tgchats has no approval link; wait for the user's explicit approval in chat.
 6. Call `members_invite_approved` with the approved `previewId`.
 7. Report added groups, invite-link fallbacks, skipped groups, and failures.
 
