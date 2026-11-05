@@ -29,7 +29,7 @@ Use this skill to identify and clean up stale or noisy Telegram groups.
 2. Use `chat_read` to inspect recent context for uncertain groups.
 3. Recommend actions: keep, tag, add follow-up task, move folder, archive recommendation, or leave.
 4. Use the folder-management tool available on the selected runtime, `tags_set`, or `tasks_add` for approved organization actions.
-5. Use `groups_leave_preview` first. On Chiho Cloud, if the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho, then call `groups_leave_approved`; local tgchats calls `groups_leave_approved` after the user approves in chat.
+5. Use `groups_leave_preview` first. On Chiho Cloud, if the preview returns `approvalUrl`, give it to the user and wait until they approve the exact preview in Chiho, then call `groups_leave_approved`; without an approval link, call it only after the user's explicit approval in chat, unless team or token policy allows automatic execution. Local tgchats calls `groups_leave_approved` after the user approves in chat.
 
 ## First-Time Setup
 
