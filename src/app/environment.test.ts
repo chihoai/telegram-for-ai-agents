@@ -65,4 +65,19 @@ describe("local environment discovery", () => {
       "/xdg/telegram-for-ai-agents/.env",
     ]);
   });
+
+  it("lets the MCP server ignore a project's .env in the current directory", () => {
+    expect(
+      getEnvironmentFileCandidates({
+        currentWorkingDirectory: "/some/project",
+        environment: {},
+        includeCurrentDirectory: false,
+        packageRoot: "/linked-package",
+        userHomeDirectory: "/home/user",
+      }),
+    ).toEqual([
+      "/linked-package/.env",
+      "/home/user/.config/telegram-for-ai-agents/.env",
+    ]);
+  });
 });

@@ -1,14 +1,55 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  ensureAuthorized,
   fetchChatHistory,
   getTelegramContacts,
   getTelegramDialogTotals,
   mapTelegramContact,
   resolveChatPeer,
+  resolveFolderByRef,
   telegramRateLimit,
   withTelegramRateLimitBackoff,
 } from './telegram.js';
 import { Dialog } from '@mtcute/node';
+
+function folder(id: number, title: string) {
+  return { _: 'dialogFilter', id, title: { _: 'textWithEntities', text: title, entities: [] } };
+}
+
+describe('resolveFolderByRef', () => {
+  const client = {
+    getFolders: vi.fn(async () => ({ filters: [folder(3, 'Family'), folder(7, '3 Leads')] })),
+  };
+
+  it('treats only all-digit references as folder IDs', async () => {
+    await expect(resolveFolderByRef(client as any, '3 Leads')).resolves.toMatchObject({ id: 7 });
+    await expect(resolveFolderByRef(client as any, '3')).resolves.toMatchObject({ id: 3 });
+    await expect(resolveFolderByRef(client as any, ' family ')).resolves.toMatchObject({ id: 3 });
+    await expect(resolveFolderByRef(client as any, '3 Family')).rejects.toThrow(/Folder not found/);
+  });
+});
+
+describe('ensureAuthorized', () => {
+  it('fails fast instead of prompting when it cannot ask the user', async () => {
+    const client = {
+      start: vi.fn(async (params: { phone: () => unknown }) => params.phone()),
+      input: vi.fn(),
+    };
+
+    await expect(ensureAuthorized(client as any, { interactive: false })).rejects.toMatchObject({
+      code: 'TELEGRAM_AUTH_FAILED',
+    });
+    expect(client.start).toHaveBeenCalledTimes(1);
+    expect(client.start.mock.calls[0][0]).not.toHaveProperty('qrCodeHandler');
+    expect(client.input).not.toHaveBeenCalled();
+  });
+
+  it('returns when an existing session is already authorized', async () => {
+    const client = { start: vi.fn(async () => ({ id: 1 })) };
+
+    await expect(ensureAuthorized(client as any, { interactive: false })).resolves.toBeUndefined();
+  });
+});
 
 describe('resolveChatPeer', () => {
   it('uses visible dialogs for numeric peer ids', async () => {

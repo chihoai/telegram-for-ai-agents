@@ -106,7 +106,7 @@ function parseAiMode(
 
 export function ensureSessionDir(sessionPath: string): void {
   try {
-    mkdirSync(dirname(sessionPath), { recursive: true });
+    mkdirSync(dirname(sessionPath), { recursive: true, mode: 0o700 });
   } catch {
     throw new CliError(
       'Telegram session storage directory could not be created. Check TELEGRAM_SESSION_PATH and local filesystem permissions.',

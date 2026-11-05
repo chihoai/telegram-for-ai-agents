@@ -232,7 +232,6 @@ assert(
 const windowsCacheLaunch = resolveTgchatsMcpLaunch({
   pluginRoot: "C:\\codex-cache\\tgchats-local",
   repositoryRoot: "C:\\codex-cache\\missing-repository",
-  currentWorkingDirectory: "C:\\codex-cache\\tgchats-local",
   platform: "win32",
   executablePath: "C:\\Program Files\\nodejs\\node.exe",
   commandInterpreter: "C:\\Windows\\System32\\cmd.exe",
@@ -243,6 +242,17 @@ assert(
     JSON.stringify(windowsCacheLaunch.args) ===
       JSON.stringify(["/d", "/s", "/c", "tgchats-mcp.cmd"]),
   "Windows cache installs must launch the npm .cmd shim through cmd.exe",
+);
+const projectCacheLaunch = resolveTgchatsMcpLaunch({
+  pluginRoot: "/claude-cache/tgchats-local",
+  repositoryRoot: "/claude-cache/missing-repository",
+  platform: "darwin",
+  fileExists: () => false,
+});
+assert(
+  projectCacheLaunch.command === "tgchats-mcp" &&
+    projectCacheLaunch.cwd === "/claude-cache/tgchats-local",
+  "Cache installs must run tgchats-mcp from the plugin root, not the client's project directory",
 );
 
 const codexMarketplace = JSON.parse(

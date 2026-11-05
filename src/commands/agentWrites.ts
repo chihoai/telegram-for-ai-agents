@@ -5,6 +5,7 @@ import {
   normalizePeerRef,
 } from '../services/telegram.js';
 import {
+  completeAgentWritePreview,
   createAgentWriteRunKey,
   createPayloadHash,
   loadAgentWriteRun,
@@ -15,6 +16,9 @@ import {
 import { printJson } from '../output.js';
 
 const MAX_BATCH_TARGETS = 20;
+const INVITE_LINK_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const INVITE_LINK_FALLBACK_NOTE =
+  'If Telegram blocks a direct add, a new single-use invite link that expires in 7 days is sent to the user by direct message. Existing invite links are not changed.';
 
 function payloadFromArgs(args: string[]) {
   const parsed = parseCommandArgs(args, ['--payload']);
@@ -129,7 +133,12 @@ async function sendInviteLinkFallback(
   ctx: AppContext,
   input: { group: string; userId: string; reason: string },
 ) {
-  const inviteLink = await ctx.telegram.exportInviteLink(normalizePeerRef(input.group));
+  // exportInviteLink would revoke the group's primary link; create a separate
+  // single-use link for this person instead.
+  const inviteLink = await ctx.telegram.createInviteLink(normalizePeerRef(input.group), {
+    usageLimit: 1,
+    expires: new Date(Date.now() + INVITE_LINK_TTL_MS),
+  });
   await ctx.telegram.sendText(
     normalizePeerRef(input.userId),
     `You've been invited to join this Telegram group: ${inviteLink.link}`,
@@ -188,6 +197,9 @@ export async function runOutbox(ctx: AppContext, args: string[]) {
     const text = stringValue(record.payload.text, 'text');
     const schedule = parseSchedule(record.payload.schedule);
     await ensureAuthorized(ctx.telegram);
+    // Claim the preview before the first send so a retry under another
+    // idempotency key, or after a crash mid-batch, cannot send it again.
+    await completeAgentWritePreview(ctx.config, record);
 
     const results = [];
     for (const peer of peers) {
@@ -262,7 +274,12 @@ export async function runMembers(ctx: AppContext, args: string[]) {
     const record = await saveAgentWritePreview(ctx.config, {
       kind: 'members.invite',
       payload: { userId, userAccessHash: payload.userAccessHash ?? null, groups },
-      summary: { userId, groupCount: groups.length, groups: groupSummaries },
+      summary: {
+        userId,
+        groupCount: groups.length,
+        groups: groupSummaries,
+        fallback: INVITE_LINK_FALLBACK_NOTE,
+      },
     });
     printJson({ ok: true, preview: record });
     return;
@@ -286,6 +303,7 @@ export async function runMembers(ctx: AppContext, args: string[]) {
     const userId = stringValue(record.payload.userId, 'userId');
     const groups = stringArray(record.payload.groups, 'groups');
     await ensureAuthorized(ctx.telegram);
+    await completeAgentWritePreview(ctx.config, record);
     const results = [];
     for (const group of groups) {
       try {
@@ -381,6 +399,7 @@ export async function runGroups(ctx: AppContext, args: string[]) {
     const groups = stringArray(record.payload.groups, 'groups');
     const clear = Boolean(record.payload.clear);
     await ensureAuthorized(ctx.telegram);
+    await completeAgentWritePreview(ctx.config, record);
     const results = [];
     for (const group of groups) {
       try {

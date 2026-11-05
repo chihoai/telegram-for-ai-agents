@@ -22,7 +22,7 @@ export async function runAuth(ctx: AppContext, args: string[] = []): Promise<voi
     return;
   }
 
-  await ensureAuthorized(ctx.telegram);
+  await ensureAuthorized(ctx.telegram, { interactive: true });
   const me = await ctx.telegram.getMe();
   if (ctx.config.jsonOutput) {
     printJson({

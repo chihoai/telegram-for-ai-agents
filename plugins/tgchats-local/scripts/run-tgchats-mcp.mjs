@@ -36,7 +36,7 @@ child.on("exit", (code, signal) => {
 
 child.on("error", (error) => {
   console.error(
-    "Unable to start tgchats local. Build this repository or install the tgchats-mcp binary in PATH.",
+    "Unable to start tgchats local. Install the tgchats-mcp binary in PATH (npm install, npm run build, and npm link in a clone of chihoai/telegram-for-ai-agents).",
   );
   console.error(error.message);
   process.exit(1);

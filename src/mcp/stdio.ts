@@ -8,13 +8,15 @@ import {
   type CallToolResult,
 } from "@modelcontextprotocol/sdk/types.js";
 import { loadEnvironment } from "../app/environment.js";
+import { restrictProcessFileCreation } from "../app/privateFiles.js";
 import {
   getPublicMcpToolContractDefinitions,
   getToolContractDefinitions,
 } from "../contracts/tool-contracts.js";
 import { executeLocalToolCall } from "../core/tool-dispatch.js";
 
-loadEnvironment();
+restrictProcessFileCreation();
+loadEnvironment({ includeCurrentDirectory: false });
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);

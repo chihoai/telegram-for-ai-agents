@@ -12,6 +12,9 @@ const defaultPackageRoot = resolve(
 type EnvironmentOptions = {
   currentWorkingDirectory?: string;
   environment?: NodeJS.ProcessEnv;
+  // The MCP server starts in whatever directory the client chose (Claude Code
+  // uses the open project), so a project's .env must not configure it.
+  includeCurrentDirectory?: boolean;
   packageRoot?: string;
   userHomeDirectory?: string;
 };
@@ -19,6 +22,7 @@ type EnvironmentOptions = {
 export function getEnvironmentFileCandidates({
   currentWorkingDirectory = process.cwd(),
   environment = process.env,
+  includeCurrentDirectory = true,
   packageRoot = defaultPackageRoot,
   userHomeDirectory = homedir(),
 }: EnvironmentOptions = {}) {
@@ -27,7 +31,7 @@ export function getEnvironmentFileCandidates({
     : join(userHomeDirectory, ".config");
   const candidates = [
     environment.TGCHATS_ENV_PATH,
-    join(currentWorkingDirectory, ".env"),
+    includeCurrentDirectory ? join(currentWorkingDirectory, ".env") : undefined,
     join(packageRoot, ".env"),
     join(configRoot, "telegram-for-ai-agents", ".env"),
   ];

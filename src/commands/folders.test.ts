@@ -84,6 +84,17 @@ describe("runFolders", () => {
     });
   });
 
+  it("renames a folder referenced by ID", async () => {
+    const ctx = createContext(tempDir);
+
+    await runFolders(ctx, ["rename", "7", "--title", "Leads", "--json"]);
+
+    expect(ctx.telegram.editFolder).toHaveBeenCalledWith({
+      folder: 7,
+      modification: { title: { _: "textWithEntities", text: "Leads", entities: [] } },
+    });
+  });
+
   it("does not replay folder create without an explicit idempotency key", async () => {
     const ctx = createContext(tempDir);
 

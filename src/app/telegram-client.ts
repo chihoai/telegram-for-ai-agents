@@ -3,6 +3,7 @@ import { TelegramClient, SqliteStorage } from '@mtcute/node';
 import { createProxyTransport } from '../proxy.js';
 import type { AppConfig } from './config.js';
 import { CliError } from './errors.js';
+import { restrictSqliteFilesSync } from './privateFiles.js';
 
 interface SqliteDatabase {
   close(): void;
@@ -86,6 +87,7 @@ export function createTelegramClient(config: AppConfig): TelegramClient {
   }
 
   const probe = probeTelegramSessionStorage(config.sessionPath);
+  restrictSqliteFilesSync(config.sessionPath);
   if (probe.warning && !config.jsonOutput) {
     console.log(probe.warning);
   }

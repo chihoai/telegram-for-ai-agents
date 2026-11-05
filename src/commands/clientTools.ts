@@ -72,6 +72,40 @@ function parseSchedule(value: unknown) {
   return date;
 }
 
+function yesNo(value: boolean) {
+  return value ? 'yes' : 'no';
+}
+
+// The summary is the only human-readable part of a strict preview result, so
+// it must state every effect the approved executor will apply.
+export function describeMessageAction(action: TelegramMessageAction) {
+  const message = `Telegram message ${action.messageId}`;
+  switch (action.action) {
+    case 'edit':
+      return `Edit ${message} in ${action.peer}. New text: ${JSON.stringify(action.text)}`;
+    case 'delete':
+      return `Delete ${message} in ${action.peer} ${
+        action.revoke ? 'for everyone' : 'for this account only'
+      }.`;
+    case 'forward':
+      return `Forward ${message} from ${action.peer} to ${action.targetPeer}.`;
+    case 'reaction':
+      return action.emoji
+        ? `Set the ${action.emoji} reaction on ${message} in ${action.peer}.`
+        : `Remove this account's reaction from ${message} in ${action.peer}.`;
+    case 'pin':
+      return `Pin ${message} in ${action.peer} (notify members: ${yesNo(
+        action.notify,
+      )}; pin for both sides: ${yesNo(action.bothSides)}).`;
+    case 'unpin':
+      return `Unpin ${message} in ${action.peer}.`;
+    case 'markRead':
+      return `Mark ${action.peer} read through ${message}.`;
+    case 'cancelScheduled':
+      return `Cancel scheduled ${message} in ${action.peer}.`;
+  }
+}
+
 function safeDownloadFileName(info: ReturnType<typeof safeMediaInfo>, messageId: number) {
   return info?.fileName ?? `telegram-${messageId}.${info?.type === 'photo' ? 'jpg' : 'bin'}`;
 }
@@ -142,7 +176,7 @@ export async function runMessageClientTools(ctx: AppContext, args: string[]) {
     const record = await saveAgentWritePreview(ctx.config, {
       kind: 'message.action',
       payload: action,
-      summary: { risk: `${action.action} Telegram message ${messageId} in ${peer}` },
+      summary: { risk: describeMessageAction(action) },
     });
     printJson({
       ok: true,
@@ -399,7 +433,13 @@ export async function runMedia(ctx: AppContext, args: string[]) {
     const record = await saveAgentWritePreview(ctx.config, {
       kind: 'media.send',
       payload: normalizedPayload,
-      summary: { risk: `send ${mediaKind} ${upload.fileName} to ${peer}` },
+      summary: {
+        risk: [
+          `Send ${mediaKind} ${JSON.stringify(upload.fileName)} to ${peer}`,
+          caption ? `with caption ${JSON.stringify(caption)}` : 'with no caption',
+          payload.schedule ? `scheduled for ${String(payload.schedule)}` : 'immediately',
+        ].join(', ') + '.',
+      },
     });
     printJson({
       ok: true,

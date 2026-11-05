@@ -1,7 +1,8 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import type { AppConfig } from '../app/config.js';
+import { ensurePrivateDir, writePrivateFile } from '../app/privateFiles.js';
 
 export type AgentWritePreviewKind =
   | 'outbox'
@@ -27,6 +28,9 @@ export interface AgentWritePreviewRecord {
 }
 
 const PREVIEW_TTL_MS = 30 * 60 * 1000;
+// Preview IDs become file names, so accept only IDs this store generates.
+const PREVIEW_ID_PATTERN =
+  /^(?:outbox|members\.invite|groups\.leave|message\.action|media\.send):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 function previewDir(config: AppConfig) {
   return join(dirname(config.sessionPath), 'agent-write-previews');
@@ -37,6 +41,9 @@ function runDir(config: AppConfig) {
 }
 
 function previewPath(config: AppConfig, previewId: string) {
+  if (!PREVIEW_ID_PATTERN.test(previewId)) {
+    throw new Error('Preview ID is invalid.');
+  }
   return join(previewDir(config), `${previewId}.json`);
 }
 
@@ -76,8 +83,8 @@ export async function saveAgentWritePreview(
     summary: input.summary,
   };
 
-  await mkdir(previewDir(config), { recursive: true });
-  await writeFile(previewPath(config, record.previewId), JSON.stringify(record, null, 2));
+  await ensurePrivateDir(previewDir(config));
+  await writePrivateFile(previewPath(config, record.previewId), JSON.stringify(record, null, 2));
   return record;
 }
 
@@ -92,6 +99,9 @@ export async function loadAgentWritePreview(
   }
 
   const record = JSON.parse(raw) as AgentWritePreviewRecord;
+  if (record.previewId !== previewId) {
+    throw new Error(`Preview ${previewId} failed its integrity check.`);
+  }
   if (record.kind !== expectedKind) {
     throw new Error(`Preview ${previewId} is not a ${expectedKind} preview.`);
   }
@@ -124,7 +134,7 @@ export async function completeAgentWritePreview(
   record: AgentWritePreviewRecord,
 ) {
   const completed = { ...record, status: 'completed' as const };
-  await writeFile(
+  await writePrivateFile(
     previewPath(config, record.previewId),
     JSON.stringify(completed, null, 2),
   );
@@ -149,12 +159,12 @@ export async function saveAgentWriteRun(
   runKey: string,
   payload: Record<string, unknown>,
 ) {
-  await mkdir(runDir(config), { recursive: true });
+  await ensurePrivateDir(runDir(config));
   const record = {
     ...payload,
     runKeyHash: createPayloadHash(runKey),
     storedAt: new Date().toISOString(),
   };
-  await writeFile(runPath(config, runKey), JSON.stringify(record, null, 2));
+  await writePrivateFile(runPath(config, runKey), JSON.stringify(record, null, 2));
   return record;
 }
